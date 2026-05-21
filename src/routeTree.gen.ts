@@ -19,6 +19,7 @@ import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
 import { Route as DexIndexRouteImport } from './routes/dex.index'
+import { Route as UAddressRouteImport } from './routes/u.$address'
 import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
 import { Route as DexSwapRouteImport } from './routes/dex.swap'
 import { Route as DexLiquidityRouteImport } from './routes/dex.liquidity'
@@ -73,6 +74,11 @@ const DexIndexRoute = DexIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DexRoute,
 } as any)
+const UAddressRoute = UAddressRouteImport.update({
+  id: '/u/$address',
+  path: '/u/$address',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
   id: '/marketplace/$id',
   path: '/marketplace/$id',
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
+  '/u/$address': typeof UAddressRoute
   '/dex/': typeof DexIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
 }
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
+  '/u/$address': typeof UAddressRoute
   '/dex': typeof DexIndexRoute
   '/marketplace': typeof MarketplaceIndexRoute
 }
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
+  '/u/$address': typeof UAddressRoute
   '/dex/': typeof DexIndexRoute
   '/marketplace/': typeof MarketplaceIndexRoute
 }
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
+    | '/u/$address'
     | '/dex/'
     | '/marketplace/'
   fileRoutesByTo: FileRoutesByTo
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
+    | '/u/$address'
     | '/dex'
     | '/marketplace'
   id:
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
+    | '/u/$address'
     | '/dex/'
     | '/marketplace/'
   fileRoutesById: FileRoutesById
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   WatchlistRoute: typeof WatchlistRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
+  UAddressRoute: typeof UAddressRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
 }
 
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DexIndexRouteImport
       parentRoute: typeof DexRoute
     }
+    '/u/$address': {
+      id: '/u/$address'
+      path: '/u/$address'
+      fullPath: '/u/$address'
+      preLoaderRoute: typeof UAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/marketplace/$id': {
       id: '/marketplace/$id'
       path: '/marketplace/$id'
@@ -314,8 +334,19 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   WatchlistRoute: WatchlistRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
+  UAddressRoute: UAddressRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
