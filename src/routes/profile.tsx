@@ -119,22 +119,56 @@ function Stat({ label, v }: { label: string; v: any }) {
 function EditDialog({ profile, onSave }: { profile: DBProfile | null; onSave: (p: Partial<DBProfile>) => Promise<void> }) {
   const [draft, setDraft] = useState<Partial<DBProfile>>({});
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState<"avatar" | "banner" | null>(null);
   useEffect(() => { setDraft(profile ?? {}); }, [profile]);
+
+  async function handleUpload(kind: "avatar" | "banner", file: File) {
+    try {
+      setUploading(kind);
+      const { uploadImage } = await import("@/lib/upload");
+      const url = await uploadImage(file, kind);
+      setDraft((d) => ({ ...d, [`${kind}_url`]: url }));
+      toast.success(`${kind} uploaded`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(null);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button variant="outline" size="sm"><Edit2 className="w-4 h-4 mr-2" /> Edit</Button></DialogTrigger>
-      <DialogContent className="glass">
+      <DialogContent className="glass max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Edit Profile</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <Input placeholder="Display name" value={draft.display_name ?? ""} onChange={(e) => setDraft({ ...draft, display_name: e.target.value })} />
-          <Input placeholder="Avatar URL" value={draft.avatar_url ?? ""} onChange={(e) => setDraft({ ...draft, avatar_url: e.target.value })} />
-          <Input placeholder="Banner URL" value={draft.banner_url ?? ""} onChange={(e) => setDraft({ ...draft, banner_url: e.target.value })} />
+
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Avatar</label>
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-muted overflow-hidden flex items-center justify-center text-2xl shrink-0">
+                {draft.avatar_url ? <img src={draft.avatar_url} alt="" className="w-full h-full object-cover" /> : "🌸"}
+              </div>
+              <Input type="file" accept="image/*" disabled={uploading === "avatar"}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("avatar", f); }} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Banner</label>
+            {draft.banner_url && <div className="h-20 w-full rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${draft.banner_url})` }} />}
+            <Input type="file" accept="image/*" disabled={uploading === "banner"}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("banner", f); }} />
+          </div>
+
           <Textarea placeholder="Bio" value={draft.bio ?? ""} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} />
           <Input placeholder="Twitter handle" value={draft.twitter ?? ""} onChange={(e) => setDraft({ ...draft, twitter: e.target.value })} />
           <Input placeholder="Website URL" value={draft.website ?? ""} onChange={(e) => setDraft({ ...draft, website: e.target.value })} />
-          <Button onClick={async () => { await onSave(draft); setOpen(false); }} className="w-full">Save</Button>
+          <Button onClick={async () => { await onSave(draft); setOpen(false); }} className="w-full" disabled={!!uploading}>Save</Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
