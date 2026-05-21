@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye } from "lucide-react";
+import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNFT, useOffers } from "@/lib/web3/hooks";
 import { useWallet } from "@/contexts/WalletContext";
-import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice } from "@/lib/web3/ethers";
+import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice, transferNFT, getMarketplaceFeeInfo } from "@/lib/web3/ethers";
+import { isAddress } from "ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
@@ -27,9 +28,13 @@ function NFTDetail() {
   const [offerPrice, setOfferPrice] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editing, setEditing] = useState(false);
+  const [transferTo, setTransferTo] = useState("");
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [feeBps, setFeeBps] = useState<number | null>(null);
   const { count: viewCount, increment } = useNFTViews(id);
 
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
+  useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
 
   const isOwner = address && nft && address.toLowerCase() === nft.owner.toLowerCase();
 
@@ -72,6 +77,9 @@ function NFTDetail() {
             <div className="flex justify-between"><span className="text-muted-foreground">Owner</span><span className="font-mono">{shortAddr(nft.owner)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Collection</span><span>SakuraNFT</span></div>
             {listing && <div className="flex justify-between"><span className="text-muted-foreground">Current Price</span><span className="font-bold text-primary">{listing.priceEth} {CHAIN.symbol}</span></div>}
+            {listing && feeBps !== null && (
+              <div className="flex justify-between"><span className="text-muted-foreground">Marketplace Fee</span><span>{(feeBps / 100).toFixed(2)}% · seller gets {(+listing.priceEth * (10000 - feeBps) / 10000).toFixed(4)} {CHAIN.symbol}</span></div>
+            )}
           </div>
 
           {listing && !isOwner && (
@@ -100,6 +108,29 @@ function NFTDetail() {
                     <Input type="number" step="0.001" placeholder={`New price in ${CHAIN.symbol}`} value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
                     <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), () => setEditing(false))} disabled={!editPrice}>Save</Button>
                     <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {isOwner && !listing && (
+            <div className="glass rounded-2xl p-4 space-y-3">
+              {!showTransfer ? (
+                <Button variant="outline" className="w-full" onClick={() => setShowTransfer(true)}>
+                  <ArrowRightLeft className="w-4 h-4 mr-2" /> Transfer NFT to another wallet
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Send this NFT</p>
+                  <div className="flex gap-2">
+                    <Input placeholder="Recipient 0x address" value={transferTo} onChange={(e) => setTransferTo(e.target.value)} />
+                    <Button onClick={() => {
+                      if (!isAddress(transferTo)) return toast.error("Invalid address");
+                      wrap("xfer",
+                        () => transferNFT(signer, transferTo, nft.tokenId),
+                        () => { setShowTransfer(false); setTransferTo(""); });
+                    }} disabled={!transferTo}>Send</Button>
+                    <Button variant="ghost" onClick={() => setShowTransfer(false)}>Cancel</Button>
                   </div>
                 </div>
               )}

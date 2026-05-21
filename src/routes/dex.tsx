@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { Repeat, Droplet } from "lucide-react";
+import { Repeat, Droplet, Coins } from "lucide-react";
 
 export const Route = createFileRoute("/dex")({
   component: DexLayout,
@@ -13,7 +13,7 @@ function DexLayout() {
         <h1 className="text-4xl font-bold gradient-text">Sakura DEX</h1>
         <p className="text-muted-foreground mt-1">Swap tokens & provide liquidity on LitVM.</p>
       </div>
-      <div className="glass rounded-full p-1.5 flex gap-1 max-w-sm mx-auto">
+      <div className="glass rounded-full p-1.5 flex gap-1 max-w-md mx-auto">
         <Link to="/dex/swap" className="flex-1 px-4 py-2 rounded-full text-sm font-medium text-center text-muted-foreground hover:text-foreground transition"
           activeProps={{ className: "flex-1 px-4 py-2 rounded-full text-sm font-medium text-center bg-primary text-primary-foreground shadow" }}>
           <Repeat className="w-4 h-4 inline mr-2" /> Swap
@@ -21,6 +21,10 @@ function DexLayout() {
         <Link to="/dex/liquidity" className="flex-1 px-4 py-2 rounded-full text-sm font-medium text-center text-muted-foreground hover:text-foreground transition"
           activeProps={{ className: "flex-1 px-4 py-2 rounded-full text-sm font-medium text-center bg-primary text-primary-foreground shadow" }}>
           <Droplet className="w-4 h-4 inline mr-2" /> Liquidity
+        </Link>
+        <Link to="/dex/wrap" className="flex-1 px-4 py-2 rounded-full text-sm font-medium text-center text-muted-foreground hover:text-foreground transition"
+          activeProps={{ className: "flex-1 px-4 py-2 rounded-full text-sm font-medium text-center bg-primary text-primary-foreground shadow" }}>
+          <Coins className="w-4 h-4 inline mr-2" /> Wrap
         </Link>
       </div>
       <Outlet />

@@ -149,6 +149,38 @@ export async function updateListingPrice(signer: any, listingId: bigint | number
   return tx.wait();
 }
 
+// Transfer NFT to another wallet
+export async function transferNFT(signer: any, to: string, tokenId: bigint | number) {
+  const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, signer);
+  const from = await signer.getAddress();
+  const tx = await nft.transferFrom(from, to, tokenId);
+  return tx.wait();
+}
+
+// Wrap native zkLTC -> WETH
+export async function wrapNative(signer: any, amountEth: string) {
+  const w = new Contract(CONTRACTS.weth, ERC20_ABI, signer);
+  const tx = await w.deposit({ value: parseEther(amountEth) });
+  return tx.wait();
+}
+
+// Unwrap WETH -> native
+export async function unwrapNative(signer: any, amountEth: string) {
+  const w = new Contract(CONTRACTS.weth, ERC20_ABI, signer);
+  const tx = await w.withdraw(parseEther(amountEth));
+  return tx.wait();
+}
+
+// Read marketplace fee (basis points) + fee recipient
+export async function getMarketplaceFeeInfo() {
+  const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
+  const [bps, recipient] = await Promise.all([
+    mp.marketplaceFee().catch(() => 0n),
+    mp.feeRecipient().catch(() => "0x0000000000000000000000000000000000000000"),
+  ]);
+  return { bps: Number(bps), percent: Number(bps) / 100, recipient: String(recipient) };
+}
+
 export async function makeOffer(signer: any, tokenId: bigint | number, priceEth: string) {
   const c = new Contract(CONTRACTS.offer, OFFER_ABI, signer);
   const tx = await c.makeOffer(CONTRACTS.nftCollection, tokenId, { value: parseEther(priceEth) });
