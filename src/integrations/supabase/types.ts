@@ -14,13 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      collections_metadata: {
+        Row: {
+          banner_url: string | null
+          contract_address: string
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string | null
+          verified: boolean
+        }
+        Insert: {
+          banner_url?: string | null
+          contract_address: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string | null
+          verified?: boolean
+        }
+        Update: {
+          banner_url?: string | null
+          contract_address?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string | null
+          verified?: boolean
+        }
+        Relationships: []
+      }
+      nft_views: {
+        Row: {
+          token_id: number
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          token_id: number
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          token_id?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string | null
+          read: boolean
+          title: string
+          token_id: number | null
+          type: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string | null
+          read?: boolean
+          title: string
+          token_id?: number | null
+          type: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string | null
+          read?: boolean
+          title?: string
+          token_id?: number | null
+          type?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          banner_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          twitter: string | null
+          updated_at: string
+          wallet_address: string
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          twitter?: string | null
+          updated_at?: string
+          wallet_address: string
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          banner_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          twitter?: string | null
+          updated_at?: string
+          wallet_address?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      watchlist: {
+        Row: {
+          created_at: string
+          id: string
+          token_id: number
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          token_id: number
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          token_id?: number
+          wallet_address?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_nft_view: { Args: { p_token_id: number }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

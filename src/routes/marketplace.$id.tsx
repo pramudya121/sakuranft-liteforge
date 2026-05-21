@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, Tag, ShoppingCart, X, Send, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { useWallet } from "@/contexts/WalletContext";
 import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
+import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
@@ -22,13 +23,20 @@ function NFTDetail() {
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
+  const { count: viewCount, increment } = useNFTViews(id);
+
+  useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
 
   const isOwner = address && nft && address.toLowerCase() === nft.owner.toLowerCase();
 
-  async function wrap<T>(label: string, fn: () => Promise<T>) {
+  async function wrap<T>(label: string, fn: () => Promise<T>, onSuccess?: () => void) {
     if (!signer) return toast.error("Connect wallet");
-    try { toast.loading("Confirm in wallet...", { id: label }); await fn(); toast.success("Success!", { id: label }); }
-    catch (e: any) { toast.error(e?.shortMessage ?? e?.message ?? "Failed", { id: label }); }
+    try {
+      toast.loading("Confirm in wallet...", { id: label });
+      await fn();
+      toast.success("Success!", { id: label });
+      onSuccess?.();
+    } catch (e: any) { toast.error(e?.shortMessage ?? e?.message ?? "Failed", { id: label }); }
   }
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
@@ -49,6 +57,9 @@ function NFTDetail() {
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
             <p className="text-muted-foreground mt-2">{nft.description || "No description."}</p>
+            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+              <Eye className="w-3 h-3" /> {viewCount} views
+            </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Owner</span><span className="font-mono">{shortAddr(nft.owner)}</span></div>
@@ -57,7 +68,10 @@ function NFTDetail() {
           </div>
 
           {listing && !isOwner && (
-            <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy", () => buyNFT(signer, listing.listingId, listing.price))}>
+            <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy",
+              () => buyNFT(signer, listing.listingId, listing.price),
+              () => pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`),
+            )}>
               <ShoppingCart className="w-4 h-4 mr-2" /> Buy Now for {listing.priceEth} {CHAIN.symbol}
             </Button>
           )}
@@ -82,7 +96,10 @@ function NFTDetail() {
               <p className="text-sm font-medium">Make an offer</p>
               <div className="flex gap-2">
                 <Input type="number" step="0.001" placeholder={`Offer in ${CHAIN.symbol}`} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
-                <Button variant="secondary" onClick={() => wrap("offer", () => makeOffer(signer, nft.tokenId, offerPrice))} disabled={!offerPrice}>
+                <Button variant="secondary" onClick={() => wrap("offer",
+                  () => makeOffer(signer, nft.tokenId, offerPrice),
+                  () => pushNotification(nft.owner, "offer", "💎 New offer received", `${offerPrice} ${CHAIN.symbol} offered on ${nft.name}`, nft.tokenId, `/marketplace/${id}`),
+                )} disabled={!offerPrice}>
                   <Send className="w-4 h-4 mr-2" /> Offer
                 </Button>
               </div>
@@ -108,7 +125,10 @@ function NFTDetail() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-primary">{o.valueEth} {CHAIN.symbol}</span>
-                    {o.active && isOwner && <Button size="sm" onClick={() => wrap("acc", () => acceptOffer(signer, nft.tokenId, o.idx))}><Check className="w-3 h-3 mr-1" /> Accept</Button>}
+                    {o.active && isOwner && <Button size="sm" onClick={() => wrap("acc",
+                      () => acceptOffer(signer, nft.tokenId, o.idx),
+                      () => pushNotification(o.offerer, "offer_accepted", "✅ Offer accepted!", `Your offer of ${o.valueEth} ${CHAIN.symbol} on ${nft.name} was accepted`, nft.tokenId, `/marketplace/${id}`),
+                    )}><Check className="w-3 h-3 mr-1" /> Accept</Button>}
                     {o.active && address?.toLowerCase() === o.offerer.toLowerCase() && (
                       <Button size="sm" variant="outline" onClick={() => wrap("co", () => cancelOffer(signer, nft.tokenId, o.idx))}><X className="w-3 h-3" /></Button>
                     )}

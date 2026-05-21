@@ -1,0 +1,172 @@
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+// ---------- Profile ----------
+export type DBProfile = {
+  wallet_address: string;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  banner_url: string | null;
+  twitter: string | null;
+  website: string | null;
+};
+
+export function useProfile(address?: string | null) {
+  const [profile, setProfile] = useState<DBProfile | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (!address) return setProfile(null);
+    setLoading(true);
+    const { data } = await supabase
+      .from("profiles")
+      .select("wallet_address, display_name, bio, avatar_url, banner_url, twitter, website")
+      .eq("wallet_address", address.toLowerCase())
+      .maybeSingle();
+    setProfile(data as DBProfile | null);
+    setLoading(false);
+  }, [address]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const save = useCallback(async (patch: Partial<DBProfile>) => {
+    if (!address) return;
+    const row = { wallet_address: address.toLowerCase(), ...patch };
+    const { data } = await supabase
+      .from("profiles")
+      .upsert(row, { onConflict: "wallet_address" })
+      .select()
+      .single();
+    if (data) setProfile(data as DBProfile);
+  }, [address]);
+
+  return { profile, loading, save, reload: load };
+}
+
+// ---------- Watchlist ----------
+export function useWatchlist(address?: string | null) {
+  const [items, setItems] = useState<string[]>([]);
+
+  const load = useCallback(async () => {
+    if (!address) { setItems([]); return; }
+    const { data } = await supabase
+      .from("watchlist")
+      .select("token_id")
+      .eq("wallet_address", address.toLowerCase());
+    setItems((data ?? []).map((r: { token_id: number | string }) => String(r.token_id)));
+  }, [address]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggle = useCallback(async (tokenId: string) => {
+    if (!address) return;
+    const wallet = address.toLowerCase();
+    const tid = BigInt(tokenId).toString();
+    const isFav = items.includes(tid);
+    if (isFav) {
+      setItems(items.filter((x) => x !== tid));
+      await supabase.from("watchlist").delete()
+        .eq("wallet_address", wallet).eq("token_id", Number(tid));
+    } else {
+      setItems([...items, tid]);
+      await supabase.from("watchlist").insert({ wallet_address: wallet, token_id: Number(tid) });
+    }
+  }, [address, items]);
+
+  return { items, toggle, reload: load };
+}
+
+// ---------- Notifications ----------
+export type Notification = {
+  id: string;
+  wallet_address: string;
+  type: string;
+  title: string;
+  message: string | null;
+  token_id: number | null;
+  link: string | null;
+  read: boolean;
+  created_at: string;
+};
+
+export function useNotifications(address?: string | null) {
+  const [list, setList] = useState<Notification[]>([]);
+
+  const load = useCallback(async () => {
+    if (!address) { setList([]); return; }
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("wallet_address", address.toLowerCase())
+      .order("created_at", { ascending: false })
+      .limit(30);
+    setList((data ?? []) as Notification[]);
+  }, [address]);
+
+  useEffect(() => {
+    load();
+    if (!address) return;
+    const channel = supabase
+      .channel(`notif-${address}`)
+      .on("postgres_changes", {
+        event: "INSERT", schema: "public", table: "notifications",
+        filter: `wallet_address=eq.${address.toLowerCase()}`,
+      }, (payload) => {
+        setList((prev) => [payload.new as Notification, ...prev]);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [address, load]);
+
+  const markAllRead = useCallback(async () => {
+    if (!address) return;
+    setList((p) => p.map((n) => ({ ...n, read: true })));
+    await supabase.from("notifications").update({ read: true })
+      .eq("wallet_address", address.toLowerCase()).eq("read", false);
+  }, [address]);
+
+  const unread = list.filter((n) => !n.read).length;
+  return { list, unread, markAllRead, reload: load };
+}
+
+export async function pushNotification(
+  to: string,
+  type: string,
+  title: string,
+  message?: string,
+  tokenId?: bigint | number,
+  link?: string,
+) {
+  await supabase.from("notifications").insert({
+    wallet_address: to.toLowerCase(),
+    type, title, message: message ?? null,
+    token_id: tokenId !== undefined ? Number(tokenId) : null,
+    link: link ?? null,
+  });
+}
+
+// ---------- Views ----------
+export function useNFTViews(tokenId?: string | bigint) {
+  const [count, setCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (tokenId === undefined) return;
+    const tid = Number(tokenId);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from("nft_views").select("view_count").eq("token_id", tid).maybeSingle();
+      if (!cancelled) setCount(Number(data?.view_count ?? 0));
+    })();
+    return () => { cancelled = true; };
+  }, [tokenId]);
+
+  const increment = useCallback(async () => {
+    if (tokenId === undefined) return;
+    const tid = Number(tokenId);
+    await supabase.rpc("increment_nft_view", { p_token_id: tid });
+    setCount((c) => c + 1);
+  }, [tokenId]);
+
+  return { count, increment };
+}
