@@ -57,6 +57,9 @@ function NFTDetail() {
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
             <p className="text-muted-foreground mt-2">{nft.description || "No description."}</p>
+            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+              <Eye className="w-3 h-3" /> {viewCount} views
+            </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Owner</span><span className="font-mono">{shortAddr(nft.owner)}</span></div>
@@ -65,7 +68,10 @@ function NFTDetail() {
           </div>
 
           {listing && !isOwner && (
-            <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy", () => buyNFT(signer, listing.listingId, listing.price))}>
+            <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy",
+              () => buyNFT(signer, listing.listingId, listing.price),
+              () => pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`),
+            )}>
               <ShoppingCart className="w-4 h-4 mr-2" /> Buy Now for {listing.priceEth} {CHAIN.symbol}
             </Button>
           )}
@@ -90,7 +96,10 @@ function NFTDetail() {
               <p className="text-sm font-medium">Make an offer</p>
               <div className="flex gap-2">
                 <Input type="number" step="0.001" placeholder={`Offer in ${CHAIN.symbol}`} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
-                <Button variant="secondary" onClick={() => wrap("offer", () => makeOffer(signer, nft.tokenId, offerPrice))} disabled={!offerPrice}>
+                <Button variant="secondary" onClick={() => wrap("offer",
+                  () => makeOffer(signer, nft.tokenId, offerPrice),
+                  () => pushNotification(nft.owner, "offer", "💎 New offer received", `${offerPrice} ${CHAIN.symbol} offered on ${nft.name}`, nft.tokenId, `/marketplace/${id}`),
+                )} disabled={!offerPrice}>
                   <Send className="w-4 h-4 mr-2" /> Offer
                 </Button>
               </div>
