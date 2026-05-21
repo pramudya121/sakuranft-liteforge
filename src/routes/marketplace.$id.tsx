@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye } from "lucide-react";
+import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNFT, useOffers } from "@/lib/web3/hooks";
 import { useWallet } from "@/contexts/WalletContext";
-import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice } from "@/lib/web3/ethers";
+import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice, transferNFT, getMarketplaceFeeInfo } from "@/lib/web3/ethers";
+import { isAddress } from "ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
@@ -27,9 +28,13 @@ function NFTDetail() {
   const [offerPrice, setOfferPrice] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editing, setEditing] = useState(false);
+  const [transferTo, setTransferTo] = useState("");
+  const [showTransfer, setShowTransfer] = useState(false);
+  const [feeBps, setFeeBps] = useState<number | null>(null);
   const { count: viewCount, increment } = useNFTViews(id);
 
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
+  useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
 
   const isOwner = address && nft && address.toLowerCase() === nft.owner.toLowerCase();
 
