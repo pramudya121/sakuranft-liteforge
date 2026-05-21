@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button";
 import type { NFTMeta, Listing } from "@/lib/web3/hooks";
 import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
-import { useLocalStorage } from "@/lib/web3/hooks";
+import { useWallet } from "@/contexts/WalletContext";
+import { useWatchlist } from "@/lib/supabase-hooks";
+import { toast } from "sonner";
 
 export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listing; onBuy?: () => void }) {
-  const [watch, setWatch] = useLocalStorage<string[]>("watchlist", []);
+  const { address } = useWallet();
+  const { items, toggle } = useWatchlist(address);
   const id = nft.tokenId.toString();
-  const isFav = watch.includes(id);
+  const isFav = items.includes(id);
   return (
     <div className="glass rounded-2xl overflow-hidden group hover:scale-[1.02] transition-all duration-300 glow-card flex flex-col">
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-accent/40 to-secondary/40">
@@ -19,8 +22,13 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
           <div className="w-full h-full flex items-center justify-center text-5xl">🌸</div>
         )}
         <button
-          onClick={(e) => { e.preventDefault(); setWatch(isFav ? watch.filter((x) => x !== id) : [...watch, id]); }}
+          onClick={(e) => {
+            e.preventDefault();
+            if (!address) { toast.error("Connect wallet to use watchlist"); return; }
+            toggle(id);
+          }}
           className="absolute top-3 right-3 w-9 h-9 rounded-full glass flex items-center justify-center hover:scale-110 transition"
+          aria-label="Toggle watchlist"
         >
           <Heart className={`w-4 h-4 ${isFav ? "fill-primary text-primary" : ""}`} />
         </button>

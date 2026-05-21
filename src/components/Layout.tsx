@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { SakuraBackground } from "./SakuraBackground";
 import { WalletButton } from "./WalletButton";
+import { NotificationBell } from "./NotificationBell";
 import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat } from "lucide-react";
 
 const navItems = [
@@ -40,7 +41,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               ))}
             </nav>
-            <WalletButton />
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <WalletButton />
+            </div>
           </div>
           {/* mobile nav */}
           <nav className="lg:hidden flex overflow-x-auto gap-1 px-3 pb-2 scrollbar-hide">
