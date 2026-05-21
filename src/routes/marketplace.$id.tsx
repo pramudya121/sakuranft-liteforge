@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, Tag, ShoppingCart, X, Send, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { useWallet } from "@/contexts/WalletContext";
 import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
+import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
@@ -22,13 +23,20 @@ function NFTDetail() {
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
+  const { count: viewCount, increment } = useNFTViews(id);
+
+  useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
 
   const isOwner = address && nft && address.toLowerCase() === nft.owner.toLowerCase();
 
-  async function wrap<T>(label: string, fn: () => Promise<T>) {
+  async function wrap<T>(label: string, fn: () => Promise<T>, onSuccess?: () => void) {
     if (!signer) return toast.error("Connect wallet");
-    try { toast.loading("Confirm in wallet...", { id: label }); await fn(); toast.success("Success!", { id: label }); }
-    catch (e: any) { toast.error(e?.shortMessage ?? e?.message ?? "Failed", { id: label }); }
+    try {
+      toast.loading("Confirm in wallet...", { id: label });
+      await fn();
+      toast.success("Success!", { id: label });
+      onSuccess?.();
+    } catch (e: any) { toast.error(e?.shortMessage ?? e?.message ?? "Failed", { id: label }); }
   }
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
