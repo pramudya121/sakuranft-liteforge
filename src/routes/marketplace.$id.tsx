@@ -115,6 +115,7 @@ function NFTDetail() {
       <Tabs defaultValue="offers" className="mt-8">
         <TabsList className="glass">
           <TabsTrigger value="offers">Offers ({offers.filter((o) => o.active).length})</TabsTrigger>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
           <TabsTrigger value="history">Transaction History</TabsTrigger>
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
         </TabsList>
