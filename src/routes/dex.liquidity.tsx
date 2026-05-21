@@ -12,6 +12,7 @@ import {
   getNativeBalance, getTokenBalance, uniQuote,
 } from "@/lib/web3/ethers";
 import { TOKENS, type TokenInfo } from "@/lib/tokens";
+import { TokenSelectButton } from "@/components/TokenSelectModal";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dex/liquidity")({
@@ -63,29 +64,12 @@ function LiquidityPage() {
   );
 }
 
-function TokenSelect({ value, onChange, options }: { value: TokenInfo; onChange: (t: TokenInfo) => void; options: TokenInfo[] }) {
+function NativeTokenBadge({ value }: { value: TokenInfo }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="flex items-center gap-2 px-3 py-2 rounded-full bg-background/70 hover:bg-background border shrink-0">
-          <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
-          <span className="font-semibold text-sm">{value.symbol}</span>
-          <ChevronDown className="w-3 h-3" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-56 p-1 glass">
-        {options.map((t) => (
-          <button key={t.symbol} onClick={() => onChange(t)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-accent/30 text-left">
-            <img src={t.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
-            <div className="flex-1">
-              <div className="text-sm font-semibold">{t.symbol}</div>
-              <div className="text-[10px] text-muted-foreground">{t.name}</div>
-            </div>
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1230] border border-white/10 shrink-0">
+      <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
+      <span className="font-semibold text-sm">{value.symbol}</span>
+    </div>
   );
 }
 
@@ -167,43 +151,43 @@ function AddLiq({ slippage }: { slippage: number }) {
   return (
     <div className="space-y-3">
       {/* TOKEN A */}
-      <div className="rounded-2xl p-4 bg-background/50 border">
+      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
         <div className="flex justify-between text-xs mb-2">
-          <span className="text-muted-foreground tracking-wider">TOKEN A</span>
-          <button onClick={() => setAmtA(balA)} className="text-primary hover:underline">
+          <span className="text-white/60 tracking-wider">TOKEN A</span>
+          <button onClick={() => setAmtA(balA)} className="text-fuchsia-300 hover:underline">
             Balance: {(+balA).toFixed(4)} <span className="font-bold ml-1">MAX</span>
           </button>
         </div>
         <div className="flex items-center gap-2">
           <Input type="number" placeholder="0.0" value={amtA}
             onChange={(e) => setAmtA(e.target.value)}
-            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12" />
-          <TokenSelect value={tokenA} onChange={() => {}} options={[NATIVE]} />
+            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-white" />
+          <NativeTokenBadge value={tokenA} />
         </div>
       </div>
 
       <div className="flex justify-center -my-1">
-        <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
+        <div className="w-8 h-8 rounded-full bg-fuchsia-500/20 border border-fuchsia-400/40 flex items-center justify-center text-fuchsia-300">
           <Plus className="w-4 h-4" />
         </div>
       </div>
 
       {/* TOKEN B */}
-      <div className="rounded-2xl p-4 bg-background/50 border">
+      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
         <div className="flex justify-between text-xs mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground tracking-wider">TOKEN B</span>
+            <span className="text-white/60 tracking-wider">TOKEN B</span>
             {poolActive && <span className="text-green-500 text-[10px]">● auto</span>}
           </div>
-          <button onClick={() => setAmtB(balB)} className="text-primary hover:underline">
+          <button onClick={() => setAmtB(balB)} className="text-fuchsia-300 hover:underline">
             Balance: {(+balB).toFixed(4)} <span className="font-bold ml-1">MAX</span>
           </button>
         </div>
         <div className="flex items-center gap-2">
           <Input type="number" placeholder="0.0" value={amtB}
             onChange={(e) => setAmtB(e.target.value)} readOnly={poolActive}
-            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12" />
-          <TokenSelect value={tokenB} onChange={setTokenB} options={TOKENS.filter((t) => t.address !== "native")} />
+            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-white" />
+          <TokenSelectButton value={tokenB} onChange={setTokenB} />
         </div>
       </div>
 
@@ -217,7 +201,7 @@ function AddLiq({ slippage }: { slippage: number }) {
       )}
 
       {/* Pool Info */}
-      <div className="rounded-2xl p-4 bg-background/30 border border-dashed">
+      <div className="rounded-2xl p-4 bg-[#160c26]/60 border border-white/10 border-dashed">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-semibold tracking-wider text-muted-foreground">POOL INFORMATION</p>
           <span className={`text-xs flex items-center gap-1 ${poolActive ? "text-green-500" : "text-muted-foreground"}`}>
@@ -245,7 +229,7 @@ function AddLiq({ slippage }: { slippage: number }) {
       </div>
 
       <Button size="lg" disabled={busy || !signer || !amtA || !amtB} onClick={handleAdd}
-        className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-base shadow-lg">
+        className="w-full h-12 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 text-white font-semibold text-base shadow-lg border-0">
         {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
           : !signer ? "Connect Wallet" : "Add Liquidity"}
       </Button>
