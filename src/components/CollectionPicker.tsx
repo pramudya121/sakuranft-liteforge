@@ -32,7 +32,28 @@ export function CollectionPicker({
   const [loading, setLoading] = useState(true);
   const [openCreate, setOpenCreate] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", logo_url: "" });
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleLogoUpload(file: File) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `collections/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("nft-images").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const url = supabase.storage.from("nft-images").getPublicUrl(path).data.publicUrl;
+      setForm((f) => ({ ...f, logo_url: url }));
+      toast.success("Logo uploaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
