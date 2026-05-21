@@ -2,11 +2,12 @@ import { Link } from "@tanstack/react-router";
 import { SakuraBackground } from "./SakuraBackground";
 import { WalletButton } from "./WalletButton";
 import { NotificationBell } from "./NotificationBell";
-import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat } from "lucide-react";
+import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat, Layers } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
   { to: "/marketplace", label: "Marketplace", icon: Store },
+  { to: "/collections", label: "Collections", icon: Layers },
   { to: "/mint", label: "Mint", icon: Plus },
   { to: "/activity", label: "Activity", icon: Activity },
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
@@ -15,6 +16,7 @@ const navItems = [
   { to: "/dex", label: "DEX", icon: Repeat },
   { to: "/profile", label: "Profile", icon: User },
 ];
+
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
