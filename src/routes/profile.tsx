@@ -67,15 +67,15 @@ function Profile() {
 
   return (
     <div className="space-y-8">
-      <div className="glass rounded-3xl overflow-hidden glow-card">
-        <div className="h-32 md:h-48 bg-cover bg-center relative"
+      <div className="glass rounded-3xl glow-card">
+        <div className="h-32 md:h-48 bg-cover bg-center relative rounded-t-3xl overflow-hidden"
              style={{ backgroundImage: profile?.banner_url
                ? `url(${profile.banner_url})`
                : "linear-gradient(135deg, oklch(0.6 0.18 350), oklch(0.55 0.2 280), oklch(0.6 0.18 220))" }}>
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
-        <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
-          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-16 md:-mt-20 border-4 border-background">
+        <div className="px-6 md:px-8 pb-6 md:pb-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
+          <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-14 md:-mt-16 border-4 border-background shadow-xl relative z-10">
             {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "🌸"}
           </div>
           <div className="flex-1 text-center md:text-left">
