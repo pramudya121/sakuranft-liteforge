@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Check, Loader2, Layers, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Check, Loader2, Layers, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,28 @@ export function CollectionPicker({
   const [loading, setLoading] = useState(true);
   const [openCreate, setOpenCreate] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", logo_url: "" });
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleLogoUpload(file: File) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const path = `collections/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("nft-images").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const url = supabase.storage.from("nft-images").getPublicUrl(path).data.publicUrl;
+      setForm((f) => ({ ...f, logo_url: url }));
+      toast.success("Logo uploaded");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -141,8 +162,24 @@ export function CollectionPicker({
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Winter Bloom Series" className="mt-1" />
             </div>
             <div>
-              <label className="text-xs font-medium">Logo URL</label>
-              <Input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://..." className="mt-1" />
+              <label className="text-xs font-medium">Logo</label>
+              <div className="flex items-center gap-2 mt-1">
+                {form.logo_url ? (
+                  <img src={form.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 border border-dashed border-border" />
+                )}
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="rounded-full">
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Upload className="w-3.5 h-3.5 mr-1" />}
+                  {form.logo_url ? "Change" : "Upload from device"}
+                </Button>
+                {form.logo_url && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, logo_url: "" })} className="text-muted-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-xs font-medium">Description</label>

@@ -5,6 +5,7 @@ import { NotificationBell } from "./NotificationBell";
 import { OnChainEventListener } from "./OnChainEventListener";
 import { ThemeToggle } from "./ThemeToggle";
 import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat, Layers } from "lucide-react";
+import sakuraLogo from "@/assets/sakura-logo.png";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
@@ -31,9 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-50 glass border-b">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-lg shadow-lg group-hover:scale-110 transition-transform">
-                🌸
-              </div>
+              <img src={sakuraLogo} alt="SakuraNFT" className="w-10 h-10 rounded-full shadow-lg group-hover:scale-110 transition-transform ring-1 ring-primary/40" />
               <span className="font-bold text-lg gradient-text">SakuraNFT</span>
             </Link>
             <nav className="hidden lg:flex items-center gap-1">
