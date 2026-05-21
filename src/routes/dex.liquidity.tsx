@@ -309,13 +309,13 @@ function RemoveLiq({ slippage }: { slippage: number }) {
             <img src={tokenB.logo} className="w-6 h-6 rounded-full" />
             <span className="font-semibold">{tokenB.symbol}</span>
           </div>
-          <TokenSelect value={tokenB} onChange={setTokenB} options={TOKENS.filter((t) => t.address !== "native")} />
+          <TokenSelectButton value={tokenB} onChange={setTokenB} />
         </div>
       </div>
 
-      <div className="rounded-2xl p-4 bg-background/50 border">
+      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
         <div className="flex items-baseline justify-between mb-3">
-          <span className="text-xs text-muted-foreground tracking-wider">REMOVE</span>
+          <span className="text-xs text-white/60 tracking-wider">REMOVE</span>
           <span className="text-3xl font-bold gradient-text">{pct}%</span>
         </div>
         <input type="range" min={0} max={100} step={1} value={pct}
@@ -334,7 +334,7 @@ function RemoveLiq({ slippage }: { slippage: number }) {
         </p>
       </div>
 
-      <div className="rounded-2xl p-4 bg-background/30 border border-dashed space-y-2 text-sm">
+      <div className="rounded-2xl p-4 bg-[#160c26]/60 border border-white/10 border-dashed space-y-2 text-sm">
         <p className="text-xs font-semibold tracking-wider text-muted-foreground mb-2">YOU WILL RECEIVE</p>
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-2"><img src={TOKENS[0].logo} className="w-4 h-4 rounded-full" /> zkLTC</span>
@@ -347,7 +347,7 @@ function RemoveLiq({ slippage }: { slippage: number }) {
       </div>
 
       <Button size="lg" disabled={busy || !signer || pct === 0 || !poolActive} onClick={handleRemove}
-        className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold text-base shadow-lg">
+        className="w-full h-12 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 text-white font-semibold text-base shadow-lg border-0">
         {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
           : !signer ? "Connect Wallet" : "Remove Liquidity"}
       </Button>
