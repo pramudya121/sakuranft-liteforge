@@ -74,6 +74,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           🌸 SakuraNFT on LitVM LiteForge Testnet · Powered by zkLTC
         </footer>
       </div>
+      <AIChatWidget />
     </div>
   );
 }
