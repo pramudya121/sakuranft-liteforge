@@ -24,7 +24,7 @@ function Home() {
       {/* Cinematic Hero — sakura night with neon logo */}
       <section className="relative -mx-4 md:-mx-8 -mt-8 overflow-hidden rounded-b-3xl">
         <div
-          className="relative w-full min-h-[78vh] flex items-center justify-center bg-cover bg-center"
+          className="relative w-full min-h-screen flex items-center justify-center bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBg})` }}
         >
           {/* atmospheric overlays */}
