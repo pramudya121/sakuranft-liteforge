@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, Store, Plus, Repeat, Trophy, ArrowRight } from "lucide-react";
+import { Sparkles, Store, Plus, Repeat, Trophy, ArrowRight, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAllListings, useAllNFTs } from "@/lib/web3/hooks";
 import { CHAIN } from "@/lib/web3/contracts";
 import { NFTCard } from "@/components/NFTCard";
+import { useTrendingTokenIds } from "@/lib/supabase-hooks";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -13,6 +14,8 @@ export const Route = createFileRoute("/")({
 function Home() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
+  const trendingIds = useTrendingTokenIds(8);
+  const trending = trendingIds.map((id) => nfts.find((n) => n.tokenId.toString() === id)).filter(Boolean) as typeof nfts;
   const featured = nfts.slice(0, 8);
 
   return (
@@ -70,11 +73,26 @@ function Home() {
         ))}
       </section>
 
+      {/* Trending */}
+      {trending.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold gradient-text flex items-center gap-2"><Flame className="w-7 h-7 text-primary" /> Trending Now</h2>
+            <Button asChild variant="ghost"><Link to="/marketplace">View all <ArrowRight className="w-4 h-4 ml-1" /></Link></Button>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {trending.map((n) => (
+              <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Featured */}
       {featured.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold gradient-text">Featured NFTs</h2>
+            <h2 className="text-3xl font-bold gradient-text">Latest Mints</h2>
             <Button asChild variant="ghost"><Link to="/marketplace">View all <ArrowRight className="w-4 h-4 ml-1" /></Link></Button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
