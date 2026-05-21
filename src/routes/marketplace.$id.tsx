@@ -10,6 +10,7 @@ import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, sh
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
+import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
