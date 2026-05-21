@@ -67,7 +67,7 @@ export function useWatchlist(address?: string | null) {
     if (isFav) {
       setItems(items.filter((x) => x !== tid));
       await supabase.from("watchlist").delete()
-        .eq("wallet_address", wallet).eq("token_id", tid);
+        .eq("wallet_address", wallet).eq("token_id", Number(tid));
     } else {
       setItems([...items, tid]);
       await supabase.from("watchlist").insert({ wallet_address: wallet, token_id: Number(tid) });
