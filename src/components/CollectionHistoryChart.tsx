@@ -62,7 +62,7 @@ export function CollectionHistoryChart() {
             <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
             <XAxis dataKey="label" fontSize={10} />
             <YAxis fontSize={10} />
-            <Tooltip formatter={(v: any, n: string) => n === "volume" ? `${v} ${CHAIN.symbol}` : v} />
+            <Tooltip formatter={(v: any) => `${v} ${CHAIN.symbol}`} />
             <Bar dataKey="volume" fill="oklch(0.7 0.18 350)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
