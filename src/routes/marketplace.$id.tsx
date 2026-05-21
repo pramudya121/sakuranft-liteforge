@@ -11,6 +11,7 @@ import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
 import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
+import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
@@ -112,13 +113,16 @@ function NFTDetail() {
         </div>
       </div>
 
-      <Tabs defaultValue="offers" className="mt-8">
+      <Tabs defaultValue="history" className="mt-8">
         <TabsList className="glass">
+          <TabsTrigger value="history">Price History</TabsTrigger>
           <TabsTrigger value="offers">Offers ({offers.filter((o) => o.active).length})</TabsTrigger>
           <TabsTrigger value="comments">Comments</TabsTrigger>
-          <TabsTrigger value="history">Transaction History</TabsTrigger>
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
         </TabsList>
+        <TabsContent value="history" className="glass rounded-2xl p-4">
+          <PriceHistoryChart tokenId={nft.tokenId} />
+        </TabsContent>
         <TabsContent value="offers" className="glass rounded-2xl p-4">
           {offers.length === 0 ? <p className="text-sm text-muted-foreground text-center py-6">No offers yet.</p> : (
             <div className="space-y-2">
@@ -145,9 +149,6 @@ function NFTDetail() {
         </TabsContent>
         <TabsContent value="comments" className="glass rounded-2xl p-4">
           <CommentsPanel tokenId={nft.tokenId} />
-        </TabsContent>
-        <TabsContent value="history" className="glass rounded-2xl p-4">
-          <p className="text-sm text-muted-foreground text-center py-6">Browse full chain history on <a className="text-primary underline" target="_blank" rel="noopener" href={`${CHAIN.explorer}/token/${nft.owner}`}>Block Explorer</a>.</p>
         </TabsContent>
         <TabsContent value="metadata" className="glass rounded-2xl p-4">
           <pre className="text-xs overflow-auto max-h-64">{JSON.stringify({ tokenId: id, name: nft.name, description: nft.description, owner: nft.owner }, null, 2)}</pre>
