@@ -6,6 +6,7 @@ import { OnChainEventListener } from "./OnChainEventListener";
 import { ThemeToggle } from "./ThemeToggle";
 import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat, Layers } from "lucide-react";
 import sakuraLogo from "@/assets/sakura-logo.png";
+import { AIChatWidget } from "./AIChatWidget";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
@@ -74,6 +75,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           🌸 SakuraNFT on LitVM LiteForge Testnet · Powered by zkLTC
         </footer>
       </div>
+      <AIChatWidget />
     </div>
   );
 }
