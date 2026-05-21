@@ -8,58 +8,81 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 
-// Logos served directly from the WalletConnect Cloud Explorer CDN.
-// Image IDs are the canonical WC Explorer listing IDs for each wallet.
-const WC_LOGO = (id: string) =>
-  `https://explorer-api.walletconnect.com/v3/logo/lg/${id}?projectId=2f05a7cde2bb14e9f1042a25c9c9b8e7`;
 const wallets: { kind: "metamask" | "okx" | "bitget"; name: string; logo: string; desc: string }[] = [
-  { kind: "metamask", name: "MetaMask", desc: "Most popular Web3 wallet", logo: WC_LOGO("c6b8b5bf-c884-43e7-1de6-4d6f7f3a3300") },
-  { kind: "okx", name: "OKX Wallet", desc: "Multichain wallet by OKX", logo: WC_LOGO("45f2f08e-fc0c-4d62-3e63-404e72170500") },
-  { kind: "bitget", name: "Bitget Wallet", desc: "Web3 wallet by Bitget", logo: WC_LOGO("0c4808c3-d40d-422d-2c66-72d4368e1500") },
+  {
+    kind: "metamask",
+    name: "MetaMask",
+    desc: "Most popular Web3 wallet",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg",
+  },
+  {
+    kind: "okx",
+    name: "OKX Wallet",
+    desc: "Multichain wallet by OKX",
+    logo: "https://www.okx.com/cdn/assets/imgs/239/0F0C3CB1F8B6A1A1.png",
+  },
+  {
+    kind: "bitget",
+    name: "Bitget Wallet",
+    desc: "Web3 wallet by Bitget",
+    logo: "https://web3.bitget.com/v1/static/web3/logo.png",
+  },
 ];
 
 export function WalletButton() {
   const { address, chainId, balance, connect, disconnect } = useWallet();
   const [open, setOpen] = useState(false);
+  const [connecting, setConnecting] = useState<string | null>(null);
 
   if (!address) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="rounded-full shadow-lg" size="sm">
+          <Button className="rounded-full shadow-lg bg-gradient-to-r from-primary to-accent text-primary-foreground border-0" size="sm">
             <Wallet className="w-4 h-4 mr-2" /> Connect Wallet
           </Button>
         </DialogTrigger>
-        <DialogContent className="glass max-w-md">
+        <DialogContent className="max-w-md bg-card border border-border">
           <DialogHeader>
             <DialogTitle className="gradient-text text-2xl">Connect a Wallet</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground -mt-2">Choose a wallet to continue. Logos provided by the WalletConnect Explorer.</p>
+          <p className="text-sm text-muted-foreground -mt-2">
+            Choose a wallet to continue on <span className="font-semibold text-foreground">{CHAIN.name}</span>.
+          </p>
           <div className="space-y-2 pt-2">
-            {wallets.map((w) => (
-              <button
-                key={w.kind}
-                onClick={async () => {
-                  try { await connect(w.kind); setOpen(false); toast.success(`Connected to ${w.name}`); }
-                  catch (e: any) { toast.error(e?.message ?? "Failed to connect"); }
-                }}
-                className="w-full flex items-center gap-3 p-4 rounded-xl border hover:border-primary hover:bg-accent/50 transition-all"
-              >
-                <img
-                  src={w.logo}
-                  alt={`${w.name} logo`}
-                  width={40}
-                  height={40}
-                  loading="lazy"
-                  className="w-10 h-10 rounded-xl object-cover bg-muted"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
-                />
-                <div className="flex flex-col items-start">
-                  <span className="font-medium">{w.name}</span>
-                  <span className="text-xs text-muted-foreground">{w.desc}</span>
-                </div>
-              </button>
-            ))}
+            {wallets.map((w) => {
+              const isConnecting = connecting === w.kind;
+              return (
+                <button
+                  key={w.kind}
+                  disabled={connecting !== null}
+                  onClick={async () => {
+                    setConnecting(w.kind);
+                    try { await connect(w.kind); setOpen(false); toast.success(`Connected to ${w.name}`); }
+                    catch (e: any) { toast.error(e?.message ?? "Failed to connect"); }
+                    finally { setConnecting(null); }
+                  }}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-border bg-background/40 hover:border-primary hover:bg-accent/40 transition-all disabled:opacity-60"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-white/90 dark:bg-white/95 flex items-center justify-center p-1.5 shrink-0">
+                    <img
+                      src={w.logo}
+                      alt={`${w.name} logo`}
+                      width={36}
+                      height={36}
+                      loading="lazy"
+                      className="w-full h-full object-contain"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+                    />
+                  </div>
+                  <div className="flex flex-col items-start flex-1">
+                    <span className="font-semibold">{w.name}</span>
+                    <span className="text-xs text-muted-foreground">{w.desc}</span>
+                  </div>
+                  {isConnecting && <span className="text-xs text-primary animate-pulse">Connecting…</span>}
+                </button>
+              );
+            })}
           </div>
           <p className="text-[10px] text-muted-foreground text-center pt-2">
             By connecting you agree to our Terms. We never store your private keys.

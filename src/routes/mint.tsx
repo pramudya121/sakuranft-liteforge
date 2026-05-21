@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useWallet } from "@/contexts/WalletContext";
 import { mintNFT } from "@/lib/web3/ethers";
 import { generateNFTDescription, generateNFTImage } from "@/lib/ai.functions";
+import { CollectionPicker } from "@/components/CollectionPicker";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/mint")({
@@ -48,6 +49,8 @@ function Mint() {
   const [category, setCategory] = useState("Digital Art");
   const [aiPrompt, setAiPrompt] = useState("");
   const [traits, setTraits] = useState<{ trait_type: string; value: string }[]>([]);
+  const [collectionSlug, setCollectionSlug] = useState<string | null>(null);
+  const [collectionName, setCollectionName] = useState<string | null>(null);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState<"img" | "desc" | null>(null);
@@ -105,6 +108,7 @@ function Mint() {
       const richDesc = JSON.stringify({
         description: desc,
         category,
+        collection: collectionSlug ? { slug: collectionSlug, name: collectionName } : null,
         royalty_bps: Math.floor(Math.max(0, Math.min(50, +royalty || 0)) * 100),
         attributes: metaTraits,
       });
@@ -194,6 +198,12 @@ function Mint() {
             <Input value={name} onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Winter Bloom #001" className="mt-1.5 bg-background/40" />
           </div>
+
+          <CollectionPicker
+            value={collectionSlug}
+            onChange={(slug, col) => { setCollectionSlug(slug); setCollectionName(col?.name ?? null); }}
+          />
+
 
           <div>
             <div className="flex items-center justify-between">
