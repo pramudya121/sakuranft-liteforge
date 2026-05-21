@@ -10,6 +10,7 @@ import { buyNFT, shortAddr } from "@/lib/web3/ethers";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CollectionHistoryChart } from "@/components/CollectionHistoryChart";
 
 export const Route = createFileRoute("/collections/$address")({
   component: CollectionDetail,
@@ -137,6 +138,8 @@ function CollectionDetail() {
         <TabBtn active={tab === "items"} onClick={() => setTab("items")}>Items ({stats.total})</TabBtn>
         <TabBtn active={tab === "owners"} onClick={() => setTab("owners")}>Owners ({stats.owners})</TabBtn>
       </div>
+
+      {isPrimary && tab === "items" && <CollectionHistoryChart />}
 
       {tab === "items" && (
         <>
