@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext, useRouter, HeadContent, Scripts, Link } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 import { Layout } from "@/components/Layout";
 
@@ -63,10 +64,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <WalletProvider>
-        <Layout><Outlet /></Layout>
-        <Toaster position="top-right" />
-      </WalletProvider>
+      <ThemeProvider>
+        <WalletProvider>
+          <Layout><Outlet /></Layout>
+          <Toaster position="top-right" />
+        </WalletProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

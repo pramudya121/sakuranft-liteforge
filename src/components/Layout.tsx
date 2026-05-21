@@ -3,6 +3,7 @@ import { SakuraBackground } from "./SakuraBackground";
 import { WalletButton } from "./WalletButton";
 import { NotificationBell } from "./NotificationBell";
 import { OnChainEventListener } from "./OnChainEventListener";
+import { ThemeToggle } from "./ThemeToggle";
 import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat, Layers } from "lucide-react";
 
 const navItems = [
@@ -46,6 +47,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
             <div className="flex items-center gap-2">
+              <ThemeToggle />
               <NotificationBell />
               <WalletButton />
             </div>
