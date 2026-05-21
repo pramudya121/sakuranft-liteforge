@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, LayoutGrid, List, Sparkles, TrendingUp, Tag, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -8,6 +8,7 @@ import { useAllListings, useAllNFTs } from "@/lib/web3/hooks";
 import { NFTCard } from "@/components/NFTCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { buyNFT } from "@/lib/web3/ethers";
+import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
@@ -23,6 +24,15 @@ function Marketplace() {
   const [sort, setSort] = useState("newest");
   const [maxPrice, setMaxPrice] = useState(100);
   const [onlyListed, setOnlyListed] = useState("all");
+  const [view, setView] = useState<"grid" | "list">("grid");
+
+  const stats = useMemo(() => {
+    const prices = listings.map((l) => +l.priceEth).filter((n) => n > 0);
+    const floor = prices.length ? Math.min(...prices) : 0;
+    const volume = prices.reduce((a, b) => a + b, 0);
+    const owners = new Set(nfts.map((n) => n.owner.toLowerCase())).size;
+    return { total: nfts.length, listed: listings.length, floor, volume, owners };
+  }, [nfts, listings]);
 
   const items = useMemo(() => {
     let arr = nfts.map((n) => ({ nft: n, listing: listings.find((l) => l.tokenId === n.tokenId) }));
@@ -49,10 +59,32 @@ function Marketplace() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold gradient-text">Marketplace</h1>
-        <p className="text-muted-foreground mt-1">Discover and collect snow sakura NFTs.</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-4xl font-bold gradient-text flex items-center gap-3">
+            <Sparkles className="w-8 h-8" /> Marketplace
+          </h1>
+          <p className="text-muted-foreground mt-1">Discover, trade and collect Sakura NFTs on LitVM.</p>
+        </div>
+        <div className="flex items-center gap-2 glass rounded-full p-1">
+          <button onClick={() => setView("grid")} className={`p-2 rounded-full transition ${view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} aria-label="Grid view">
+            <LayoutGrid className="w-4 h-4" />
+          </button>
+          <button onClick={() => setView("list")} className={`p-2 rounded-full transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} aria-label="List view">
+            <List className="w-4 h-4" />
+          </button>
+        </div>
       </div>
+
+      {/* Premium stats bar */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <StatTile icon={<Sparkles className="w-4 h-4" />} label="Total NFTs" value={stats.total} />
+        <StatTile icon={<Tag className="w-4 h-4" />} label="Listed" value={stats.listed} accent />
+        <StatTile icon={<TrendingUp className="w-4 h-4" />} label="Floor" value={stats.floor ? `${stats.floor} ${CHAIN.symbol}` : "—"} />
+        <StatTile icon={<TrendingUp className="w-4 h-4" />} label={`Listed Vol`} value={`${stats.volume.toFixed(2)} ${CHAIN.symbol}`} />
+        <StatTile icon={<Users className="w-4 h-4" />} label="Owners" value={stats.owners} />
+      </div>
+
       <div className="glass rounded-2xl p-4 grid md:grid-cols-4 gap-3">
         <div className="relative md:col-span-2">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -91,13 +123,40 @@ function Marketplace() {
           <p className="text-muted-foreground">No NFTs match your filters. Be the first to <a href="/mint" className="text-primary underline">mint one</a>!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {items.map(({ nft, listing }) => (
-            <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing}
-              onBuy={listing ? () => handleBuy(listing.listingId, listing.price) : undefined} />
-          ))}
-        </div>
+        view === "grid" ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {items.map(({ nft, listing }) => (
+              <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing}
+                onBuy={listing ? () => handleBuy(listing.listingId, listing.price) : undefined} />
+            ))}
+          </div>
+        ) : (
+          <div className="glass rounded-2xl divide-y divide-border/40">
+            {items.map(({ nft, listing }) => (
+              <a key={nft.tokenId.toString()} href={`/marketplace/${nft.tokenId.toString()}`}
+                 className="flex items-center gap-4 p-3 hover:bg-accent/40 transition">
+                <img src={nft.image} alt={nft.name} loading="lazy" className="w-14 h-14 rounded-lg object-cover bg-muted" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{nft.name}</p>
+                  <p className="text-xs text-muted-foreground font-mono">#{nft.tokenId.toString()}</p>
+                </div>
+                <div className="text-right text-sm">
+                  {listing ? <span className="font-bold text-primary">{listing.priceEth} {CHAIN.symbol}</span> : <span className="text-muted-foreground">Not listed</span>}
+                </div>
+              </a>
+            ))}
+          </div>
+        )
       )}
+    </div>
+  );
+}
+
+function StatTile({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: React.ReactNode; accent?: boolean }) {
+  return (
+    <div className={`glass rounded-2xl p-4 ${accent ? "ring-1 ring-primary/40" : ""}`}>
+      <div className="flex items-center gap-2 text-muted-foreground text-xs">{icon}<span>{label}</span></div>
+      <div className="mt-1 text-xl font-bold gradient-text truncate">{value}</div>
     </div>
   );
 }
