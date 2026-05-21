@@ -3,8 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 export function SakuraBackground({ count = 35 }: { count?: number }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return <div aria-hidden className="pointer-events-none fixed inset-0 z-0" />;
-
   const petals = useMemo(() => Array.from({ length: count }, (_, i) => {
     const left = Math.random() * 100;
     const size = 10 + Math.random() * 18;
@@ -15,6 +13,9 @@ export function SakuraBackground({ count = 35 }: { count?: number }) {
     const hue = 340 + Math.random() * 20;
     return { i, left, size, dur, delay, drift, sway, hue };
   }), [count]);
+
+  // Wait for mount before painting random content (avoids SSR/CSR mismatch).
+  if (!mounted) return <div aria-hidden className="pointer-events-none fixed inset-0 z-0" />;
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden z-0">
