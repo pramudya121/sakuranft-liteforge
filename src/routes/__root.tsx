@@ -8,30 +8,30 @@ import { Layout } from "@/components/Layout";
 
 function NotFoundComponent() {
   return (
-    <Layout>
-      <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen items-center justify-center p-6">
         <div className="text-center glass p-10 rounded-3xl">
           <h1 className="text-7xl font-bold gradient-text">404</h1>
           <p className="mt-2 text-muted-foreground">This sakura blossom couldn't be found.</p>
           <Link to="/" className="mt-6 inline-block px-6 py-2 rounded-full bg-primary text-primary-foreground">Go Home</Link>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   return (
-    <Layout>
-      <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen items-center justify-center p-6">
         <div className="text-center glass p-10 rounded-3xl max-w-md">
           <h1 className="text-2xl font-bold">Something went wrong</h1>
           <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
           <button onClick={() => { router.invalidate(); reset(); }} className="mt-6 px-6 py-2 rounded-full bg-primary text-primary-foreground">Try again</button>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 }
 
