@@ -70,7 +70,7 @@ function CollectionsPage() {
           {filtered.map((c) => {
             const s = stats(c.contract_address);
             return (
-              <Link key={c.id} to="/marketplace" className="glass rounded-2xl overflow-hidden hover:scale-[1.02] transition glow-card group">
+              <Link key={c.id} to="/collections/$address" params={{ address: c.contract_address }} className="glass rounded-2xl overflow-hidden hover:scale-[1.02] transition glow-card group">
                 <div className="h-28 bg-gradient-to-br from-primary/30 to-accent/30 relative overflow-hidden">
                   {c.banner_url && <img src={c.banner_url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />}
                 </div>

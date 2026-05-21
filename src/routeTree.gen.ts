@@ -24,6 +24,7 @@ import { Route as UAddressRouteImport } from './routes/u.$address'
 import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
 import { Route as DexSwapRouteImport } from './routes/dex.swap'
 import { Route as DexLiquidityRouteImport } from './routes/dex.liquidity'
+import { Route as CollectionsAddressRouteImport } from './routes/collections.$address'
 
 const WatchlistRoute = WatchlistRouteImport.update({
   id: '/watchlist',
@@ -100,17 +101,23 @@ const DexLiquidityRoute = DexLiquidityRouteImport.update({
   path: '/liquidity',
   getParentRoute: () => DexRoute,
 } as any)
+const CollectionsAddressRoute = CollectionsAddressRouteImport.update({
+  id: '/$address',
+  path: '/$address',
+  getParentRoute: () => CollectionsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
-  '/collections': typeof CollectionsRoute
+  '/collections': typeof CollectionsRouteWithChildren
   '/dex': typeof DexRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
   '/watchlist': typeof WatchlistRoute
+  '/collections/$address': typeof CollectionsAddressRoute
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -122,11 +129,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
-  '/collections': typeof CollectionsRoute
+  '/collections': typeof CollectionsRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
   '/watchlist': typeof WatchlistRoute
+  '/collections/$address': typeof CollectionsAddressRoute
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -139,12 +147,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
-  '/collections': typeof CollectionsRoute
+  '/collections': typeof CollectionsRouteWithChildren
   '/dex': typeof DexRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
   '/watchlist': typeof WatchlistRoute
+  '/collections/$address': typeof CollectionsAddressRoute
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/mint'
     | '/profile'
     | '/watchlist'
+    | '/collections/$address'
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/mint'
     | '/profile'
     | '/watchlist'
+    | '/collections/$address'
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/mint'
     | '/profile'
     | '/watchlist'
+    | '/collections/$address'
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
@@ -209,7 +221,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
   AnalyticsRoute: typeof AnalyticsRoute
-  CollectionsRoute: typeof CollectionsRoute
+  CollectionsRoute: typeof CollectionsRouteWithChildren
   DexRoute: typeof DexRouteWithChildren
   LeaderboardRoute: typeof LeaderboardRoute
   MintRoute: typeof MintRoute
@@ -327,8 +339,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DexLiquidityRouteImport
       parentRoute: typeof DexRoute
     }
+    '/collections/$address': {
+      id: '/collections/$address'
+      path: '/$address'
+      fullPath: '/collections/$address'
+      preLoaderRoute: typeof CollectionsAddressRouteImport
+      parentRoute: typeof CollectionsRoute
+    }
   }
 }
+
+interface CollectionsRouteChildren {
+  CollectionsAddressRoute: typeof CollectionsAddressRoute
+}
+
+const CollectionsRouteChildren: CollectionsRouteChildren = {
+  CollectionsAddressRoute: CollectionsAddressRoute,
+}
+
+const CollectionsRouteWithChildren = CollectionsRoute._addFileChildren(
+  CollectionsRouteChildren,
+)
 
 interface DexRouteChildren {
   DexLiquidityRoute: typeof DexLiquidityRoute
@@ -348,7 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
   AnalyticsRoute: AnalyticsRoute,
-  CollectionsRoute: CollectionsRoute,
+  CollectionsRoute: CollectionsRouteWithChildren,
   DexRoute: DexRouteWithChildren,
   LeaderboardRoute: LeaderboardRoute,
   MintRoute: MintRoute,
