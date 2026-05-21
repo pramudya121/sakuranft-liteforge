@@ -8,7 +8,6 @@ import { CHAIN, CONTRACTS } from "@/lib/web3/contracts";
 import { useWallet } from "@/contexts/WalletContext";
 import { buyNFT, shortAddr } from "@/lib/web3/ethers";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CollectionHistoryChart } from "@/components/CollectionHistoryChart";
 
