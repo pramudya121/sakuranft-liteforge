@@ -9,38 +9,242 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WatchlistRouteImport } from './routes/watchlist'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MintRouteImport } from './routes/mint'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as DexRouteImport } from './routes/dex'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as ActivityRouteImport } from './routes/activity'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MarketplaceIndexRouteImport } from './routes/marketplace.index'
+import { Route as DexIndexRouteImport } from './routes/dex.index'
+import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
+import { Route as DexSwapRouteImport } from './routes/dex.swap'
+import { Route as DexLiquidityRouteImport } from './routes/dex.liquidity'
 
+const WatchlistRoute = WatchlistRouteImport.update({
+  id: '/watchlist',
+  path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MintRoute = MintRouteImport.update({
+  id: '/mint',
+  path: '/mint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DexRoute = DexRouteImport.update({
+  id: '/dex',
+  path: '/dex',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActivityRoute = ActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketplaceIndexRoute = MarketplaceIndexRouteImport.update({
+  id: '/marketplace/',
+  path: '/marketplace/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DexIndexRoute = DexIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DexRoute,
+} as any)
+const MarketplaceIdRoute = MarketplaceIdRouteImport.update({
+  id: '/marketplace/$id',
+  path: '/marketplace/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DexSwapRoute = DexSwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
+  getParentRoute: () => DexRoute,
+} as any)
+const DexLiquidityRoute = DexLiquidityRouteImport.update({
+  id: '/liquidity',
+  path: '/liquidity',
+  getParentRoute: () => DexRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/analytics': typeof AnalyticsRoute
+  '/dex': typeof DexRouteWithChildren
+  '/leaderboard': typeof LeaderboardRoute
+  '/mint': typeof MintRoute
+  '/profile': typeof ProfileRoute
+  '/watchlist': typeof WatchlistRoute
+  '/dex/liquidity': typeof DexLiquidityRoute
+  '/dex/swap': typeof DexSwapRoute
+  '/marketplace/$id': typeof MarketplaceIdRoute
+  '/dex/': typeof DexIndexRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/analytics': typeof AnalyticsRoute
+  '/leaderboard': typeof LeaderboardRoute
+  '/mint': typeof MintRoute
+  '/profile': typeof ProfileRoute
+  '/watchlist': typeof WatchlistRoute
+  '/dex/liquidity': typeof DexLiquidityRoute
+  '/dex/swap': typeof DexSwapRoute
+  '/marketplace/$id': typeof MarketplaceIdRoute
+  '/dex': typeof DexIndexRoute
+  '/marketplace': typeof MarketplaceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/activity': typeof ActivityRoute
+  '/analytics': typeof AnalyticsRoute
+  '/dex': typeof DexRouteWithChildren
+  '/leaderboard': typeof LeaderboardRoute
+  '/mint': typeof MintRoute
+  '/profile': typeof ProfileRoute
+  '/watchlist': typeof WatchlistRoute
+  '/dex/liquidity': typeof DexLiquidityRoute
+  '/dex/swap': typeof DexSwapRoute
+  '/marketplace/$id': typeof MarketplaceIdRoute
+  '/dex/': typeof DexIndexRoute
+  '/marketplace/': typeof MarketplaceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/activity'
+    | '/analytics'
+    | '/dex'
+    | '/leaderboard'
+    | '/mint'
+    | '/profile'
+    | '/watchlist'
+    | '/dex/liquidity'
+    | '/dex/swap'
+    | '/marketplace/$id'
+    | '/dex/'
+    | '/marketplace/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/activity'
+    | '/analytics'
+    | '/leaderboard'
+    | '/mint'
+    | '/profile'
+    | '/watchlist'
+    | '/dex/liquidity'
+    | '/dex/swap'
+    | '/marketplace/$id'
+    | '/dex'
+    | '/marketplace'
+  id:
+    | '__root__'
+    | '/'
+    | '/activity'
+    | '/analytics'
+    | '/dex'
+    | '/leaderboard'
+    | '/mint'
+    | '/profile'
+    | '/watchlist'
+    | '/dex/liquidity'
+    | '/dex/swap'
+    | '/marketplace/$id'
+    | '/dex/'
+    | '/marketplace/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActivityRoute: typeof ActivityRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  DexRoute: typeof DexRouteWithChildren
+  LeaderboardRoute: typeof LeaderboardRoute
+  MintRoute: typeof MintRoute
+  ProfileRoute: typeof ProfileRoute
+  WatchlistRoute: typeof WatchlistRoute
+  MarketplaceIdRoute: typeof MarketplaceIdRoute
+  MarketplaceIndexRoute: typeof MarketplaceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/watchlist': {
+      id: '/watchlist'
+      path: '/watchlist'
+      fullPath: '/watchlist'
+      preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mint': {
+      id: '/mint'
+      path: '/mint'
+      fullPath: '/mint'
+      preLoaderRoute: typeof MintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dex': {
+      id: '/dex'
+      path: '/dex'
+      fullPath: '/dex'
+      preLoaderRoute: typeof DexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/activity': {
+      id: '/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof ActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +252,70 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketplace/': {
+      id: '/marketplace/'
+      path: '/marketplace'
+      fullPath: '/marketplace/'
+      preLoaderRoute: typeof MarketplaceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dex/': {
+      id: '/dex/'
+      path: '/'
+      fullPath: '/dex/'
+      preLoaderRoute: typeof DexIndexRouteImport
+      parentRoute: typeof DexRoute
+    }
+    '/marketplace/$id': {
+      id: '/marketplace/$id'
+      path: '/marketplace/$id'
+      fullPath: '/marketplace/$id'
+      preLoaderRoute: typeof MarketplaceIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dex/swap': {
+      id: '/dex/swap'
+      path: '/swap'
+      fullPath: '/dex/swap'
+      preLoaderRoute: typeof DexSwapRouteImport
+      parentRoute: typeof DexRoute
+    }
+    '/dex/liquidity': {
+      id: '/dex/liquidity'
+      path: '/liquidity'
+      fullPath: '/dex/liquidity'
+      preLoaderRoute: typeof DexLiquidityRouteImport
+      parentRoute: typeof DexRoute
+    }
   }
 }
 
+interface DexRouteChildren {
+  DexLiquidityRoute: typeof DexLiquidityRoute
+  DexSwapRoute: typeof DexSwapRoute
+  DexIndexRoute: typeof DexIndexRoute
+}
+
+const DexRouteChildren: DexRouteChildren = {
+  DexLiquidityRoute: DexLiquidityRoute,
+  DexSwapRoute: DexSwapRoute,
+  DexIndexRoute: DexIndexRoute,
+}
+
+const DexRouteWithChildren = DexRoute._addFileChildren(DexRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActivityRoute: ActivityRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  DexRoute: DexRouteWithChildren,
+  LeaderboardRoute: LeaderboardRoute,
+  MintRoute: MintRoute,
+  ProfileRoute: ProfileRoute,
+  WatchlistRoute: WatchlistRoute,
+  MarketplaceIdRoute: MarketplaceIdRoute,
+  MarketplaceIndexRoute: MarketplaceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
