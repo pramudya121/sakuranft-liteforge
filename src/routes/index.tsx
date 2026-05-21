@@ -5,6 +5,7 @@ import { useAllListings, useAllNFTs } from "@/lib/web3/hooks";
 import { CHAIN } from "@/lib/web3/contracts";
 import { NFTCard } from "@/components/NFTCard";
 import { useTrendingTokenIds } from "@/lib/supabase-hooks";
+import heroBg from "@/assets/home-hero-bg.png";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -20,34 +21,66 @@ function Home() {
 
   return (
     <div className="space-y-20">
-      {/* Hero */}
-      <section className="relative pt-12 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm mb-6">
-          <Sparkles className="w-4 h-4 text-primary" /> Live on {CHAIN.name}
+      {/* Cinematic Hero — sakura night with neon logo */}
+      <section className="relative -mx-4 md:-mx-8 -mt-8 overflow-hidden rounded-b-3xl">
+        <div
+          className="relative w-full min-h-[78vh] flex items-center justify-center bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        >
+          {/* atmospheric overlays */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_55%,rgba(236,72,153,0.25),transparent_55%)] pointer-events-none" />
+
+          <div className="relative z-10 text-center px-6 max-w-4xl">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm text-white mb-6 shadow-[0_0_30px_rgba(236,72,153,0.35)]">
+              <Sparkles className="w-4 h-4 text-pink-300" /> Live on {CHAIN.name}
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight text-white drop-shadow-[0_4px_30px_rgba(236,72,153,0.55)]">
+              Winter Sakura
+              <br />
+              <span className="bg-gradient-to-r from-pink-200 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">
+                NFT Marketplace
+              </span>
+            </h1>
+            <p className="mt-6 text-lg text-white/80 max-w-2xl mx-auto">
+              Mint, collect, and trade NFTs under a glowing sakura sky. Swap tokens, provide liquidity, and earn — powered by ${CHAIN.symbol} on LitVM.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3 justify-center">
+              <Button asChild size="lg" className="rounded-full shadow-[0_0_40px_rgba(236,72,153,0.55)] bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-400 hover:to-fuchsia-400 text-white border-0">
+                <Link to="/marketplace">Explore Marketplace <ArrowRight className="w-4 h-4 ml-2" /></Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-full bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20">
+                <Link to="/mint">Create NFT</Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* floating petals */}
+          {Array.from({ length: 14 }).map((_, i) => (
+            <span
+              key={i}
+              aria-hidden
+              className="pointer-events-none absolute block rounded-full bg-pink-300/60 blur-[1px] animate-pulse"
+              style={{
+                width: `${6 + (i % 4) * 3}px`,
+                height: `${6 + (i % 4) * 3}px`,
+                left: `${(i * 73) % 100}%`,
+                top: `${(i * 41) % 90}%`,
+                animationDelay: `${i * 0.3}s`,
+                animationDuration: `${3 + (i % 5)}s`,
+              }}
+            />
+          ))}
         </div>
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight">
-          <span className="gradient-text">Winter Sakura</span>
-          <br /> NFT Marketplace
-        </h1>
-        <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-          Mint, collect, and trade NFTs under a snow-dusted sakura sky. Swap tokens, provide liquidity, and earn — all powered by ${CHAIN.symbol} on LitVM.
-        </p>
-        <div className="mt-8 flex flex-wrap gap-3 justify-center">
-          <Button asChild size="lg" className="rounded-full shadow-lg">
-            <Link to="/marketplace">Explore Marketplace <ArrowRight className="w-4 h-4 ml-2" /></Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="rounded-full glass">
-            <Link to="/mint">Create NFT</Link>
-          </Button>
-        </div>
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+
+        <div className="relative z-10 -mt-12 px-6 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
           {[
             { l: "Minted", v: nfts.length },
             { l: "Listed", v: listings.length },
             { l: "Network", v: CHAIN.symbol },
             { l: "Chain ID", v: CHAIN.id },
           ].map((s) => (
-            <div key={s.l} className="glass rounded-2xl p-4">
+            <div key={s.l} className="glass rounded-2xl p-4 text-center backdrop-blur-xl border border-white/10">
               <div className="text-2xl font-bold gradient-text">{s.v}</div>
               <div className="text-xs text-muted-foreground mt-1">{s.l}</div>
             </div>
