@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { fetchCollectionHistory, type CollectionHistoryPoint } from "@/lib/web3/history";
 import { CHAIN } from "@/lib/web3/contracts";
 import { Activity, TrendingDown } from "lucide-react";
