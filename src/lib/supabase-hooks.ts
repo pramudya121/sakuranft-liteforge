@@ -170,3 +170,21 @@ export function useNFTViews(tokenId?: string | bigint) {
 
   return { count, increment };
 }
+
+// ---------- Trending by views ----------
+export function useTrendingTokenIds(limit = 8) {
+  const [ids, setIds] = useState<string[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("nft_views")
+        .select("token_id, view_count")
+        .order("view_count", { ascending: false })
+        .limit(limit);
+      if (!cancelled) setIds((data ?? []).map((r: any) => String(r.token_id)));
+    })();
+    return () => { cancelled = true; };
+  }, [limit]);
+  return ids;
+}
