@@ -162,8 +162,24 @@ export function CollectionPicker({
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Winter Bloom Series" className="mt-1" />
             </div>
             <div>
-              <label className="text-xs font-medium">Logo URL</label>
-              <Input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://..." className="mt-1" />
+              <label className="text-xs font-medium">Logo</label>
+              <div className="flex items-center gap-2 mt-1">
+                {form.logo_url ? (
+                  <img src={form.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 border border-dashed border-border" />
+                )}
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="rounded-full">
+                  {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <Upload className="w-3.5 h-3.5 mr-1" />}
+                  {form.logo_url ? "Change" : "Upload from device"}
+                </Button>
+                {form.logo_url && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setForm({ ...form, logo_url: "" })} className="text-muted-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
             </div>
             <div>
               <label className="text-xs font-medium">Description</label>
