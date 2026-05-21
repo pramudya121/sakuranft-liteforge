@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { SakuraBackground } from "./SakuraBackground";
 import { WalletButton } from "./WalletButton";
 import { NotificationBell } from "./NotificationBell";
+import { OnChainEventListener } from "./OnChainEventListener";
 import { Home, Store, Plus, Activity, Trophy, BarChart3, User, Heart, Repeat, Layers } from "lucide-react";
 
 const navItems = [
@@ -22,6 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen">
       <SakuraBackground />
+      <OnChainEventListener />
       <div className="relative z-10">
         <header className="sticky top-0 z-50 glass border-b">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
