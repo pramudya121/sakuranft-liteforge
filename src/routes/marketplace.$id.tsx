@@ -58,8 +58,11 @@ function NFTDetail() {
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
             <p className="text-muted-foreground mt-2">{nft.description || "No description."}</p>
-            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-              <Eye className="w-3 h-3" /> {viewCount} views
+            <div className="flex items-center gap-3 mt-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Eye className="w-3 h-3" /> {viewCount} views
+              </div>
+              <LikeButton tokenId={nft.tokenId} />
             </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
