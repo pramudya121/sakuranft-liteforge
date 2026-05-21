@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { SakuraBackground } from "./SakuraBackground";
 import { WalletButton } from "./WalletButton";
 import { NotificationBell } from "./NotificationBell";
@@ -21,9 +21,11 @@ const navItems = [
 
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isHome = path === "/";
   return (
     <div className="relative min-h-screen">
-      <SakuraBackground />
+      {isHome && <SakuraBackground />}
       <OnChainEventListener />
       <div className="relative z-10">
         <header className="sticky top-0 z-50 glass border-b">
