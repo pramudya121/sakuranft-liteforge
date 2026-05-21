@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WatchlistRouteImport } from './routes/watchlist'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MintRouteImport } from './routes/mint'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -29,6 +30,11 @@ import { Route as CollectionsAddressRouteImport } from './routes/collections.$ad
 const WatchlistRoute = WatchlistRouteImport.update({
   id: '/watchlist',
   path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/watchlist': typeof WatchlistRoute
   '/collections/$address': typeof CollectionsAddressRoute
   '/dex/liquidity': typeof DexLiquidityRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/watchlist': typeof WatchlistRoute
   '/collections/$address': typeof CollectionsAddressRoute
   '/dex/liquidity': typeof DexLiquidityRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/watchlist': typeof WatchlistRoute
   '/collections/$address': typeof CollectionsAddressRoute
   '/dex/liquidity': typeof DexLiquidityRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/mint'
     | '/profile'
+    | '/sitemap.xml'
     | '/watchlist'
     | '/collections/$address'
     | '/dex/liquidity'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/mint'
     | '/profile'
+    | '/sitemap.xml'
     | '/watchlist'
     | '/collections/$address'
     | '/dex/liquidity'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/mint'
     | '/profile'
+    | '/sitemap.xml'
     | '/watchlist'
     | '/collections/$address'
     | '/dex/liquidity'
@@ -226,6 +238,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   MintRoute: typeof MintRoute
   ProfileRoute: typeof ProfileRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WatchlistRoute: typeof WatchlistRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
   UAddressRoute: typeof UAddressRoute
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/watchlist'
       fullPath: '/watchlist'
       preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -384,6 +404,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   MintRoute: MintRoute,
   ProfileRoute: ProfileRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   WatchlistRoute: WatchlistRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
   UAddressRoute: UAddressRoute,
@@ -392,13 +413,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
