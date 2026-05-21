@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, JsonRpcProvider, parseEther, formatEther, type Eip1193Provider } from "ethers";
+import { BrowserProvider, Contract, JsonRpcProvider, Network, parseEther, formatEther, type Eip1193Provider } from "ethers";
 import { CHAIN, CONTRACTS, MARKETPLACE_ABI, NFT_ABI, OFFER_ABI, ROUTER_ABI, FACTORY_ABI, ERC20_ABI, PAIR_ABI } from "./contracts";
 
 declare global {
@@ -24,7 +24,25 @@ export function pickProvider(kind: WalletKind): Eip1193Provider | null {
   return eth;
 }
 
-export const readProvider = new JsonRpcProvider(CHAIN.rpcUrl, { chainId: CHAIN.id, name: CHAIN.name });
+// Lazy read-only provider. Constructing JsonRpcProvider eagerly triggers
+// async I/O (detectNetwork) at module init, which Cloudflare Workers reject
+// during SSR ("Disallowed operation called within global scope"). The Proxy
+// defers construction until the first property access from a request handler.
+let _readProvider: JsonRpcProvider | null = null;
+function getReadProvider(): JsonRpcProvider {
+  if (!_readProvider) {
+    const net = Network.from({ chainId: CHAIN.id, name: CHAIN.name });
+    _readProvider = new JsonRpcProvider(CHAIN.rpcUrl, net, { staticNetwork: net });
+  }
+  return _readProvider;
+}
+export const readProvider = new Proxy({} as JsonRpcProvider, {
+  get(_t, prop) {
+    const p = getReadProvider() as any;
+    const v = p[prop];
+    return typeof v === "function" ? v.bind(p) : v;
+  },
+});
 
 export async function connectWallet(kind: WalletKind = "metamask") {
   const injected = pickProvider(kind);
