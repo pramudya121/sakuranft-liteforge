@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search, Trophy, Award, Crown } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -78,14 +78,16 @@ function Leaderboard() {
 
 function Row({ rank, address, value, sub }: { rank: number; address: string; value: string; sub?: string }) {
   const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
-  return (
+  const isAddr = address.startsWith("0x");
+  const content = (
     <div className="p-4 flex items-center gap-4 hover:bg-accent/30 transition">
       <div className="w-12 text-center text-xl font-bold">{medal}</div>
       <div className="flex-1 min-w-0">
-        <p className="font-mono truncate">{address.startsWith("0x") ? shortAddr(address) : address}</p>
+        <p className="font-mono truncate">{isAddr ? shortAddr(address) : address}</p>
         {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
       </div>
       <span className="font-bold text-primary">{value}</span>
     </div>
   );
+  return isAddr ? <Link to="/u/$address" params={{ address }} className="block">{content}</Link> : content;
 }
