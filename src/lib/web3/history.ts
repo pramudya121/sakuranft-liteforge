@@ -62,3 +62,67 @@ export async function fetchNFTPriceHistory(tokenId: bigint): Promise<PriceHistor
     return [];
   }
 }
+
+export type CollectionHistoryPoint = {
+  date: string;          // YYYY-MM-DD
+  timestamp: number;
+  volume: number;        // sum of sale prices that day
+  sales: number;         // number of sales that day
+  floor: number;         // min listed price up to & including that day
+};
+
+export async function fetchCollectionHistory(): Promise<CollectionHistoryPoint[]> {
+  try {
+    const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
+    const block = await readProvider.getBlockNumber();
+    const from = Math.max(0, block - 200000);
+
+    const [listed, sold] = await Promise.all([
+      mp.queryFilter(mp.filters.Listed(), from).catch(() => []),
+      mp.queryFilter(mp.filters.Sold(), from).catch(() => []),
+    ]);
+
+    const listingPrices = new Map<string, bigint>();
+    for (const l of listed) listingPrices.set(((l as any).args.listingId as bigint).toString(), (l as any).args.price as bigint);
+
+    const byDay = new Map<string, { ts: number; vol: number; sales: number; listedPrices: number[] }>();
+    const touch = (ts: number) => {
+      const d = new Date(ts * 1000);
+      const key = d.toISOString().slice(0, 10);
+      if (!byDay.has(key)) byDay.set(key, { ts, vol: 0, sales: 0, listedPrices: [] });
+      return byDay.get(key)!;
+    };
+
+    for (const l of listed) {
+      const e: any = l;
+      const blk = await readProvider.getBlock(e.blockNumber).catch(() => null);
+      const ts = blk?.timestamp ?? Date.now() / 1000;
+      touch(ts).listedPrices.push(+formatEther(e.args.price));
+    }
+    for (const s of sold) {
+      const e: any = s;
+      const blk = await readProvider.getBlock(e.blockNumber).catch(() => null);
+      const ts = blk?.timestamp ?? Date.now() / 1000;
+      const price = +formatEther(e.args.price);
+      const slot = touch(ts);
+      slot.vol += price;
+      slot.sales += 1;
+    }
+
+    const days = [...byDay.entries()].sort((a, b) => a[1].ts - b[1].ts);
+    let runningFloor = Infinity;
+    const out: CollectionHistoryPoint[] = days.map(([date, v]) => {
+      if (v.listedPrices.length) runningFloor = Math.min(runningFloor, ...v.listedPrices);
+      return {
+        date,
+        timestamp: v.ts,
+        volume: +v.vol.toFixed(4),
+        sales: v.sales,
+        floor: runningFloor === Infinity ? 0 : +runningFloor.toFixed(4),
+      };
+    });
+    return out;
+  } catch {
+    return [];
+  }
+}
