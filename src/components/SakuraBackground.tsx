@@ -1,6 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export function SakuraBackground({ count = 35 }: { count?: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return <div aria-hidden className="pointer-events-none fixed inset-0 z-0" />;
+
   const petals = useMemo(() => Array.from({ length: count }, (_, i) => {
     const left = Math.random() * 100;
     const size = 10 + Math.random() * 18;
