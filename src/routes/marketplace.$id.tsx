@@ -16,7 +16,35 @@ import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
-  head: ({ params }) => ({ meta: [{ title: `NFT #${params.id} — SakuraNFT` }] }),
+  head: ({ params }) => {
+    const title = `NFT #${params.id} — SakuraNFT`;
+    const description = `View NFT #${params.id} on SakuraNFT: current listing price, offers, transfer history, and ownership details on the LitVM marketplace.`;
+    const url = `https://sakura-bloom-forge.lovable.app/marketplace/${params.id}`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: `SakuraNFT #${params.id}`,
+          url,
+          category: "NFT",
+          brand: { "@type": "Brand", name: "SakuraNFT" },
+        }),
+      }],
+    };
+  },
 });
 
 function NFTDetail() {

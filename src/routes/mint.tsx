@@ -12,7 +12,17 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/mint")({
   component: Mint,
-  head: () => ({ meta: [{ title: "Mint NFT — SakuraNFT" }] }),
+  head: () => ({
+    meta: [
+      { title: "Mint an NFT — SakuraNFT" },
+      { name: "description", content: "Create and mint your own NFT on LitVM in minutes. Upload artwork or generate it with AI, add a description, and publish to the SakuraNFT marketplace." },
+      { property: "og:title", content: "Mint an NFT — SakuraNFT" },
+      { property: "og:description", content: "Mint NFTs on LitVM with AI-assisted artwork and descriptions." },
+      { name: "twitter:title", content: "Mint an NFT — SakuraNFT" },
+      { name: "twitter:description", content: "Mint NFTs on LitVM with AI-assisted artwork and descriptions." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakura-bloom-forge.lovable.app/mint" }],
+  }),
 });
 
 const CATEGORIES = ["Digital Art", "Photography", "Music", "Collectible", "Gaming", "PFP", "3D"];
