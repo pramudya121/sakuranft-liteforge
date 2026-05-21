@@ -125,6 +125,12 @@ export async function cancelListing(signer: any, listingId: bigint | number) {
   return tx.wait();
 }
 
+export async function updateListingPrice(signer: any, listingId: bigint | number, newPriceEth: string) {
+  const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, signer);
+  const tx = await mp.updateListingPrice(listingId, parseEther(newPriceEth));
+  return tx.wait();
+}
+
 export async function makeOffer(signer: any, tokenId: bigint | number, priceEth: string) {
   const c = new Contract(CONTRACTS.offer, OFFER_ABI, signer);
   const tx = await c.makeOffer(CONTRACTS.nftCollection, tokenId, { value: parseEther(priceEth) });

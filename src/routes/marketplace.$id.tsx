@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNFT, useOffers } from "@/lib/web3/hooks";
 import { useWallet } from "@/contexts/WalletContext";
-import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr } from "@/lib/web3/ethers";
+import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
@@ -25,6 +25,8 @@ function NFTDetail() {
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editing, setEditing] = useState(false);
   const { count: viewCount, increment } = useNFTViews(id);
 
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
@@ -81,9 +83,27 @@ function NFTDetail() {
             </Button>
           )}
           {listing && isOwner && (
-            <Button size="lg" variant="outline" className="w-full" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId))}>
-              <X className="w-4 h-4 mr-2" /> Cancel Listing
-            </Button>
+            <div className="glass rounded-2xl p-4 space-y-3">
+              {!editing ? (
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => { setEditing(true); setEditPrice(listing.priceEth); }}>
+                    <Tag className="w-4 h-4 mr-2" /> Edit Price
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId))}>
+                    <X className="w-4 h-4 mr-2" /> Cancel Listing
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Update listing price</p>
+                  <div className="flex gap-2">
+                    <Input type="number" step="0.001" placeholder={`New price in ${CHAIN.symbol}`} value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
+                    <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), () => setEditing(false))} disabled={!editPrice}>Save</Button>
+                    <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
           {!listing && isOwner && (
             <div className="glass rounded-2xl p-4 space-y-3">
