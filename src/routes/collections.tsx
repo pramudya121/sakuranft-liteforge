@@ -8,10 +8,27 @@ import { CHAIN } from "@/lib/web3/contracts";
 
 export const Route = createFileRoute("/collections")({
   component: CollectionsPage,
-  head: () => ({ meta: [
-    { title: "Collections — SakuraNFT" },
-    { name: "description", content: "Browse verified NFT collections on the SakuraNFT marketplace." },
-  ] }),
+  head: () => ({
+    meta: [
+      { title: "NFT Collections — SakuraNFT" },
+      { name: "description", content: "Browse verified NFT collections on LitVM. Discover floor prices, item counts, and the artists shaping the SakuraNFT ecosystem." },
+      { property: "og:title", content: "NFT Collections — SakuraNFT" },
+      { property: "og:description", content: "Verified NFT collections on the LitVM-powered SakuraNFT marketplace." },
+      { name: "twitter:title", content: "NFT Collections — SakuraNFT" },
+      { name: "twitter:description", content: "Verified NFT collections on the LitVM-powered SakuraNFT marketplace." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakura-bloom-forge.lovable.app/collections" }],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "NFT Collections on SakuraNFT",
+        url: "https://sakura-bloom-forge.lovable.app/collections",
+        description: "Verified NFT collections on the LitVM-powered SakuraNFT marketplace.",
+      }),
+    }],
+  }),
 });
 
 type Collection = {

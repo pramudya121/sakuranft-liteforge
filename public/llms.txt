@@ -1,0 +1,22 @@
+# SakuraNFT
+
+> Winter sakura-themed NFT marketplace and DEX on the LitVM (LiteForge) network. Mint, trade NFTs, and swap zkLTC tokens.
+
+SakuraNFT combines an NFT marketplace, a token DEX with liquidity pools, and social features (likes, comments, watchlists, leaderboards) on the LitVM testnet.
+
+## Pages
+
+- [Home](/): Featured drops, trending NFTs, and platform overview.
+- [Marketplace](/marketplace): Browse, search, and buy listed NFTs.
+- [Mint](/mint): Create and mint new NFTs with optional AI-assisted artwork and descriptions.
+- [Collections](/collections): Verified NFT collections on LitVM.
+- [DEX](/dex): Swap zkLTC and supported tokens.
+- [Liquidity](/dex/liquidity): Add or remove liquidity from token pools.
+- [Activity](/activity): Recent marketplace and DEX transactions.
+- [Analytics](/analytics): Platform metrics and volume charts.
+- [Leaderboard](/leaderboard): Top traders and collectors.
+
+## Optional
+
+- [Watchlist](/watchlist): Saved NFTs (per-user).
+- [Profile](/profile): Connected wallet profile (per-user).

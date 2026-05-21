@@ -13,7 +13,17 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
   component: Marketplace,
-  head: () => ({ meta: [{ title: "Marketplace — SakuraNFT" }] }),
+  head: () => ({
+    meta: [
+      { title: "NFT Marketplace — SakuraNFT" },
+      { name: "description", content: "Browse, search and buy listed NFTs on LitVM. Filter by price, sort by newest or trending, and own digital art secured on-chain." },
+      { property: "og:title", content: "NFT Marketplace — SakuraNFT" },
+      { property: "og:description", content: "Browse, search and buy listed NFTs on the LitVM-powered SakuraNFT marketplace." },
+      { name: "twitter:title", content: "NFT Marketplace — SakuraNFT" },
+      { name: "twitter:description", content: "Browse, search and buy listed NFTs on the LitVM-powered SakuraNFT marketplace." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakura-bloom-forge.lovable.app/marketplace" }],
+  }),
 });
 
 function Marketplace() {

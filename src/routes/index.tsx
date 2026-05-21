@@ -9,7 +9,17 @@ import heroBg from "@/assets/home-hero-bg.png";
 
 export const Route = createFileRoute("/")({
   component: Home,
-  head: () => ({ meta: [{ title: "SakuraNFT — Mint & Trade NFTs on LitVM" }] }),
+  head: () => ({
+    meta: [
+      { title: "SakuraNFT — Mint & Trade NFTs on LitVM" },
+      { name: "description", content: "Discover trending NFTs, mint your own artwork, and swap zkLTC on SakuraNFT — the winter-sakura marketplace and DEX built on the LitVM LiteForge testnet." },
+      { property: "og:title", content: "SakuraNFT — Mint & Trade NFTs on LitVM" },
+      { property: "og:description", content: "Trending NFTs, AI-assisted minting, and a built-in DEX for zkLTC, all on LitVM." },
+      { name: "twitter:title", content: "SakuraNFT — Mint & Trade NFTs on LitVM" },
+      { name: "twitter:description", content: "Trending NFTs, AI-assisted minting, and a built-in DEX for zkLTC, all on LitVM." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakura-bloom-forge.lovable.app/" }],
+  }),
 });
 
 function Home() {

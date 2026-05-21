@@ -35,6 +35,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
+const ROOT_OG_IMAGE = "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57c72eff-3000-42c3-bdf2-263e276731a7/id-preview-582666b5--c4a6b64c-c4c1-4ecd-84a3-660c22e7930c.lovable.app-1779343261880.png";
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -42,16 +44,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SakuraNFT — Winter Sakura NFT Marketplace & DEX on LitVM" },
       { name: "description", content: "Mint, trade NFTs and swap zkLTC on LitVM LiteForge Testnet with a magical winter sakura aesthetic." },
-      { property: "og:title", content: "SakuraNFT — Winter Sakura NFT Marketplace & DEX on LitVM" },
-      { name: "twitter:title", content: "SakuraNFT — Winter Sakura NFT Marketplace & DEX on LitVM" },
-      { property: "og:description", content: "Mint, trade NFTs and swap zkLTC on LitVM LiteForge Testnet with a magical winter sakura aesthetic." },
-      { name: "twitter:description", content: "Mint, trade NFTs and swap zkLTC on LitVM LiteForge Testnet with a magical winter sakura aesthetic." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57c72eff-3000-42c3-bdf2-263e276731a7/id-preview-582666b5--c4a6b64c-c4c1-4ecd-84a3-660c22e7930c.lovable.app-1779343261880.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/57c72eff-3000-42c3-bdf2-263e276731a7/id-preview-582666b5--c4a6b64c-c4c1-4ecd-84a3-660c22e7930c.lovable.app-1779343261880.png" },
+      { property: "og:site_name", content: "SakuraNFT" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: ROOT_OG_IMAGE },
+      { name: "twitter:image", content: ROOT_OG_IMAGE },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "SakuraNFT",
+              url: "https://sakura-bloom-forge.lovable.app",
+              logo: ROOT_OG_IMAGE,
+            },
+            {
+              "@type": "WebSite",
+              name: "SakuraNFT",
+              url: "https://sakura-bloom-forge.lovable.app",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://sakura-bloom-forge.lovable.app/marketplace?search={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            },
+          ],
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
