@@ -1,0 +1,1 @@
+CREATE POLICY "Collections public insert" ON public.collections_metadata FOR INSERT WITH CHECK (true);
