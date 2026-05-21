@@ -6,14 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWallet } from "@/contexts/WalletContext";
 import { useAllNFTs, useAllListings } from "@/lib/web3/hooks";
 import { NFTCard } from "@/components/NFTCard";
+import { PortfolioPanel } from "@/components/PortfolioPanel";
 import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
-
 export const Route = createFileRoute("/profile")({
   component: Profile,
   head: () => ({ meta: [{ title: "Profile — SakuraNFT" }] }),
@@ -88,26 +89,35 @@ function Profile() {
         <Stat label={`Value (${CHAIN.symbol})`} v={listings.filter((l) => l.seller.toLowerCase() === address.toLowerCase()).reduce((a, l) => a + +l.priceEth, 0).toFixed(2)} />
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold gradient-text">My Collection</h2>
-          <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="oldest">Oldest</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {owned.length === 0 ? (
-          <div className="text-center py-12 glass rounded-2xl text-muted-foreground">You don't own any NFTs yet.</div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {owned.map((n) => <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />)}
+      <Tabs defaultValue="collection" className="w-full">
+        <TabsList className="glass">
+          <TabsTrigger value="collection">My Collection</TabsTrigger>
+          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+        </TabsList>
+        <TabsContent value="collection" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold gradient-text">My Collection</h2>
+            <Select value={sort} onValueChange={setSort}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="oldest">Oldest</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        )}
-      </div>
+          {owned.length === 0 ? (
+            <div className="text-center py-12 glass rounded-2xl text-muted-foreground">You don't own any NFTs yet.</div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {owned.map((n) => <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />)}
+            </div>
+          )}
+        </TabsContent>
+        <TabsContent value="portfolio" className="mt-4">
+          <PortfolioPanel />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
