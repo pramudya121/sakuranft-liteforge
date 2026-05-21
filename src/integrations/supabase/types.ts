@@ -92,6 +92,45 @@ export type Database = {
         }
         Relationships: []
       }
+      nft_offers: {
+        Row: {
+          amount_eth: number
+          bidder_address: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          message: string | null
+          owner_address: string | null
+          status: string
+          token_id: number
+          updated_at: string
+        }
+        Insert: {
+          amount_eth: number
+          bidder_address: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          owner_address?: string | null
+          status?: string
+          token_id: number
+          updated_at?: string
+        }
+        Update: {
+          amount_eth?: number
+          bidder_address?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          owner_address?: string | null
+          status?: string
+          token_id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       nft_views: {
         Row: {
           token_id: number
