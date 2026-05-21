@@ -189,6 +189,78 @@ export async function swapExactTokensForETH(signer: any, tokenIn: string, amount
   return tx.wait();
 }
 
+/** Multi-hop swap with a custom path (smart routing). */
+export async function swapExactTokensForTokens(signer: any, amountIn: bigint, path: string[], slippagePct = 1) {
+  if (path.length < 2) throw new Error("Path too short");
+  await approveToken(signer, path[0], CONTRACTS.router, amountIn);
+  const router = new Contract(CONTRACTS.router, ROUTER_ABI, signer);
+  const amounts = await router.getAmountsOut(amountIn, path);
+  const minOut = (amounts[amounts.length - 1] * BigInt(100 - slippagePct)) / 100n;
+  const to = await signer.getAddress();
+  const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
+  const tx = await router.swapExactTokensForTokens(amountIn, minOut, path, to, deadline);
+  return tx.wait();
+}
+
+/** Try direct path first, then route through WETH. Returns best path + estimated out. */
+export async function findBestRoute(amountIn: bigint, tokenIn: string, tokenOut: string): Promise<{ path: string[]; out: bigint; hops: number } | null> {
+  const router = new Contract(CONTRACTS.router, ROUTER_ABI, readProvider);
+  const candidates: string[][] = [];
+  if (tokenIn.toLowerCase() !== tokenOut.toLowerCase()) candidates.push([tokenIn, tokenOut]);
+  if (tokenIn.toLowerCase() !== CONTRACTS.weth.toLowerCase() && tokenOut.toLowerCase() !== CONTRACTS.weth.toLowerCase()) {
+    candidates.push([tokenIn, CONTRACTS.weth, tokenOut]);
+  }
+  let best: { path: string[]; out: bigint; hops: number } | null = null;
+  for (const path of candidates) {
+    try {
+      const a = await router.getAmountsOut(amountIn, path);
+      const out = a[a.length - 1] as bigint;
+      if (!best || out > best.out) best = { path, out, hops: path.length - 1 };
+    } catch { /* ignore unavailable path */ }
+  }
+  return best;
+}
+
+/** Uniswap v2 quote: amountB = amountA * reserveB / reserveA */
+export function uniQuote(amountA: bigint, reserveA: bigint, reserveB: bigint): bigint {
+  if (reserveA === 0n) return 0n;
+  return (amountA * reserveB) / reserveA;
+}
+
+export async function getPairInfo(tokenA: string, tokenB: string, owner?: string) {
+  const factory = new Contract(CONTRACTS.factory, FACTORY_ABI, readProvider);
+  const pair: string = await factory.getPair(tokenA, tokenB);
+  if (!pair || pair === "0x0000000000000000000000000000000000000000") {
+    return { pair: null as string | null, reserve0: 0n, reserve1: 0n, token0: "", token1: "", totalSupply: 0n, lpBalance: 0n };
+  }
+  const p = new Contract(pair, PAIR_ABI, readProvider);
+  const [reserves, token0, token1, totalSupply, lpBalance] = await Promise.all([
+    p.getReserves(),
+    p.token0(),
+    p.token1(),
+    p.totalSupply(),
+    owner ? p.balanceOf(owner) : Promise.resolve(0n),
+  ]);
+  return {
+    pair,
+    reserve0: reserves[0] as bigint,
+    reserve1: reserves[1] as bigint,
+    token0: String(token0),
+    token1: String(token1),
+    totalSupply: totalSupply as bigint,
+    lpBalance: lpBalance as bigint,
+  };
+}
+
+export async function getTokenBalance(token: string, owner: string): Promise<bigint> {
+  const t = new Contract(token, ERC20_ABI, readProvider);
+  return (await t.balanceOf(owner)) as bigint;
+}
+
+export async function getNativeBalance(owner: string): Promise<bigint> {
+  return await readProvider.getBalance(owner);
+}
+
 export async function addLiquidityETH(signer: any, token: string, tokenAmount: bigint, ethAmountEth: string) {
   await approveToken(signer, token, CONTRACTS.router, tokenAmount);
   const router = new Contract(CONTRACTS.router, ROUTER_ABI, signer);
