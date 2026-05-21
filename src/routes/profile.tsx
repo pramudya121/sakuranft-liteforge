@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Award, Edit2, Twitter, Globe } from "lucide-react";
+import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +34,24 @@ function Profile() {
     return arr;
   }, [nfts, address, sort]);
 
+  const myListings = useMemo(
+    () => listings.filter((l) => address && l.seller.toLowerCase() === address.toLowerCase()),
+    [listings, address]
+  );
+
+  const floorPrice = useMemo(() => {
+    const prices = listings.map((l) => +l.priceEth).filter((n) => n > 0);
+    return prices.length ? Math.min(...prices) : 0;
+  }, [listings]);
+
+  const estimatedValue = useMemo(() => {
+    // sum: listed → at own price, unlisted → at floor
+    return owned.reduce((acc, n) => {
+      const mine = listings.find((l) => l.tokenId === n.tokenId);
+      return acc + (mine ? +mine.priceEth : floorPrice);
+    }, 0);
+  }, [owned, listings, floorPrice]);
+
   const badges = useMemo(() => {
     const b: { name: string; emoji: string; desc: string }[] = [];
     if (owned.length >= 1) b.push({ name: "Early Adopter", emoji: "🌸", desc: "First mint" });
@@ -50,16 +68,29 @@ function Profile() {
   return (
     <div className="space-y-8">
       <div className="glass rounded-3xl overflow-hidden glow-card">
-        {profile?.banner_url && (
-          <div className="h-32 md:h-48 bg-cover bg-center" style={{ backgroundImage: `url(${profile.banner_url})` }} />
-        )}
+        <div className="h-32 md:h-48 bg-cover bg-center relative"
+             style={{ backgroundImage: profile?.banner_url
+               ? `url(${profile.banner_url})`
+               : "linear-gradient(135deg, oklch(0.6 0.18 350), oklch(0.55 0.2 280), oklch(0.6 0.18 220))" }}>
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        </div>
         <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-16 md:-mt-20 border-4 border-background">
             {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "🌸"}
           </div>
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl font-bold">{profile?.display_name || "Anonymous Collector"}</h1>
-            <p className="font-mono text-sm text-muted-foreground">{shortAddr(address)}</p>
+            <div className="flex items-center gap-2 justify-center md:justify-start mt-1">
+              <p className="font-mono text-sm text-muted-foreground">{shortAddr(address)}</p>
+              <button onClick={() => { navigator.clipboard.writeText(address); toast.success("Address copied"); }}
+                className="text-muted-foreground hover:text-primary" aria-label="Copy address">
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <a href={`${CHAIN.explorer}/address/${address}`} target="_blank" rel="noopener"
+                 className="text-muted-foreground hover:text-primary" aria-label="View on explorer">
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
             <p className="mt-2 text-sm">{profile?.bio || "No bio yet."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
               {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
@@ -83,16 +114,18 @@ function Profile() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
-        <Stat label="Owned" v={owned.length} />
-        <Stat label="Listed" v={listings.filter((l) => l.seller.toLowerCase() === address.toLowerCase()).length} />
-        <Stat label={`Value (${CHAIN.symbol})`} v={listings.filter((l) => l.seller.toLowerCase() === address.toLowerCase()).reduce((a, l) => a + +l.priceEth, 0).toFixed(2)} />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Stat icon={<ImageIcon className="w-3 h-3" />} label="Owned" v={owned.length} />
+        <Stat icon={<Tag className="w-3 h-3" />} label="Listed" v={myListings.length} />
+        <Stat icon={<Wallet className="w-3 h-3" />} label={`Listed (${CHAIN.symbol})`} v={myListings.reduce((a, l) => a + +l.priceEth, 0).toFixed(2)} />
+        <Stat icon={<TrendingUp className="w-3 h-3" />} label={`Est. Value`} v={`${estimatedValue.toFixed(2)} ${CHAIN.symbol}`} />
       </div>
 
       <Tabs defaultValue="collection" className="w-full">
         <TabsList className="glass">
-          <TabsTrigger value="collection">My Collection</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+          <TabsTrigger value="collection">Collection ({owned.length})</TabsTrigger>
+          <TabsTrigger value="listed">Listed ({myListings.length})</TabsTrigger>
+          <TabsTrigger value="portfolio">Tokens</TabsTrigger>
         </TabsList>
         <TabsContent value="collection" className="space-y-4 mt-4">
           <div className="flex items-center justify-between">
@@ -114,6 +147,19 @@ function Profile() {
             </div>
           )}
         </TabsContent>
+        <TabsContent value="listed" className="mt-4 space-y-4">
+          {myListings.length === 0 ? (
+            <div className="text-center py-12 glass rounded-2xl text-muted-foreground">You have no active listings.</div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {myListings.map((l) => {
+                const n = nfts.find((x) => x.tokenId === l.tokenId);
+                if (!n) return null;
+                return <NFTCard key={l.tokenId.toString()} nft={n} listing={l} />;
+              })}
+            </div>
+          )}
+        </TabsContent>
         <TabsContent value="portfolio" className="mt-4">
           <PortfolioPanel />
         </TabsContent>
@@ -122,8 +168,13 @@ function Profile() {
   );
 }
 
-function Stat({ label, v }: { label: string; v: any }) {
-  return <div className="glass rounded-2xl p-4 text-center"><div className="text-2xl font-bold gradient-text">{v}</div><div className="text-xs text-muted-foreground">{label}</div></div>;
+function Stat({ label, v, icon }: { label: string; v: any; icon?: React.ReactNode }) {
+  return (
+    <div className="glass rounded-2xl p-4 text-center">
+      <div className="text-2xl font-bold gradient-text">{v}</div>
+      <div className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-0.5">{icon}<span>{label}</span></div>
+    </div>
+  );
 }
 
 function EditDialog({ profile, onSave }: { profile: DBProfile | null; onSave: (p: Partial<DBProfile>) => Promise<void> }) {
