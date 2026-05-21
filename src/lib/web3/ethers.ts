@@ -215,12 +215,19 @@ export async function approveToken(signer: any, token: string, spender: string, 
   return tx.wait();
 }
 
+// Convert decimal slippage % (e.g. 0.5, 1, 3) to integer basis points safely.
+// BigInt(99.5) throws — so we scale by 10_000 to support up to 4 decimals.
+function minOutWithSlippage(amountOut: bigint, slippagePct: number): bigint {
+  const bps = Math.max(0, Math.min(10_000, Math.round(slippagePct * 100))); // pct -> bps
+  return (amountOut * BigInt(10_000 - bps)) / 10_000n;
+}
+
 export async function swapExactETHForTokens(signer: any, tokenOut: string, amountInEth: string, slippagePct = 1) {
   const router = new Contract(CONTRACTS.router, ROUTER_ABI, signer);
   const path = [CONTRACTS.weth, tokenOut];
   const amountIn = parseEther(amountInEth);
   const amounts = await router.getAmountsOut(amountIn, path);
-  const minOut = (amounts[1] * BigInt(100 - slippagePct)) / 100n;
+  const minOut = minOutWithSlippage(amounts[amounts.length - 1], slippagePct);
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.swapExactETHForTokens(minOut, path, to, deadline, { value: amountIn });
@@ -232,7 +239,7 @@ export async function swapExactTokensForETH(signer: any, tokenIn: string, amount
   const router = new Contract(CONTRACTS.router, ROUTER_ABI, signer);
   const path = [tokenIn, CONTRACTS.weth];
   const amounts = await router.getAmountsOut(amountIn, path);
-  const minOut = (amounts[1] * BigInt(100 - slippagePct)) / 100n;
+  const minOut = minOutWithSlippage(amounts[amounts.length - 1], slippagePct);
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.swapExactTokensForETH(amountIn, minOut, path, to, deadline);
@@ -245,12 +252,13 @@ export async function swapExactTokensForTokens(signer: any, amountIn: bigint, pa
   await approveToken(signer, path[0], CONTRACTS.router, amountIn);
   const router = new Contract(CONTRACTS.router, ROUTER_ABI, signer);
   const amounts = await router.getAmountsOut(amountIn, path);
-  const minOut = (amounts[amounts.length - 1] * BigInt(100 - slippagePct)) / 100n;
+  const minOut = minOutWithSlippage(amounts[amounts.length - 1], slippagePct);
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.swapExactTokensForTokens(amountIn, minOut, path, to, deadline);
   return tx.wait();
 }
+
 
 /** Try direct path first, then route through WETH. Returns best path + estimated out. */
 export async function findBestRoute(amountIn: bigint, tokenIn: string, tokenOut: string): Promise<{ path: string[]; out: bigint; hops: number } | null> {
