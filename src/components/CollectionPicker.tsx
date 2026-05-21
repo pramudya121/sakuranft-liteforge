@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Check, Loader2, Layers, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Check, Loader2, Layers, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
