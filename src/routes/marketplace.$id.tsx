@@ -143,6 +143,9 @@ function NFTDetail() {
             </div>
           )}
         </TabsContent>
+        <TabsContent value="comments" className="glass rounded-2xl p-4">
+          <CommentsPanel tokenId={nft.tokenId} />
+        </TabsContent>
         <TabsContent value="history" className="glass rounded-2xl p-4">
           <p className="text-sm text-muted-foreground text-center py-6">Browse full chain history on <a className="text-primary underline" target="_blank" rel="noopener" href={`${CHAIN.explorer}/token/${nft.owner}`}>Block Explorer</a>.</p>
         </TabsContent>
