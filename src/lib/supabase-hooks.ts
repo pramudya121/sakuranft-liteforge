@@ -188,3 +188,102 @@ export function useTrendingTokenIds(limit = 8) {
   }, [limit]);
   return ids;
 }
+
+// ---------- Likes ----------
+export function useNFTLikes(tokenId?: string | bigint, viewer?: string | null) {
+  const [count, setCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+
+  const load = useCallback(async () => {
+    if (tokenId === undefined) return;
+    const tid = Number(tokenId);
+    const { count: c } = await supabase
+      .from("nft_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("token_id", tid);
+    setCount(c ?? 0);
+    if (viewer) {
+      const { data } = await supabase
+        .from("nft_likes")
+        .select("id")
+        .eq("token_id", tid)
+        .eq("wallet_address", viewer.toLowerCase())
+        .maybeSingle();
+      setLiked(!!data);
+    } else setLiked(false);
+  }, [tokenId, viewer]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const toggle = useCallback(async () => {
+    if (!viewer || tokenId === undefined) return;
+    const tid = Number(tokenId);
+    const wallet = viewer.toLowerCase();
+    if (liked) {
+      setLiked(false); setCount((c) => Math.max(0, c - 1));
+      await supabase.from("nft_likes").delete()
+        .eq("token_id", tid).eq("wallet_address", wallet);
+    } else {
+      setLiked(true); setCount((c) => c + 1);
+      await supabase.from("nft_likes").insert({ token_id: tid, wallet_address: wallet });
+    }
+  }, [liked, tokenId, viewer]);
+
+  return { count, liked, toggle };
+}
+
+// ---------- Comments ----------
+export type NFTComment = {
+  id: string;
+  token_id: number;
+  wallet_address: string;
+  content: string;
+  created_at: string;
+};
+
+export function useNFTComments(tokenId?: string | bigint) {
+  const [comments, setComments] = useState<NFTComment[]>([]);
+
+  const load = useCallback(async () => {
+    if (tokenId === undefined) return;
+    const tid = Number(tokenId);
+    const { data } = await supabase
+      .from("nft_comments")
+      .select("*")
+      .eq("token_id", tid)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setComments((data ?? []) as NFTComment[]);
+  }, [tokenId]);
+
+  useEffect(() => {
+    load();
+    if (tokenId === undefined) return;
+    const tid = Number(tokenId);
+    const ch = supabase
+      .channel(`comments-${tid}`)
+      .on("postgres_changes", {
+        event: "*", schema: "public", table: "nft_comments",
+        filter: `token_id=eq.${tid}`,
+      }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [tokenId, load]);
+
+  const post = useCallback(async (wallet: string, content: string) => {
+    if (tokenId === undefined) return;
+    const text = content.trim().slice(0, 1000);
+    if (!text) return;
+    await supabase.from("nft_comments").insert({
+      token_id: Number(tokenId),
+      wallet_address: wallet.toLowerCase(),
+      content: text,
+    });
+  }, [tokenId]);
+
+  const remove = useCallback(async (id: string) => {
+    await supabase.from("nft_comments").delete().eq("id", id);
+  }, []);
+
+  return { comments, post, remove, reload: load };
+}

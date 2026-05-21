@@ -47,6 +47,51 @@ export type Database = {
         }
         Relationships: []
       }
+      nft_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          token_id: number
+          wallet_address: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          token_id: number
+          wallet_address: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          token_id?: number
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      nft_likes: {
+        Row: {
+          created_at: string
+          id: string
+          token_id: number
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          token_id: number
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          token_id?: number
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       nft_views: {
         Row: {
           token_id: number

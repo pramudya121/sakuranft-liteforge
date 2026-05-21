@@ -10,6 +10,7 @@ import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, sh
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
+import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
@@ -57,8 +58,11 @@ function NFTDetail() {
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
             <p className="text-muted-foreground mt-2">{nft.description || "No description."}</p>
-            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-              <Eye className="w-3 h-3" /> {viewCount} views
+            <div className="flex items-center gap-3 mt-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Eye className="w-3 h-3" /> {viewCount} views
+              </div>
+              <LikeButton tokenId={nft.tokenId} />
             </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
@@ -111,6 +115,7 @@ function NFTDetail() {
       <Tabs defaultValue="offers" className="mt-8">
         <TabsList className="glass">
           <TabsTrigger value="offers">Offers ({offers.filter((o) => o.active).length})</TabsTrigger>
+          <TabsTrigger value="comments">Comments</TabsTrigger>
           <TabsTrigger value="history">Transaction History</TabsTrigger>
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
         </TabsList>
@@ -137,6 +142,9 @@ function NFTDetail() {
               ))}
             </div>
           )}
+        </TabsContent>
+        <TabsContent value="comments" className="glass rounded-2xl p-4">
+          <CommentsPanel tokenId={nft.tokenId} />
         </TabsContent>
         <TabsContent value="history" className="glass rounded-2xl p-4">
           <p className="text-sm text-muted-foreground text-center py-6">Browse full chain history on <a className="text-primary underline" target="_blank" rel="noopener" href={`${CHAIN.explorer}/token/${nft.owner}`}>Block Explorer</a>.</p>
