@@ -27,19 +27,19 @@ function LiquidityPage() {
   const [slippage, setSlippage] = useState(0.5);
 
   return (
-    <div className="rounded-3xl p-5 bg-gradient-to-b from-card to-background/70 border border-border/60 shadow-2xl backdrop-blur-xl">
+    <div className="dex-panel rounded-3xl p-5 max-w-md mx-auto">
       <div className="flex items-center gap-2 mb-4">
         <button onClick={() => setMode("add")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "add" ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg" : "bg-background/40 text-muted-foreground"}`}>
+          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "add" ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg" : "bg-white/5 text-white/60"}`}>
           <Plus className="w-4 h-4" /> Add Liquidity
         </button>
         <button onClick={() => setMode("remove")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "remove" ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg" : "bg-background/40 text-muted-foreground"}`}>
+          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "remove" ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg" : "bg-white/5 text-white/60"}`}>
           <Minus className="w-4 h-4" /> Remove Liquidity
         </button>
         <Popover>
           <PopoverTrigger asChild>
-            <button className="w-10 h-10 rounded-xl bg-background/40 flex items-center justify-center hover:bg-background/60">
+            <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10">
               <Settings className="w-4 h-4" />
             </button>
           </PopoverTrigger>
