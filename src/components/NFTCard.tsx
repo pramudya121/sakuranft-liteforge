@@ -38,7 +38,7 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
           <h3 className="font-semibold truncate">{nft.name}</h3>
           <span className="text-xs text-muted-foreground shrink-0">#{id}</span>
         </div>
-        <p className="text-xs text-muted-foreground">by {shortAddr(nft.owner)}</p>
+        <Link to="/u/$address" params={{ address: nft.owner }} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:text-primary truncate">by {shortAddr(nft.owner)}</Link>
         {listing ? (
           <div className="flex items-baseline justify-between mt-1">
             <span className="text-xs text-muted-foreground">Price</span>
