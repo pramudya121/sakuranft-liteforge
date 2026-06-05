@@ -178,7 +178,7 @@ function Analytics() {
                   <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={10} />
                   <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
                   <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
-                    formatter={(v: any, k: string) => [`${Number(v).toFixed(4)} ${CHAIN.symbol}`, k === "volume" ? "Volume" : k]} />
+                    formatter={(v: any) => [`${Number(v).toFixed(4)} ${CHAIN.symbol}`, "Volume"]} />
                   <Area type="monotone" dataKey="volume" stroke="#e879f9" fill="url(#gVol)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
