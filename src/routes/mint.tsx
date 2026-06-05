@@ -175,16 +175,32 @@ function Mint() {
               <Textarea rows={2} placeholder="e.g. A cherry blossom warrior fox in a moonlit forest, ethereal glow"
                 value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)}
                 className="bg-background/40 resize-none text-sm" />
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
+                <select value={aiStyle} onChange={(e) => setAiStyle(e.target.value as any)}
+                  className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
+                  <option value="cinematic">Cinematic</option>
+                  <option value="anime">Anime</option>
+                  <option value="3d">3D Render</option>
+                  <option value="watercolor">Watercolor</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                  <option value="oil-painting">Oil Painting</option>
+                  <option value="pixel">Pixel Art</option>
+                </select>
+                <select value={aiQuality} onChange={(e) => setAiQuality(e.target.value as any)}
+                  className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
+                  <option value="low">Fast</option>
+                  <option value="medium">Balanced</option>
+                  <option value="high">High Quality</option>
+                </select>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-background/60 border text-sm">
+                  className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
-                <Button onClick={handleAIImage} disabled={aiBusy !== null}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                  {aiBusy === "img" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating</> : <><Wand2 className="w-4 h-4 mr-2" /> Generate</>}
-                </Button>
               </div>
+              <Button onClick={handleAIImage} disabled={aiBusy !== null}
+                className="w-full rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                {aiBusy === "img" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating</> : <><Wand2 className="w-4 h-4 mr-2" /> Generate Artwork</>}
+              </Button>
               <p className="text-[11px] text-center text-muted-foreground">
                 ✨ Powered by Lovable AI — uses your workspace AI credits
               </p>
