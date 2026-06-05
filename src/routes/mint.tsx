@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useWallet } from "@/contexts/WalletContext";
 import { mintNFT } from "@/lib/web3/ethers";
 import { generateNFTDescription, generateNFTImage } from "@/lib/ai.functions";
-import { CollectionPicker } from "@/components/CollectionPicker";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/mint")({
@@ -49,8 +48,10 @@ function Mint() {
   const [category, setCategory] = useState("Digital Art");
   const [aiPrompt, setAiPrompt] = useState("");
   const [traits, setTraits] = useState<{ trait_type: string; value: string }[]>([]);
-  const [collectionSlug, setCollectionSlug] = useState<string | null>(null);
-  const [collectionName, setCollectionName] = useState<string | null>(null);
+  const [aiStyle, setAiStyle] = useState<"cinematic" | "anime" | "3d" | "watercolor" | "cyberpunk" | "oil-painting" | "pixel">("cinematic");
+  const [aiQuality, setAiQuality] = useState<"low" | "medium" | "high">("medium");
+  const [aiTone, setAiTone] = useState<"poetic" | "epic" | "mystical" | "playful" | "cyberpunk" | "minimal">("poetic");
+  const [aiLang, setAiLang] = useState("English");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState<"img" | "desc" | null>(null);
@@ -71,7 +72,7 @@ function Mint() {
     if (!prompt) return toast.error("Type a prompt or name first");
     setAiBusy("img");
     try {
-      const { imageDataUrl } = await genImg({ data: { prompt: `${prompt} — ${category} style` } });
+      const { imageDataUrl } = await genImg({ data: { prompt: `${prompt} — ${category}`, style: aiStyle, quality: aiQuality } });
       setPreview(imageDataUrl);
       setFile(dataUrlToFile(imageDataUrl, `ai-${Date.now()}.png`));
       toast.success("Artwork generated!");
@@ -84,7 +85,8 @@ function Mint() {
     if (!name) return toast.error("Enter NFT name first");
     setAiBusy("desc");
     try {
-      const { description } = await genDesc({ data: { name, hint: aiPrompt || category } });
+      const hintParts = [aiPrompt, category, traits.filter(t => t.trait_type && t.value).map(t => `${t.trait_type}: ${t.value}`).join(", ")].filter(Boolean);
+      const { description } = await genDesc({ data: { name, hint: hintParts.join(" | "), tone: aiTone, lang: aiLang } });
       setDesc(description);
       toast.success("Description ready!");
     } catch (e: any) {
@@ -108,7 +110,6 @@ function Mint() {
       const richDesc = JSON.stringify({
         description: desc,
         category,
-        collection: collectionSlug ? { slug: collectionSlug, name: collectionName } : null,
         royalty_bps: Math.floor(Math.max(0, Math.min(50, +royalty || 0)) * 100),
         attributes: metaTraits,
       });
@@ -174,16 +175,32 @@ function Mint() {
               <Textarea rows={2} placeholder="e.g. A cherry blossom warrior fox in a moonlit forest, ethereal glow"
                 value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)}
                 className="bg-background/40 resize-none text-sm" />
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2">
+                <select value={aiStyle} onChange={(e) => setAiStyle(e.target.value as any)}
+                  className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
+                  <option value="cinematic">Cinematic</option>
+                  <option value="anime">Anime</option>
+                  <option value="3d">3D Render</option>
+                  <option value="watercolor">Watercolor</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                  <option value="oil-painting">Oil Painting</option>
+                  <option value="pixel">Pixel Art</option>
+                </select>
+                <select value={aiQuality} onChange={(e) => setAiQuality(e.target.value as any)}
+                  className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
+                  <option value="low">Fast</option>
+                  <option value="medium">Balanced</option>
+                  <option value="high">High Quality</option>
+                </select>
                 <select value={category} onChange={(e) => setCategory(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-background/60 border text-sm">
+                  className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
-                <Button onClick={handleAIImage} disabled={aiBusy !== null}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground">
-                  {aiBusy === "img" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating</> : <><Wand2 className="w-4 h-4 mr-2" /> Generate</>}
-                </Button>
               </div>
+              <Button onClick={handleAIImage} disabled={aiBusy !== null}
+                className="w-full rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground">
+                {aiBusy === "img" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating</> : <><Wand2 className="w-4 h-4 mr-2" /> Generate Artwork</>}
+              </Button>
               <p className="text-[11px] text-center text-muted-foreground">
                 ✨ Powered by Lovable AI — uses your workspace AI credits
               </p>
@@ -199,19 +216,35 @@ function Mint() {
               placeholder="e.g. Winter Bloom #001" className="mt-1.5 bg-background/40" />
           </div>
 
-          <CollectionPicker
-            value={collectionSlug}
-            onChange={(slug, col) => { setCollectionSlug(slug); setCollectionName(col?.name ?? null); }}
-          />
 
 
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className="text-sm font-medium">Description</label>
-              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs"
-                onClick={handleAIDesc} disabled={aiBusy !== null || !name}>
-                <Wand2 className="w-3 h-3 mr-1" /> {aiBusy === "desc" ? "Writing..." : "AI write"}
-              </Button>
+              <div className="flex items-center gap-1">
+                <select value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}
+                  className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
+                  <option value="poetic">Poetic</option>
+                  <option value="epic">Epic</option>
+                  <option value="mystical">Mystical</option>
+                  <option value="playful">Playful</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+                <select value={aiLang} onChange={(e) => setAiLang(e.target.value)}
+                  className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
+                  <option>English</option>
+                  <option>Indonesian</option>
+                  <option>Japanese</option>
+                  <option>Spanish</option>
+                  <option>French</option>
+                  <option>Chinese</option>
+                </select>
+                <Button type="button" size="sm" variant="ghost" className="h-7 text-xs"
+                  onClick={handleAIDesc} disabled={aiBusy !== null || !name}>
+                  <Wand2 className="w-3 h-3 mr-1" /> {aiBusy === "desc" ? "Writing..." : "AI write"}
+                </Button>
+              </div>
             </div>
             <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={4}
               placeholder="Tell the story behind this artwork..." className="mt-1.5 bg-background/40 resize-none" />
