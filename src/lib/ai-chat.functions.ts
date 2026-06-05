@@ -64,7 +64,7 @@ const TOOLS = [
       parameters: {
         type: "object",
         properties: {
-          path: { type: "string", enum: ["/", "/marketplace", "/mint", "/collections", "/dex/swap", "/dex/liquidity", "/activity", "/profile", "/analytics", "/leaderboard", "/watchlist"] },
+          path: { type: "string", enum: ["/", "/marketplace", "/mint", "/dex/swap", "/dex/liquidity", "/activity", "/profile", "/analytics", "/leaderboard", "/watchlist"] },
         },
         required: ["path"],
         additionalProperties: false,
