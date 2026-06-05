@@ -108,17 +108,6 @@ function Analytics() {
     }));
   }, [listings]);
 
-  const mintsOverTime = useMemo(() => {
-    // Approximate: bucket NFTs by tokenId chunks
-    const sorted = [...nfts].sort((a, b) => Number(a.tokenId - b.tokenId));
-    const buckets = 10;
-    const size = Math.max(1, Math.ceil(sorted.length / buckets));
-    const arr: { idx: string; mints: number }[] = [];
-    for (let i = 0; i < sorted.length; i += size) {
-      arr.push({ idx: `${i + 1}-${Math.min(i + size, sorted.length)}`, mints: sorted.slice(i, i + size).length });
-    }
-    return arr;
-  }, [nfts]);
 
   const topHolders = useMemo(() => {
     const counts: Record<string, number> = {};
