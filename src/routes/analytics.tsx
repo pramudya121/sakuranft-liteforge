@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { TrendingUp, Users, ShoppingBag, DollarSign, Repeat, Droplet, Sparkles, Activity as ActivityIcon, LineChart as LineChartIcon } from "lucide-react";
+import { TrendingUp, ShoppingBag, DollarSign, Repeat, Droplet, Sparkles, Activity as ActivityIcon, LineChart as LineChartIcon } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useAllListings, useAllNFTs } from "@/lib/web3/hooks";
 import { CHAIN, CONTRACTS } from "@/lib/web3/contracts";
