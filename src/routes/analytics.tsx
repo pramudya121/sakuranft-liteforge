@@ -126,6 +126,19 @@ function Analytics() {
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([addr, c]) => ({ name: `${addr.slice(0, 6)}…${addr.slice(-4)}`, value: c }));
   }, [nfts]);
 
+  // Real on-chain history aggregates
+  const histStats = useMemo(() => {
+    if (!history.length) return { totalVolume: 0, totalSales: 0, last7Volume: 0, last7Sales: 0, avgSale: 0 };
+    const totalVolume = history.reduce((s, p) => s + p.volume, 0);
+    const totalSales = history.reduce((s, p) => s + p.sales, 0);
+    const cutoff = Date.now() / 1000 - 7 * 86400;
+    const recent = history.filter((p) => p.timestamp >= cutoff);
+    const last7Volume = recent.reduce((s, p) => s + p.volume, 0);
+    const last7Sales = recent.reduce((s, p) => s + p.sales, 0);
+    const avgSale = totalSales ? totalVolume / totalSales : 0;
+    return { totalVolume, totalSales, last7Volume, last7Sales, avgSale };
+  }, [history]);
+
   const dexTvl = pools.reduce((s, p) => s + p.tvlEth, 0);
 
   return (
