@@ -72,7 +72,7 @@ function Mint() {
     if (!prompt) return toast.error("Type a prompt or name first");
     setAiBusy("img");
     try {
-      const { imageDataUrl } = await genImg({ data: { prompt: `${prompt} — ${category} style` } });
+      const { imageDataUrl } = await genImg({ data: { prompt: `${prompt} — ${category}`, style: aiStyle, quality: aiQuality } });
       setPreview(imageDataUrl);
       setFile(dataUrlToFile(imageDataUrl, `ai-${Date.now()}.png`));
       toast.success("Artwork generated!");
@@ -85,7 +85,8 @@ function Mint() {
     if (!name) return toast.error("Enter NFT name first");
     setAiBusy("desc");
     try {
-      const { description } = await genDesc({ data: { name, hint: aiPrompt || category } });
+      const hintParts = [aiPrompt, category, traits.filter(t => t.trait_type && t.value).map(t => `${t.trait_type}: ${t.value}`).join(", ")].filter(Boolean);
+      const { description } = await genDesc({ data: { name, hint: hintParts.join(" | "), tone: aiTone, lang: aiLang } });
       setDesc(description);
       toast.success("Description ready!");
     } catch (e: any) {
