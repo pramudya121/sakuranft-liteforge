@@ -171,8 +171,8 @@ function ActivityPage() {
     return () => clearInterval(t);
   }, [load]);
 
-  async function wrap<T>(id: string, fn: () => Promise<T>, after?: () => void | Promise<void>) {
-    if (!signer) return toast.error("Connect wallet first");
+  async function wrap(id: string, fn: () => Promise<any>, after?: () => void | Promise<void>): Promise<void> {
+    if (!signer) { toast.error("Connect wallet first"); return; }
     setBusyId(id);
     try {
       toast.loading("Confirm in wallet...", { id });
@@ -246,7 +246,11 @@ function ActivityPage() {
                   busy={busyId === `${e.tx}-${i}`}
                   onBuy={(ev) => wrap(`${e.tx}-${i}`,
                     () => buyNFT(signer, ev.listingId!, ev.priceWei!),
-                    () => ev.seller && ev.tokenId !== undefined && pushNotification(ev.seller, "sale", "🎉 Your NFT was sold!", `Sold for ${ev.priceEth} ${CHAIN.symbol}`, ev.tokenId, `/marketplace/${ev.tokenId}`),
+                    async () => {
+                      if (ev.seller && ev.tokenId !== undefined) {
+                        await pushNotification(ev.seller, "sale", "🎉 Your NFT was sold!", `Sold for ${ev.priceEth} ${CHAIN.symbol}`, ev.tokenId, `/marketplace/${ev.tokenId}`);
+                      }
+                    },
                   )}
                   onOffer={(ev) => { setOfferOpen(ev); setOfferAmt(""); }}
                   onView={(ev) => navigate({ to: "/marketplace/$id", params: { id: ev.tokenId!.toString() } })}
