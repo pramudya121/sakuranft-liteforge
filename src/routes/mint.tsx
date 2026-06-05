@@ -48,6 +48,10 @@ function Mint() {
   const [category, setCategory] = useState("Digital Art");
   const [aiPrompt, setAiPrompt] = useState("");
   const [traits, setTraits] = useState<{ trait_type: string; value: string }[]>([]);
+  const [aiStyle, setAiStyle] = useState<"cinematic" | "anime" | "3d" | "watercolor" | "cyberpunk" | "oil-painting" | "pixel">("cinematic");
+  const [aiQuality, setAiQuality] = useState<"low" | "medium" | "high">("medium");
+  const [aiTone, setAiTone] = useState<"poetic" | "epic" | "mystical" | "playful" | "cyberpunk" | "minimal">("poetic");
+  const [aiLang, setAiLang] = useState("English");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState<"img" | "desc" | null>(null);
