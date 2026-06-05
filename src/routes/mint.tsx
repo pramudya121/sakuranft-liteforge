@@ -219,12 +219,32 @@ function Mint() {
 
 
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className="text-sm font-medium">Description</label>
-              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs"
-                onClick={handleAIDesc} disabled={aiBusy !== null || !name}>
-                <Wand2 className="w-3 h-3 mr-1" /> {aiBusy === "desc" ? "Writing..." : "AI write"}
-              </Button>
+              <div className="flex items-center gap-1">
+                <select value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}
+                  className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
+                  <option value="poetic">Poetic</option>
+                  <option value="epic">Epic</option>
+                  <option value="mystical">Mystical</option>
+                  <option value="playful">Playful</option>
+                  <option value="cyberpunk">Cyberpunk</option>
+                  <option value="minimal">Minimal</option>
+                </select>
+                <select value={aiLang} onChange={(e) => setAiLang(e.target.value)}
+                  className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
+                  <option>English</option>
+                  <option>Indonesian</option>
+                  <option>Japanese</option>
+                  <option>Spanish</option>
+                  <option>French</option>
+                  <option>Chinese</option>
+                </select>
+                <Button type="button" size="sm" variant="ghost" className="h-7 text-xs"
+                  onClick={handleAIDesc} disabled={aiBusy !== null || !name}>
+                  <Wand2 className="w-3 h-3 mr-1" /> {aiBusy === "desc" ? "Writing..." : "AI write"}
+                </Button>
+              </div>
             </div>
             <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={4}
               placeholder="Tell the story behind this artwork..." className="mt-1.5 bg-background/40 resize-none" />
