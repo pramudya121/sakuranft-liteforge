@@ -105,7 +105,6 @@ function Mint() {
       const richDesc = JSON.stringify({
         description: desc,
         category,
-        collection: collectionSlug ? { slug: collectionSlug, name: collectionName } : null,
         royalty_bps: Math.floor(Math.max(0, Math.min(50, +royalty || 0)) * 100),
         attributes: metaTraits,
       });
