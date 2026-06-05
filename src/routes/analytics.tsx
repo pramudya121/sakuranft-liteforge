@@ -158,10 +158,50 @@ function Analytics() {
           <StatCard icon={Sparkles} label="Total NFTs" value={mp.count.toString()} sub={`${mp.owners} unique owners`} />
           <StatCard icon={ShoppingBag} label="Active Listings" value={mp.listed.toString()} sub={`${mp.listedRatio.toFixed(1)}% listed`} />
           <StatCard icon={DollarSign} label="Floor Price" value={`${mp.floor.toFixed(4)} ${CHAIN.symbol}`} sub={`Ceiling ${mp.ceiling.toFixed(2)}`} />
-          <StatCard icon={TrendingUp} label="Avg Listing" value={`${mp.avg.toFixed(4)} ${CHAIN.symbol}`} sub={`TVL ${mp.total.toFixed(2)} ${CHAIN.symbol}`} />
+          <StatCard icon={TrendingUp} label="On-chain Volume" value={`${histStats.totalVolume.toFixed(3)} ${CHAIN.symbol}`} sub={`${histStats.totalSales} sales · 7d ${histStats.last7Volume.toFixed(3)}`} />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4">
+          <Section title="Daily Trading Volume (on-chain sales)" right={<span className="text-[10px] text-white/40">{historyLoading ? "Scanning chain…" : `${history.length} days`}</span>}>
+            {history.length === 0 ? (
+              <p className="text-xs text-white/50 py-8 text-center">{historyLoading ? "Reading Sold events from chain…" : "No recorded sales yet."}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={history}>
+                  <defs>
+                    <linearGradient id="gVol" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#e879f9" stopOpacity={0.8} />
+                      <stop offset="100%" stopColor="#e879f9" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                  <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
+                    formatter={(v: any, k: string) => [`${Number(v).toFixed(4)} ${CHAIN.symbol}`, k === "volume" ? "Volume" : k]} />
+                  <Area type="monotone" dataKey="volume" stroke="#e879f9" fill="url(#gVol)" strokeWidth={2} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </Section>
+
+          <Section title="Floor Price Trend (on-chain)" right={<LineChartIcon className="w-3.5 h-3.5 text-white/40" />}>
+            {history.length === 0 ? (
+              <p className="text-xs text-white/50 py-8 text-center">{historyLoading ? "Loading…" : "No floor data yet."}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                  <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
+                    formatter={(v: any) => [`${Number(v).toFixed(4)} ${CHAIN.symbol}`, "Floor"]} />
+                  <Line type="monotone" dataKey="floor" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </Section>
+
           <Section title="Listing Price Distribution">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={priceBuckets}>
@@ -169,27 +209,25 @@ function Analytics() {
                 <XAxis dataKey="range" stroke="rgba(255,255,255,0.5)" fontSize={10} />
                 <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} allowDecimals={false} />
                 <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
-                <Bar dataKey="count" fill="#e879f9" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="count" fill="#f472b6" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Section>
 
-          <Section title="Mint Velocity (tokenId buckets)">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={mintsOverTime}>
-                <defs>
-                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f472b6" stopOpacity={0.7} />
-                    <stop offset="100%" stopColor="#f472b6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="idx" stroke="rgba(255,255,255,0.5)" fontSize={10} />
-                <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
-                <Area type="monotone" dataKey="mints" stroke="#f472b6" fill="url(#g1)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <Section title="Daily Sales Count (on-chain)">
+            {history.length === 0 ? (
+              <p className="text-xs text-white/50 py-8 text-center">{historyLoading ? "Loading…" : "No sales yet."}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={history}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={10} />
+                  <YAxis stroke="rgba(255,255,255,0.5)" fontSize={10} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
+                  <Bar dataKey="sales" fill="#34d399" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </Section>
 
           <Section title="Top Holders">
@@ -209,9 +247,11 @@ function Analytics() {
           <Section title="Marketplace Summary">
             <ul className="text-sm space-y-2 text-white/80">
               <li className="flex justify-between"><span className="text-white/60">Total Value Listed</span><span className="font-semibold">{mp.total.toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="text-white/60">On-chain Volume</span><span className="font-semibold">{histStats.totalVolume.toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="text-white/60">Avg Sale Price</span><span className="font-semibold">{histStats.avgSale.toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="text-white/60">Sales (7d)</span><span className="font-semibold">{histStats.last7Sales}</span></li>
               <li className="flex justify-between"><span className="text-white/60">Listed Ratio</span><span className="font-semibold">{mp.listedRatio.toFixed(2)}%</span></li>
-              <li className="flex justify-between"><span className="text-white/60">Concentration (top owner)</span><span className="font-semibold">{topHolders[0] ? `${((topHolders[0].value / mp.count) * 100).toFixed(1)}%` : "—"}</span></li>
-              <li className="flex justify-between"><span className="text-white/60">Floor → Ceiling spread</span><span className="font-semibold">{(mp.ceiling - mp.floor).toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="text-white/60">Concentration (top owner)</span><span className="font-semibold">{topHolders[0] && mp.count ? `${((topHolders[0].value / mp.count) * 100).toFixed(1)}%` : "—"}</span></li>
             </ul>
           </Section>
         </div>
