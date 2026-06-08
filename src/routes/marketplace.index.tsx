@@ -9,6 +9,7 @@ import { NFTCard } from "@/components/NFTCard";
 import { useWallet } from "@/contexts/WalletContext";
 import { buyNFT } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
+import { useRealtimeListings } from "@/lib/useRealtimeListings";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/marketplace/")({
