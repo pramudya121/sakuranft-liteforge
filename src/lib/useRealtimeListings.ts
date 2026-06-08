@@ -94,7 +94,7 @@ export async function recordListing(input: {
     currency: input.currency ?? "zkLTC",
     status: "active",
     tx_hash: input.txHash ?? null,
-    metadata: input.metadata ?? null,
+    metadata: (input.metadata ?? null) as any,
   };
   const { data, error } = await supabase.from("listings").insert(row).select().single();
   if (error) throw error;
