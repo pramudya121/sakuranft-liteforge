@@ -47,6 +47,51 @@ export type Database = {
         }
         Relationships: []
       }
+      listings: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          listing_id: number | null
+          metadata: Json | null
+          price_eth: number
+          price_wei: string
+          seller: string
+          status: string
+          token_id: number
+          tx_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          listing_id?: number | null
+          metadata?: Json | null
+          price_eth?: number
+          price_wei: string
+          seller: string
+          status?: string
+          token_id: number
+          tx_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          listing_id?: number | null
+          metadata?: Json | null
+          price_eth?: number
+          price_wei?: string
+          seller?: string
+          status?: string
+          token_id?: number
+          tx_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       nft_comments: {
         Row: {
           content: string
