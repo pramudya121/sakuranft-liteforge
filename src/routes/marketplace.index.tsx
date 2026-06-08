@@ -29,8 +29,28 @@ export const Route = createFileRoute("/marketplace/")({
 
 function Marketplace() {
   const { nfts, loading } = useAllNFTs();
-  const { listings } = useAllListings();
+  const { listings: chainListings } = useAllListings();
+  const { listings: dbListings } = useRealtimeListings({ status: "active" });
   const { signer } = useWallet();
+
+  // Merge: prefer DB listing (live) when token matches, fall back to chain listing.
+  const listings = useMemo(() => {
+    const merged = new Map<string, typeof chainListings[number]>();
+    for (const l of chainListings) merged.set(l.tokenId.toString(), l);
+    for (const d of dbListings) {
+      const key = String(d.token_id);
+      const existing = merged.get(key);
+      merged.set(key, {
+        ...(existing ?? ({} as any)),
+        tokenId: BigInt(d.token_id),
+        listingId: d.listing_id != null ? BigInt(d.listing_id) : existing?.listingId ?? 0n,
+        seller: d.seller,
+        price: existing?.price ?? BigInt(d.price_wei || "0"),
+        priceEth: String(d.price_eth),
+      } as any);
+    }
+    return Array.from(merged.values());
+  }, [chainListings, dbListings]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [maxPrice, setMaxPrice] = useState(100);
