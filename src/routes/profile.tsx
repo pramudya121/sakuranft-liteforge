@@ -16,6 +16,8 @@ import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
 import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
+import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
+import { NFTCardSkeleton } from "@/components/Skeletons";
 export const Route = createFileRoute("/profile")({
   component: Profile,
   head: () => ({ meta: [{ title: "Profile — SakuraNFT" }] }),
