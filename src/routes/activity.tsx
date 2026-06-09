@@ -270,7 +270,7 @@ function ActivityPage() {
           {offerOpen && (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                {offerOpen.image ? <img src={offerOpen.image} alt="" className="w-14 h-14 rounded-lg object-cover" / loading="lazy" decoding="async"> : <div className="w-14 h-14 rounded-lg bg-accent/40 flex items-center justify-center">🌸</div>}
+                {offerOpen.image ? <img src={offerOpen.image} alt="" className="w-14 h-14 rounded-lg object-cover" loading="lazy" decoding="async" /> : <div className="w-14 h-14 rounded-lg bg-accent/40 flex items-center justify-center">🌸</div>}
                 <div>
                   <p className="font-bold">{offerOpen.name ?? `NFT #${offerOpen.tokenId}`}</p>
                   <p className="text-xs text-muted-foreground">#{offerOpen.tokenId?.toString()}</p>

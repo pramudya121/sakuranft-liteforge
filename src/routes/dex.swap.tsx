@@ -237,7 +237,7 @@ function Swap() {
               return (
                 <span key={i} className="flex items-center gap-1">
                   <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-foreground/5 text-xs">
-                    {t.logo && <img src={t.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async">}
+                    {t.logo && <img src={t.logo} className="w-4 h-4 rounded-full" loading="lazy" decoding="async" />}
                     <span className="font-semibold">{t.symbol}</span>
                   </span>
                   {i < route.length - 1 && <ChevronRight className="w-3 h-3 dex-muted opacity-80" />}

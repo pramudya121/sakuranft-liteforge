@@ -136,7 +136,7 @@ export function CollectionPicker({
               }`}
             >
               {c.logo_url ? (
-                <img src={c.logo_url} alt="" className="w-6 h-6 rounded-md object-cover" / loading="lazy" decoding="async">
+                <img src={c.logo_url} alt="" className="w-6 h-6 rounded-md object-cover" loading="lazy" decoding="async" />
               ) : (
                 <div className="w-6 h-6 rounded-md bg-gradient-to-br from-primary/40 to-accent/40" />
               )}
@@ -165,7 +165,7 @@ export function CollectionPicker({
               <label className="text-xs font-medium">Logo</label>
               <div className="flex items-center gap-2 mt-1">
                 {form.logo_url ? (
-                  <img src={form.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" / loading="lazy" decoding="async">
+                  <img src={form.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-border" loading="lazy" decoding="async" />
                 ) : (
                   <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 border border-dashed border-border" />
                 )}
