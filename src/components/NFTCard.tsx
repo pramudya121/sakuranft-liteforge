@@ -42,7 +42,7 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
     <div className="glass rounded-2xl overflow-hidden group hover:scale-[1.02] transition-all duration-300 glow-card flex flex-col">
       <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-accent/40 to-secondary/40">
         {nft.image ? (
-          <img src={nft.image} alt={nft.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+          <img src={nft.image} alt={nft.name} loading="lazy" decoding="async" fetchPriority="low" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-5xl">🌸</div>
         )}
