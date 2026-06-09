@@ -366,14 +366,19 @@ export function shortAddr(a?: string) {
 
 export function decodeTokenUri(uri: string): { name?: string; description?: string; image?: string } | null {
   try {
+    let meta: { name?: string; description?: string; image?: string } | null = null;
     if (uri.startsWith("data:application/json;base64,")) {
       const json = atob(uri.replace("data:application/json;base64,", ""));
-      return JSON.parse(decodeURIComponent(escape(json)));
+      meta = JSON.parse(decodeURIComponent(escape(json)));
+    } else if (uri.startsWith("data:application/json")) {
+      meta = JSON.parse(decodeURIComponent(uri.split(",")[1] ?? ""));
     }
-    if (uri.startsWith("data:application/json")) {
-      return JSON.parse(decodeURIComponent(uri.split(",")[1] ?? ""));
+    if (meta?.image) {
+      // Rewrite ipfs:// images to Cloudflare's edge-cached gateway.
+      const { ipfsToHttp } = require("@/lib/ipfs") as typeof import("@/lib/ipfs");
+      meta.image = ipfsToHttp(meta.image);
     }
-    return null;
+    return meta;
   } catch { return null; }
 }
 
