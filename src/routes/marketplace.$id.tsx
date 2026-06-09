@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
 import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
+import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB } from "@/lib/useRealtimeListings";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
