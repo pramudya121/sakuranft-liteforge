@@ -4,6 +4,7 @@ import { useNotifications } from "@/lib/supabase-hooks";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
+import { safeInternalPath } from "@/lib/safe-url";
 
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
@@ -49,7 +50,7 @@ export function NotificationBell() {
             list.map((n) => (
               <Link
                 key={n.id}
-                to={n.link ?? "/"}
+                to={safeInternalPath(n.link)}
                 className={`block px-4 py-3 border-b border-border/30 hover:bg-accent/30 transition ${!n.read ? "bg-primary/5" : ""}`}
               >
                 <div className="flex items-start gap-2">

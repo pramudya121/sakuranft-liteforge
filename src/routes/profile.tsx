@@ -15,7 +15,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
-import { safeHttpUrl } from "@/lib/safe-url";
+import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
 export const Route = createFileRoute("/profile")({
   component: Profile,
   head: () => ({ meta: [{ title: "Profile — SakuraNFT" }] }),
@@ -71,9 +71,8 @@ function Profile() {
     <div className="space-y-8">
       <div className="glass rounded-3xl glow-card">
         <div className="h-32 md:h-48 bg-cover bg-center relative rounded-t-3xl overflow-hidden"
-             style={{ backgroundImage: profile?.banner_url
-               ? `url(${profile.banner_url})`
-               : "linear-gradient(135deg, oklch(0.6 0.18 350), oklch(0.55 0.2 280), oklch(0.6 0.18 220))" }}>
+             style={{ backgroundImage: safeCssUrl(profile?.banner_url)
+               ?? "linear-gradient(135deg, oklch(0.6 0.18 350), oklch(0.55 0.2 280), oklch(0.6 0.18 220))" }}>
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
         <div className="px-6 md:px-8 pb-6 md:pb-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
@@ -235,7 +234,7 @@ function EditDialog({ profile, onSave }: { profile: DBProfile | null; onSave: (p
 
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Banner</label>
-            {draft.banner_url && <div className="h-20 w-full rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${draft.banner_url})` }} />}
+            {safeCssUrl(draft.banner_url) && <div className="h-20 w-full rounded-lg bg-cover bg-center" style={{ backgroundImage: safeCssUrl(draft.banner_url) }} />}
             <Input type="file" accept="image/*" disabled={uploading === "banner"}
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("banner", f); }} />
           </div>

@@ -7,7 +7,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile } from "@/lib/supabase-hooks";
 import { Button } from "@/components/ui/button";
-import { safeHttpUrl } from "@/lib/safe-url";
+import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
 
 export const Route = createFileRoute("/u/$address")({
   component: PublicProfile,
@@ -37,8 +37,8 @@ function PublicProfile() {
       </Button>
 
       <div className="glass rounded-3xl overflow-hidden glow-card">
-        {profile?.banner_url && (
-          <div className="h-32 md:h-48 bg-cover bg-center" style={{ backgroundImage: `url(${profile.banner_url})` }} />
+        {safeCssUrl(profile?.banner_url) && (
+          <div className="h-32 md:h-48 bg-cover bg-center" style={{ backgroundImage: safeCssUrl(profile?.banner_url) }} />
         )}
         <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-16 md:-mt-20 border-4 border-background">
