@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wallet, ChevronDown, LogOut, Copy } from "lucide-react";
+import { Wallet, ChevronDown, LogOut, Copy, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -7,13 +7,20 @@ import { useWallet, isCorrectChain } from "@/contexts/WalletContext";
 import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
+import { SendTokenDialog } from "./SendTokenDialog";
 
-const wallets: { kind: "metamask" | "okx" | "bitget"; name: string; logo: string; desc: string }[] = [
+const wallets: { kind: "metamask" | "okx" | "bitget" | "rabby"; name: string; logo: string; desc: string }[] = [
   {
     kind: "metamask",
     name: "MetaMask",
     desc: "Most popular Web3 wallet",
     logo: "https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg",
+  },
+  {
+    kind: "rabby",
+    name: "Rabby Wallet",
+    desc: "Multi-chain wallet by DeBank",
+    logo: "https://rabby.io/assets/images/logo-128.png",
   },
   {
     kind: "okx",
