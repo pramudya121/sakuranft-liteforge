@@ -238,7 +238,10 @@ function NFTDetail() {
                     <span className="font-bold text-primary">{o.valueEth} {CHAIN.symbol}</span>
                     {o.active && isOwner && <Button size="sm" onClick={() => wrap("acc",
                       () => acceptOffer(signer, nft.tokenId, o.idx),
-                      () => pushNotification(o.offerer, "offer_accepted", "✅ Offer accepted!", `Your offer of ${o.valueEth} ${CHAIN.symbol} on ${nft.name} was accepted`, nft.tokenId, `/marketplace/${id}`),
+                      async () => {
+                        await syncListingSold();
+                        await pushNotification(o.offerer, "offer_accepted", "✅ Offer accepted!", `Your offer of ${o.valueEth} ${CHAIN.symbol} on ${nft.name} was accepted`, nft.tokenId, `/marketplace/${id}`);
+                      },
                     )}><Check className="w-3 h-3 mr-1" /> Accept</Button>}
                     {o.active && address?.toLowerCase() === o.offerer.toLowerCase() && (
                       <Button size="sm" variant="outline" onClick={() => wrap("co", () => cancelOffer(signer, nft.tokenId, o.idx))}><X className="w-3 h-3" /></Button>
