@@ -7,6 +7,7 @@ import { CHAIN, CONTRACTS } from "@/lib/web3/contracts";
 import { TOKENS } from "@/lib/tokens";
 import { getPairInfo, formatEther } from "@/lib/web3/ethers";
 import { fetchCollectionHistory, type CollectionHistoryPoint } from "@/lib/web3/history";
+import { ChartSkeleton, TableSkeleton } from "@/components/Skeletons";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
@@ -153,7 +154,7 @@ function Analytics() {
         <div className="grid lg:grid-cols-2 gap-4">
           <Section title="Daily Trading Volume (on-chain sales)" right={<span className="text-[10px] dex-muted opacity-80">{historyLoading ? "Scanning chain…" : `${history.length} days`}</span>}>
             {history.length === 0 ? (
-              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Reading Sold events from chain…" : "No recorded sales yet."}</p>
+              historyLoading ? <ChartSkeleton /> : <p className="text-xs dex-muted py-8 text-center">No recorded sales yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={history}>
@@ -176,7 +177,7 @@ function Analytics() {
 
           <Section title="Floor Price Trend (on-chain)" right={<LineChartIcon className="w-3.5 h-3.5 dex-muted opacity-80" />}>
             {history.length === 0 ? (
-              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Loading…" : "No floor data yet."}</p>
+              historyLoading ? <ChartSkeleton /> : <p className="text-xs dex-muted py-8 text-center">No floor data yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={history}>
@@ -205,7 +206,7 @@ function Analytics() {
 
           <Section title="Daily Sales Count (on-chain)">
             {history.length === 0 ? (
-              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Loading…" : "No sales yet."}</p>
+              historyLoading ? <ChartSkeleton /> : <p className="text-xs dex-muted py-8 text-center">No sales yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={history}>
