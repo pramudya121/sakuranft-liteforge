@@ -148,12 +148,15 @@ export const chatAgent = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("AI not configured");
 
+    // Defense-in-depth: strip any residual system-role messages before forwarding.
+    const safeMessages = data.messages.filter((m) => m.role !== ("system" as any));
+
     const res = await fetch(LOVABLE_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...data.messages],
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...safeMessages],
         tools: TOOLS,
         tool_choice: "auto",
       }),
