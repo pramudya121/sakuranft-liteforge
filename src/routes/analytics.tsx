@@ -7,6 +7,7 @@ import { CHAIN, CONTRACTS } from "@/lib/web3/contracts";
 import { TOKENS } from "@/lib/tokens";
 import { getPairInfo, formatEther } from "@/lib/web3/ethers";
 import { fetchCollectionHistory, type CollectionHistoryPoint } from "@/lib/web3/history";
+import { ChartSkeleton, TableSkeleton } from "@/components/Skeletons";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
@@ -44,6 +45,22 @@ function Section({ title, children, right }: { title: string; children: React.Re
       </div>
       {children}
     </div>
+  );
+}
+
+// Custom Y-axis tick that renders paired token logos alongside the pair label.
+function PairTick(props: any) {
+  const { x, y, payload } = props;
+  const pair = String(payload?.value ?? "");
+  const [symA, symB] = pair.split("/");
+  const tA = TOKENS.find((t) => t.symbol === symA);
+  const tB = TOKENS.find((t) => t.symbol === symB);
+  return (
+    <g transform={`translate(${x - 8},${y})`}>
+      {tA && <image href={tA.logo} x={-118} y={-9} width={18} height={18} clipPath="circle(9px at 9px 9px)" />}
+      {tB && <image href={tB.logo} x={-104} y={-9} width={18} height={18} clipPath="circle(9px at 9px 9px)" />}
+      <text x={-80} y={4} fill="rgba(255,255,255,0.75)" fontSize={11}>{pair}</text>
+    </g>
   );
 }
 
@@ -153,7 +170,7 @@ function Analytics() {
         <div className="grid lg:grid-cols-2 gap-4">
           <Section title="Daily Trading Volume (on-chain sales)" right={<span className="text-[10px] dex-muted opacity-80">{historyLoading ? "Scanning chain…" : `${history.length} days`}</span>}>
             {history.length === 0 ? (
-              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Reading Sold events from chain…" : "No recorded sales yet."}</p>
+              historyLoading ? <ChartSkeleton /> : <p className="text-xs dex-muted py-8 text-center">No recorded sales yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={history}>
@@ -176,7 +193,7 @@ function Analytics() {
 
           <Section title="Floor Price Trend (on-chain)" right={<LineChartIcon className="w-3.5 h-3.5 dex-muted opacity-80" />}>
             {history.length === 0 ? (
-              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Loading…" : "No floor data yet."}</p>
+              historyLoading ? <ChartSkeleton /> : <p className="text-xs dex-muted py-8 text-center">No floor data yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={history}>
@@ -205,7 +222,7 @@ function Analytics() {
 
           <Section title="Daily Sales Count (on-chain)">
             {history.length === 0 ? (
-              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Loading…" : "No sales yet."}</p>
+              historyLoading ? <ChartSkeleton /> : <p className="text-xs dex-muted py-8 text-center">No sales yet.</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={history}>
@@ -261,13 +278,14 @@ function Analytics() {
 
         <Section title="Liquidity per Pool" right={<span className="text-[10px] dex-muted opacity-80">{poolsLoading ? "Loading…" : `${pools.length} pools`}</span>}>
           {pools.length === 0 ? (
-            <p className="text-xs dex-muted py-4 text-center">{poolsLoading ? "Probing pools on-chain…" : "No active pools yet."}</p>
+            poolsLoading ? <ChartSkeleton height={260} /> : <p className="text-xs dex-muted py-4 text-center">No active pools yet.</p>
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={pools} layout="vertical">
+            <ResponsiveContainer width="100%" height={Math.max(260, pools.length * 44)}>
+              <BarChart data={pools} layout="vertical" margin={{ left: 20, right: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={10} />
-                <YAxis type="category" dataKey="pair" stroke="rgba(255,255,255,0.5)" fontSize={11} width={100} />
+                <YAxis type="category" dataKey="pair" stroke="rgba(255,255,255,0.5)" fontSize={11} width={140}
+                  tick={<PairTick />} />
                 <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
                   formatter={(v: any) => [`${Number(v).toFixed(4)} ${CHAIN.symbol}`, "TVL"]} />
                 <Bar dataKey="tvlEth" fill="#f472b6" radius={[0, 8, 8, 0]} />
@@ -278,7 +296,7 @@ function Analytics() {
 
         <Section title="Pool Reserves">
           {pools.length === 0 ? (
-            <p className="text-xs dex-muted py-4 text-center">{poolsLoading ? "Loading…" : "No pools to display."}</p>
+            poolsLoading ? <TableSkeleton rows={5} /> : <p className="text-xs dex-muted py-4 text-center">No pools to display.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

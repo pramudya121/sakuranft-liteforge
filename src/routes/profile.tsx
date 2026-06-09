@@ -16,6 +16,8 @@ import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
 import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
+import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
+import { NFTCardSkeleton } from "@/components/Skeletons";
 export const Route = createFileRoute("/profile")({
   component: Profile,
   head: () => ({ meta: [{ title: "Profile — SakuraNFT" }] }),
@@ -144,22 +146,17 @@ function Profile() {
           {owned.length === 0 ? (
             <div className="text-center py-12 glass rounded-2xl text-muted-foreground">You don't own any NFTs yet.</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {owned.map((n) => <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />)}
-            </div>
+            <InfiniteNFTGrid items={owned.map((n) => ({ nft: n, listing: listings.find((l) => l.tokenId === n.tokenId) }))} />
           )}
         </TabsContent>
         <TabsContent value="listed" className="mt-4 space-y-4">
           {myListings.length === 0 ? (
             <div className="text-center py-12 glass rounded-2xl text-muted-foreground">You have no active listings.</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {myListings.map((l) => {
-                const n = nfts.find((x) => x.tokenId === l.tokenId);
-                if (!n) return null;
-                return <NFTCard key={l.tokenId.toString()} nft={n} listing={l} />;
-              })}
-            </div>
+            <InfiniteNFTGrid items={myListings
+              .map((l) => ({ nft: nfts.find((x) => x.tokenId === l.tokenId), listing: l }))
+              .filter((x): x is { nft: typeof nfts[number]; listing: typeof listings[number] } => !!x.nft)
+            } />
           )}
         </TabsContent>
         <TabsContent value="watchlist" className="mt-4">
@@ -169,11 +166,7 @@ function Profile() {
             if (list.length === 0) {
               return <div className="text-center py-12 glass rounded-2xl text-muted-foreground">Your watchlist is empty. Tap the heart icon on any NFT to add it.</div>;
             }
-            return (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {list.map((n) => <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />)}
-              </div>
-            );
+            return <InfiniteNFTGrid items={list.map((n) => ({ nft: n, listing: listings.find((l) => l.tokenId === n.tokenId) }))} />;
           })()}
         </TabsContent>
         <TabsContent value="portfolio" className="mt-4">
@@ -181,6 +174,24 @@ function Profile() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function InfiniteNFTGrid({ items }: { items: { nft: any; listing?: any }[] }) {
+  const { slice, sentinelRef, hasMore } = useInfiniteSlice(items, 24, 24);
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {slice.map(({ nft, listing }) => (
+          <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing} />
+        ))}
+      </div>
+      {hasMore && (
+        <div ref={sentinelRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+          {Array.from({ length: 4 }).map((_, i) => <NFTCardSkeleton key={i} />)}
+        </div>
+      )}
+    </>
   );
 }
 

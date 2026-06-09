@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { useAllListings, useAllNFTs } from "@/lib/web3/hooks";
 import { NFTCard } from "@/components/NFTCard";
+import { NFTCardSkeleton } from "@/components/Skeletons";
+import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
 import { useWallet } from "@/contexts/WalletContext";
 import { buyNFT } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
@@ -152,41 +154,64 @@ function Marketplace() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-square glass rounded-2xl animate-pulse" />)}
-        </div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-20 glass rounded-2xl">
-          <p className="text-muted-foreground">No NFTs match your filters. Be the first to <a href="/mint" className="text-primary underline">mint one</a>!</p>
+      <MarketGrid loading={loading} items={items} view={view} onBuy={handleBuy} />
+    </div>
+  );
+}
+
+function MarketGrid({ loading, items, view, onBuy }: {
+  loading: boolean;
+  items: { nft: any; listing: any }[];
+  view: "grid" | "list";
+  onBuy: (listing: any) => void;
+}) {
+  const { slice, sentinelRef, hasMore } = useInfiniteSlice(items, 24, 24);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => <NFTCardSkeleton key={i} />)}
+      </div>
+    );
+  }
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-20 glass rounded-2xl">
+        <p className="text-muted-foreground">No NFTs match your filters. Be the first to <a href="/mint" className="text-primary underline">mint one</a>!</p>
+      </div>
+    );
+  }
+  return (
+    <>
+      {view === "grid" ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {slice.map(({ nft, listing }) => (
+            <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing} onBuy={() => onBuy(listing)} />
+          ))}
         </div>
       ) : (
-        view === "grid" ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {items.map(({ nft, listing }) => (
-              <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing}
-                onBuy={() => handleBuy(listing)} />
-            ))}
-          </div>
-        ) : (
-          <div className="glass rounded-2xl divide-y divide-border/40">
-            {items.map(({ nft, listing }) => (
-              <a key={nft.tokenId.toString()} href={`/marketplace/${nft.tokenId.toString()}`}
-                 className="flex items-center gap-4 p-3 hover:bg-accent/40 transition">
-                <img src={nft.image} alt={nft.name} loading="lazy" className="w-14 h-14 rounded-lg object-cover bg-muted" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{nft.name}</p>
-                  <p className="text-xs text-muted-foreground font-mono">#{nft.tokenId.toString()}</p>
-                </div>
-                <div className="text-right text-sm">
-                  {listing ? <span className="font-bold text-primary">{listing.priceEth} {CHAIN.symbol}</span> : <span className="text-muted-foreground">Not listed</span>}
-                </div>
-              </a>
-            ))}
-          </div>
-        )
+        <div className="glass rounded-2xl divide-y divide-border/40">
+          {slice.map(({ nft, listing }) => (
+            <a key={nft.tokenId.toString()} href={`/marketplace/${nft.tokenId.toString()}`}
+               className="flex items-center gap-4 p-3 hover:bg-accent/40 transition">
+              <img src={nft.image} alt={nft.name} loading="lazy" decoding="async" className="w-14 h-14 rounded-lg object-cover bg-muted" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{nft.name}</p>
+                <p className="text-xs text-muted-foreground font-mono">#{nft.tokenId.toString()}</p>
+              </div>
+              <div className="text-right text-sm">
+                {listing ? <span className="font-bold text-primary">{listing.priceEth} {CHAIN.symbol}</span> : <span className="text-muted-foreground">Not listed</span>}
+              </div>
+            </a>
+          ))}
+        </div>
       )}
-    </div>
+      {hasMore && (
+        <div ref={sentinelRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+          {Array.from({ length: 4 }).map((_, i) => <NFTCardSkeleton key={i} />)}
+        </div>
+      )}
+    </>
   );
 }
 
