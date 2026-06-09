@@ -1,229 +1,332 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Sparkles, Wallet, Store, Plus, Repeat, Bot, Shield, Zap, Flame, Heart, Tag, TrendingUp, Image as ImageIcon, ArrowRight, Github, Twitter } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  BookOpen, Search, Wallet, Droplet, Repeat, BarChart3, Briefcase, Settings as SettingsIcon,
+  Bot, GitBranch, AlertTriangle, Percent, Coins, Layers, FileCode, Database, Map, HelpCircle,
+  Sparkles, ShieldCheck, Zap, Copy, Check, ExternalLink, Store, Plus, ArrowRight,
+} from "lucide-react";
+import { TOKENS } from "@/lib/tokens";
+import { CONTRACTS, CHAIN } from "@/lib/web3/contracts";
 
 export const Route = createFileRoute("/docs")({
   component: Docs,
   head: () => ({
     meta: [
       { title: "Documentation — SakuraNFT" },
-      { name: "description", content: "The complete guide to SakuraNFT — mint, trade, swap, and explore the petal-soft Web3 ecosystem on LitVM LiteForge." },
+      { name: "description", content: "Complete documentation for SakuraNFT: smart contracts, supported tokens, swap, liquidity, portfolio, analytics, AI assistant and more." },
       { property: "og:title", content: "SakuraNFT Documentation 🌸" },
-      { property: "og:description", content: "Everything you need to know about minting, trading, swapping, and building on SakuraNFT." },
+      { property: "og:description", content: "Smart contracts, supported tokens, guides & technical reference for the SakuraNFT ecosystem." },
     ],
   }),
 });
 
-const sections = [
-  { id: "intro", label: "Introduction" },
-  { id: "wallet", label: "Wallet Setup" },
-  { id: "mint", label: "Minting" },
-  { id: "marketplace", label: "Marketplace" },
-  { id: "dex", label: "DEX & Liquidity" },
-  { id: "ai", label: "AI Trading Bot" },
-  { id: "profile", label: "Profile & Watchlist" },
-  { id: "security", label: "Security" },
-  { id: "faq", label: "FAQ" },
+type Item = { id: string; label: string; icon: any };
+type Group = { title: string; items: Item[] };
+
+const groups: Group[] = [
+  { title: "Getting Started", items: [
+    { id: "intro", label: "Introduction", icon: BookOpen },
+    { id: "wallet", label: "Connect Wallet", icon: Wallet },
+    { id: "faucet", label: "Get Testnet Tokens", icon: Droplet },
+  ]},
+  { title: "User Guides", items: [
+    { id: "swap", label: "How to Swap", icon: Repeat },
+    { id: "liquidity", label: "Provide Liquidity", icon: Droplet },
+    { id: "portfolio", label: "Portfolio & Send", icon: Briefcase },
+    { id: "analytics", label: "Analytics & Pairs", icon: BarChart3 },
+    { id: "settings", label: "Settings", icon: SettingsIcon },
+    { id: "ai", label: "SakuraNFT AI", icon: Bot },
+  ]},
+  { title: "DeFi Concepts", items: [
+    { id: "amm", label: "AMM & Pricing", icon: GitBranch },
+    { id: "il", label: "Impermanent Loss", icon: AlertTriangle },
+    { id: "slippage", label: "Slippage & Price Impact", icon: Percent },
+    { id: "lp", label: "LP Tokens & Fees", icon: Coins },
+  ]},
+  { title: "Technical", items: [
+    { id: "stack", label: "Technology Stack", icon: Layers },
+    { id: "contracts", label: "Smart Contracts", icon: FileCode },
+    { id: "tokens", label: "Supported Tokens", icon: Database },
+  ]},
+  { title: "Roadmap & FAQ", items: [
+    { id: "roadmap", label: "Development Roadmap", icon: Map },
+    { id: "faq", label: "FAQ", icon: HelpCircle },
+  ]},
 ];
 
 function Docs() {
+  const [active, setActive] = useState("intro");
+  const [q, setQ] = useState("");
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>("section[data-doc]");
+    const io = new IntersectionObserver(
+      (entries) => {
+        const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (vis) setActive(vis.target.id);
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: [0, 0.25, 0.5, 1] }
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
+  }, []);
+
+  const copy = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 1200);
+  };
+
+  const filterMatch = (label: string) => label.toLowerCase().includes(q.toLowerCase());
+
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Hero */}
-      <div className="rounded-3xl glass glow-card p-8 md:p-12 text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-xs font-semibold mb-4">
-          <BookOpen className="w-3.5 h-3.5" /> DOCUMENTATION · v1.0
+    <div className="grid md:grid-cols-[260px_1fr] gap-6 -mt-2">
+      {/* Sidebar */}
+      <aside className="md:sticky md:top-24 self-start max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl glass border border-border/60 p-3">
+        <div className="relative mb-3">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="Search docs…"
+            className="w-full bg-background/60 border border-border rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:border-primary/60"
+          />
         </div>
-        <h1 className="text-4xl md:text-6xl font-bold gradient-text">SakuraNFT Docs 🌸</h1>
-        <p className="text-base md:text-lg text-muted-foreground mt-4 max-w-2xl mx-auto">
-          A complete, friendly walkthrough of every petal of the SakuraNFT garden — from your very first wallet
-          connection 🦊 to advanced AI-assisted swaps 🤖. Whether you are a brand new collector or a seasoned
-          on-chain trader, this guide will help you bloom.
-        </p>
-        <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
-          <Link to="/mint" className="rounded-full px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg inline-flex items-center gap-2">
-            <Sparkles className="w-4 h-4" /> Start minting
-          </Link>
-          <Link to="/marketplace" className="rounded-full px-5 py-2.5 text-sm font-semibold border border-border bg-card inline-flex items-center gap-2">
-            <Store className="w-4 h-4" /> Browse market <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-[220px_1fr] gap-8">
-        {/* TOC */}
-        <aside className="md:sticky md:top-24 self-start">
-          <nav className="rounded-2xl form-solid p-4 space-y-1">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground px-2 pb-2">On this page</p>
-            {sections.map((s) => (
-              <a key={s.id} href={`#${s.id}`}
-                className="block px-3 py-1.5 rounded-lg text-sm hover:bg-accent/40 hover:text-primary text-muted-foreground">
-                {s.label}
-              </a>
-            ))}
-            <div className="pt-3 mt-3 border-t border-border flex items-center gap-2 text-xs text-muted-foreground px-2">
-              <a className="hover:text-primary inline-flex items-center gap-1" href="#"><Github className="w-3.5 h-3.5" /> GitHub</a>
-              <span>·</span>
-              <a className="hover:text-primary inline-flex items-center gap-1" href="#"><Twitter className="w-3.5 h-3.5" /> Twitter</a>
+        {groups.map((g) => {
+          const items = g.items.filter((i) => !q || filterMatch(i.label));
+          if (!items.length) return null;
+          return (
+            <div key={g.title} className="mb-3">
+              <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">{g.title}</p>
+              <nav className="space-y-0.5">
+                {items.map((it) => {
+                  const Icon = it.icon;
+                  const isActive = active === it.id;
+                  return (
+                    <a key={it.id} href={`#${it.id}`}
+                      onClick={() => setActive(it.id)}
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm transition ${
+                        isActive
+                          ? "bg-gradient-to-r from-fuchsia-500/20 to-pink-500/10 text-foreground border-l-2 border-fuchsia-400"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/40"
+                      }`}>
+                      <Icon className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{it.label}</span>
+                    </a>
+                  );
+                })}
+              </nav>
             </div>
-          </nav>
-        </aside>
+          );
+        })}
+      </aside>
 
-        {/* Content */}
-        <main className="space-y-10">
-          <Section id="intro" icon={<Sparkles className="w-5 h-5" />} title="What is SakuraNFT? 🌸">
-            <p>
-              <strong>SakuraNFT</strong> is a community-first Web3 destination built on the
-              <em> LitVM LiteForge testnet</em>, powered by the native <strong>zkLTC</strong> token. It blends the
-              warm, hand-crafted feel of a Japanese spring festival with the precision of a modern decentralized
-              marketplace and exchange. 🏯✨
+      {/* Main */}
+      <main className="space-y-10 min-w-0">
+        {/* Hero */}
+        <section data-doc id="intro" className="scroll-mt-24">
+          <div className="rounded-3xl glass border border-border/60 p-6 md:p-10">
+            <h1 className="text-3xl md:text-5xl font-bold">
+              Welcome to <span className="gradient-text">SakuraNFT</span> 🌸
+            </h1>
+            <p className="text-muted-foreground mt-3 max-w-3xl">
+              SakuraNFT is a community-first NFT marketplace and decentralized exchange built on the
+              <strong className="text-foreground"> LitVM LiteForge Testnet</strong>, powered by the battle-tested
+              UniswapV2 protocol. Mint, trade, swap, provide liquidity, and earn — all without intermediaries. ✨
             </p>
-            <p>
-              The platform is more than a marketplace — it is an entire on-chain garden. You can mint generative
-              digital art 🎨, trade rare collectibles 🃏, provide liquidity to token pairs 💧, swap assets through a
-              gas-aware smart router ⚡, and even chat with a built-in AI assistant that can execute on-chain
-              actions for you 🤖. Every petal of the experience was designed to feel alive: from the falling
-              cherry blossoms in the background to the silky animations that respond to your every interaction.
-            </p>
-            <Cards>
-              <Card icon={<Plus className="w-5 h-5" />} title="Mint" body="Create gas-efficient ERC-721 NFTs with built-in IPFS storage." />
-              <Card icon={<Store className="w-5 h-5" />} title="Trade" body="List, buy, and make offers — all settled on-chain." />
-              <Card icon={<Repeat className="w-5 h-5" />} title="Swap" body="Smart router with multi-hop routing across pools." />
-              <Card icon={<Bot className="w-5 h-5" />} title="AI Bot" body="Conversational assistant that can swap, list, and analyze." />
-            </Cards>
-          </Section>
 
-          <Section id="wallet" icon={<Wallet className="w-5 h-5" />} title="Wallet Setup 🦊">
-            <p>
-              SakuraNFT supports any EIP-1193 compatible wallet. Out of the box you can connect with
-              <strong> MetaMask 🦊</strong>, <strong>Rabby 🐰</strong>, <strong>OKX Wallet</strong>, and
-              <strong> Bitget Wallet</strong>. Once you click <em>Connect Wallet</em> in the header, the app will
-              ask your wallet to switch to the LitVM LiteForge testnet — if the network isn't installed yet, it
-              will be added automatically for you. No manual RPC pasting required. 🎉
-            </p>
-            <ol className="list-decimal pl-5 space-y-2">
-              <li>Install your preferred wallet extension. 🧩</li>
-              <li>Click <strong>Connect Wallet</strong> in the top-right corner.</li>
-              <li>Select your wallet and approve the connection request.</li>
-              <li>Accept the network switch prompt to join LitVM LiteForge testnet.</li>
-              <li>Need testnet zkLTC? Visit the public faucet and request a drop. 💧</li>
-            </ol>
-            <Callout tone="info">
-              💡 Your private keys never leave your wallet. SakuraNFT only sees the public address you choose to share.
+            <div className="grid sm:grid-cols-3 gap-3 mt-6">
+              <Feature icon={<ShieldCheck className="w-5 h-5" />} title="Non-Custodial 🔐" body="You always maintain full control over your assets." />
+              <Feature icon={<Zap className="w-5 h-5" />} title="Fast & Cheap ⚡" body="Low gas fees on LitVM LiteForge testnet." />
+              <Feature icon={<FileCode className="w-5 h-5" />} title="Open Source 🧩" body="Verified and transparent smart contracts." />
+            </div>
+
+            <Callout tone="info" icon={<Sparkles className="w-4 h-4" />}>
+              <strong>New to DeFi?</strong> Start by connecting your wallet, getting testnet tokens from the faucet,
+              then try your first swap. Use the SakuraNFT AI (bottom-right button) for help anytime! 💬
             </Callout>
-          </Section>
 
-          <Section id="mint" icon={<Plus className="w-5 h-5" />} title="Minting Your First NFT 🎨">
-            <p>
-              The <Link className="text-primary underline" to="/mint">Mint</Link> page is your creative studio.
-              Drag an image, give it a name, add a description, optionally attach traits, and hit <em>Mint</em>.
-              Behind the scenes, SakuraNFT will:
-            </p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>🗜️ Compress and upload your image to decentralized storage.</li>
-              <li>🧾 Generate ERC-721 compliant metadata (name, description, attributes, image URI).</li>
-              <li>⛓️ Call the on-chain <code>mint()</code> function from your connected wallet.</li>
-              <li>🌸 Redirect you to the freshly minted NFT page once the transaction is confirmed.</li>
-            </ul>
-            <Callout tone="tip">
-              ⚡ Pro tip: keep images under 5 MB and prefer <code>.webp</code> or <code>.jpg</code> for the snappiest experience.
-            </Callout>
-          </Section>
+            <h2 className="text-xl font-bold mt-8 mb-3 flex items-center gap-2">✨ Key Features</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <KeyFeature icon={<Repeat className="w-5 h-5" />} title="Token Swap" body="Instantly trade tokens with AMM pricing." />
+              <KeyFeature icon={<Droplet className="w-5 h-5" />} title="Liquidity Pools" body="Provide liquidity and earn 0.3% fees." />
+              <KeyFeature icon={<BarChart3 className="w-5 h-5" />} title="Analytics" body="Real-time charts, TVL, volume, pair data." />
+              <KeyFeature icon={<Briefcase className="w-5 h-5" />} title="Portfolio" body="Track holdings, LP positions, send tokens." />
+              <KeyFeature icon={<Bot className="w-5 h-5" />} title="SakuraNFT AI" body="AI assistant with on-chain action execution." />
+              <KeyFeature icon={<Store className="w-5 h-5" />} title="NFT Marketplace" body="List, buy, and offer on minted collectibles." />
+            </div>
 
-          <Section id="marketplace" icon={<Store className="w-5 h-5" />} title="The Marketplace 🛍️">
-            <p>
-              The <Link className="text-primary underline" to="/marketplace">Marketplace</Link> is the heart of
-              SakuraNFT. Only NFTs that are <strong>actively listed</strong> appear here — once an item is sold or
-              delisted, it disappears instantly and reappears the moment its new owner relists it. This keeps the
-              shelves fresh and the discovery experience honest. 🪞
-            </p>
-            <Cards>
-              <Card icon={<Tag className="w-5 h-5" />} title="List for sale" body="Set a price in zkLTC and approve the marketplace once — instant settlement." />
-              <Card icon={<TrendingUp className="w-5 h-5" />} title="Make offers" body="Offer below ask price. Sellers can accept any time before expiry." />
-              <Card icon={<Heart className="w-5 h-5" />} title="Watchlist" body="Tap the heart on any NFT to track it — synced across devices in your Profile." />
-              <Card icon={<ImageIcon className="w-5 h-5" />} title="Collections" body="Browse curated collections with floor price, volume, and holder stats." />
-            </Cards>
-          </Section>
-
-          <Section id="dex" icon={<Repeat className="w-5 h-5" />} title="DEX & Liquidity 💧">
-            <p>
-              SakuraNFT ships with a built-in Uniswap-V2 style decentralized exchange. The
-              <Link className="text-primary underline" to="/dex"> DEX</Link> features an intelligent multi-hop
-              router that automatically finds the cheapest path between any two supported tokens, even when no
-              direct pool exists. You can also become a liquidity provider and earn fees on every trade routed
-              through your pool. 🌊
-            </p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li><strong>Smart routing 🧠</strong> — up to 3 hops, with live price impact and total fee preview.</li>
-              <li><strong>Wrap & unwrap ↔️</strong> — native zkLTC ↔ wzkLTC with zero slippage, zero fees.</li>
-              <li><strong>Liquidity provisioning 💎</strong> — single click to add, remove, or rebalance.</li>
-              <li><strong>Slippage controls ⚙️</strong> — fine-tune from 0.05% to 50% with one tap presets.</li>
-            </ul>
-          </Section>
-
-          <Section id="ai" icon={<Bot className="w-5 h-5" />} title="AI Trading Bot 🤖">
-            <p>
-              In the bottom-right corner of every page lives <strong>Hana</strong>, the SakuraNFT AI companion.
-              Hana speaks natural language and can execute real on-chain actions: she can swap tokens,
-              add or remove liquidity, check your balances, summarize market trends, and walk you through
-              minting your first NFT — all from within the chat window. 💬
-            </p>
-            <Callout tone="tip">
-              💡 Try asking: <em>"swap 0.5 zkLTC to USDC"</em> or <em>"what is my portfolio worth?"</em>
-            </Callout>
-          </Section>
-
-          <Section id="profile" icon={<Heart className="w-5 h-5" />} title="Profile & Watchlist 💖">
-            <p>
-              Your <Link className="text-primary underline" to="/profile">Profile</Link> is your on-chain identity.
-              Customize your avatar, banner, bio, and links — and review every NFT you own, every active listing,
-              your token balances, and your synced <strong>Watchlist</strong> ❤️ in dedicated tabs. Achievements
-              appear automatically as you mint, collect, and trade. 🏆
-            </p>
-          </Section>
-
-          <Section id="security" icon={<Shield className="w-5 h-5" />} title="Security & Best Practices 🔐">
-            <p>
-              SakuraNFT was built with a security-first mindset. All sensitive operations run through audited
-              smart contracts, all user uploads are MIME and size validated, and every external link is
-              sanitized before rendering. We never custody your assets — every transaction is signed by your
-              wallet, and you remain in full control at all times. 🛡️
-            </p>
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>✅ Verify the URL bar reads the official SakuraNFT domain before signing.</li>
-              <li>✅ Inspect every transaction in your wallet popup before approving.</li>
-              <li>✅ Use a hardware wallet (Ledger / Trezor) for high-value collections.</li>
-              <li>❌ Never share your seed phrase — no one from the SakuraNFT team will ever ask.</li>
-            </ul>
-          </Section>
-
-          <Section id="faq" icon={<Flame className="w-5 h-5" />} title="FAQ ❓">
-            <FAQ q="Is this real money?" a="No. SakuraNFT currently runs on LitVM LiteForge testnet. The zkLTC token has no monetary value and is freely available from the faucet." />
-            <FAQ q="Do I need to pay gas?" a="Yes, every on-chain action consumes a tiny amount of testnet zkLTC for gas. Top up from the faucet whenever you're low." />
-            <FAQ q="Which file types can I mint?" a="PNG, JPEG, WebP, and GIF up to 5 MB. Larger files will be rejected client-side before upload." />
-            <FAQ q="Can I cancel a listing?" a="Absolutely. Open the NFT detail page and click 'Cancel listing'. The NFT disappears from the marketplace instantly." />
-            <FAQ q="How does the AI bot execute trades?" a="Hana proposes a transaction in the chat and your wallet prompts you to sign. Nothing happens without your explicit approval." />
-          </Section>
-
-          <div className="rounded-2xl glass p-6 text-center">
-            <Zap className="w-7 h-7 mx-auto text-primary mb-2" />
-            <h3 className="font-bold text-lg">Ready to bloom? 🌸</h3>
-            <p className="text-sm text-muted-foreground mt-1">Connect a wallet and start your SakuraNFT journey in under a minute.</p>
-            <div className="flex justify-center gap-2 mt-4">
-              <Link to="/mint" className="rounded-full px-4 py-2 text-sm font-semibold bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white">Mint your first NFT</Link>
-              <Link to="/marketplace" className="rounded-full px-4 py-2 text-sm font-semibold border border-border bg-card">Browse market</Link>
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/60 text-sm">
+              <span className="text-muted-foreground">SakuraNFT — Decentralized Trading on LitVM LiteForge</span>
+              <Link to="/marketplace" className="text-primary inline-flex items-center gap-1 hover:gap-2 transition-all">
+                Browse marketplace <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
-        </main>
-      </div>
+        </section>
+
+        <Section id="wallet" icon={<Wallet className="w-5 h-5" />} title="Connect Wallet 🦊">
+          <p>SakuraNFT supports any EIP-1193 wallet — <strong>MetaMask 🦊</strong>, <strong>Rabby 🐰</strong>, <strong>OKX</strong>, and <strong>Bitget</strong>.
+            Click <em>Connect Wallet</em> in the header, approve the network switch to LitVM LiteForge testnet, and you're ready.</p>
+          <Callout tone="tip">💡 Your private keys never leave your wallet. SakuraNFT only sees the address you authorize.</Callout>
+        </Section>
+
+        <Section id="faucet" icon={<Droplet className="w-5 h-5" />} title="Get Testnet Tokens 💧">
+          <p>You need testnet <strong>{CHAIN.symbol}</strong> for gas. Open your wallet, switch to {CHAIN.name} (Chain ID {CHAIN.id}),
+            then visit the public faucet to claim free testnet tokens. They are worthless on mainnet — purely for testing. 🧪</p>
+          <a href={CHAIN.explorer} target="_blank" rel="noreferrer"
+             className="inline-flex items-center gap-1 text-primary text-sm hover:underline">
+            Open block explorer <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </Section>
+
+        <Section id="swap" icon={<Repeat className="w-5 h-5" />} title="How to Swap 🔁">
+          <ol className="list-decimal pl-5 space-y-1.5">
+            <li>Go to <Link to="/dex/swap" className="text-primary underline">DEX → Swap</Link>.</li>
+            <li>Pick the token you have (top) and the token you want (bottom).</li>
+            <li>Enter an amount. The router previews price impact, fees, and route.</li>
+            <li>Approve the token (one-time) if it's an ERC-20, then click <em>Swap</em>.</li>
+            <li>Confirm the transaction in your wallet. Done! 🌸</li>
+          </ol>
+        </Section>
+
+        <Section id="liquidity" icon={<Droplet className="w-5 h-5" />} title="Provide Liquidity 💎">
+          <p>Earn a share of every swap fee in a pool. Open <Link to="/dex/liquidity" className="text-primary underline">DEX → Liquidity</Link>,
+            pick the pair, deposit both tokens at the current ratio, and receive LP tokens that represent your share. Remove anytime to redeem
+            your underlying tokens plus accumulated fees.</p>
+        </Section>
+
+        <Section id="portfolio" icon={<Briefcase className="w-5 h-5" />} title="Portfolio & Send 💼">
+          <p>Your <Link to="/profile" className="text-primary underline">Profile</Link> shows your owned NFTs, active listings, token balances,
+            and synced watchlist. Use the <em>Send</em> button in the wallet dropdown to transfer native zkLTC or any ERC-20 token directly.</p>
+        </Section>
+
+        <Section id="analytics" icon={<BarChart3 className="w-5 h-5" />} title="Analytics & Pairs 📊">
+          <p>The <Link to="/analytics" className="text-primary underline">Analytics</Link> dashboard surfaces real-time TVL, daily volume,
+            sales, floor-price trends, and per-pool reserves with token logos for fast pair recognition.</p>
+        </Section>
+
+        <Section id="settings" icon={<SettingsIcon className="w-5 h-5" />} title="Settings ⚙️">
+          <p>Customize slippage tolerance, transaction deadlines, expert mode, and theme (light/dark) from the controls inside each tool.
+            All settings persist locally — your preferences travel with the browser.</p>
+        </Section>
+
+        <Section id="ai" icon={<Bot className="w-5 h-5" />} title="SakuraNFT AI 🤖">
+          <p>In the bottom-right corner of every page lives <strong>Hana</strong>, the SakuraNFT AI assistant.
+            She speaks natural language and can execute real on-chain actions: swap tokens, add liquidity, check balances,
+            summarize markets, and walk you through minting. Try: <em>"swap 0.5 zkLTC to ETH"</em> or <em>"what is my portfolio worth?"</em></p>
+        </Section>
+
+        <Section id="amm" icon={<GitBranch className="w-5 h-5" />} title="AMM & Pricing 📐">
+          <p>SakuraNFT uses the constant-product formula <code>x · y = k</code>. Each pool holds reserves of two tokens; trading one shifts the
+            ratio and instantly re-prices the pair. No order books, no market makers — just math. 🧮</p>
+        </Section>
+
+        <Section id="il" icon={<AlertTriangle className="w-5 h-5" />} title="Impermanent Loss ⚠️">
+          <p>When prices diverge after you deposit, your LP position can be worth less than simply holding the two tokens. The loss is
+            "impermanent" because it reverses if prices return. Fees earned often offset it — always weigh both. ⚖️</p>
+        </Section>
+
+        <Section id="slippage" icon={<Percent className="w-5 h-5" />} title="Slippage & Price Impact 📉">
+          <p><strong>Price impact</strong> is how much your trade moves the pool price. <strong>Slippage tolerance</strong> is the maximum
+            price change you'll accept between signing and confirmation. Set it tighter on stable pairs, looser on thin liquidity.</p>
+        </Section>
+
+        <Section id="lp" icon={<Coins className="w-5 h-5" />} title="LP Tokens & Fees 🪙">
+          <p>When you deposit liquidity you receive LP tokens — your receipt for the share of the pool. Every swap charges <strong>0.30%</strong>,
+            of which <strong>0.25%</strong> flows back to LP holders automatically. Redeem your LP tokens any time to claim your share + fees. 💸</p>
+        </Section>
+
+        <Section id="stack" icon={<Layers className="w-5 h-5" />} title="Technology Stack 🧱">
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li><strong>Chain:</strong> {CHAIN.name} (ID {CHAIN.id})</li>
+            <li><strong>Smart Contracts:</strong> Solidity, UniswapV2-style AMM, ERC-721 NFTs</li>
+            <li><strong>Frontend:</strong> React 19, TanStack Start, Tailwind v4, Recharts</li>
+            <li><strong>Backend:</strong> Lovable Cloud (Postgres + Edge), ethers.js v6</li>
+            <li><strong>AI:</strong> Lovable AI Gateway (Gemini 2.5 Flash)</li>
+            <li><strong>Storage:</strong> Decentralized IPFS via Pinata gateway + Cloudflare CDN edge cache</li>
+          </ul>
+        </Section>
+
+        {/* SMART CONTRACTS */}
+        <Section id="contracts" icon={<FileCode className="w-5 h-5" />} title="Smart Contracts 📜">
+          <p className="mb-4">All contracts are deployed on <strong>{CHAIN.name}</strong>. Click any address to copy, or open it in the explorer.</p>
+          <div className="grid gap-2">
+            {Object.entries(CONTRACTS).map(([name, addr]) => (
+              <ContractRow key={name} name={name} addr={addr} copied={copied === name}
+                onCopy={() => copy(addr, name)} explorer={`${CHAIN.explorer}/address/${addr}`} />
+            ))}
+          </div>
+        </Section>
+
+        {/* SUPPORTED TOKENS */}
+        <Section id="tokens" icon={<Database className="w-5 h-5" />} title="Supported Tokens 🪙">
+          <p className="mb-4">Every token listed below is fully supported across swap, liquidity, portfolio, and analytics.</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {TOKENS.map((t) => {
+              const isNative = t.address === "native";
+              const key = `tok-${t.symbol}`;
+              return (
+                <div key={t.symbol} className="rounded-2xl form-solid p-3.5 hover:border-primary/40 transition group">
+                  <div className="flex items-center gap-3 mb-2">
+                    <img src={t.logo} alt={t.symbol} className="w-10 h-10 rounded-full ring-1 ring-border" loading="lazy" decoding="async" />
+                    <div className="min-w-0">
+                      <div className="font-semibold flex items-center gap-2">
+                        {t.symbol}
+                        {isNative && <span className="text-[9px] bg-fuchsia-500/20 text-fuchsia-300 px-1.5 py-0.5 rounded">NATIVE</span>}
+                      </div>
+                      <div className="text-xs text-muted-foreground truncate">{t.name}</div>
+                    </div>
+                  </div>
+                  {!isNative && (
+                    <div className="flex items-center justify-between text-[11px] bg-background/40 rounded-lg px-2 py-1.5">
+                      <code className="truncate text-muted-foreground">{`${(t.address as string).slice(0, 8)}…${(t.address as string).slice(-6)}`}</code>
+                      <button onClick={() => copy(t.address as string, key)} className="text-muted-foreground hover:text-primary shrink-0 ml-2">
+                        {copied === key ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        <Section id="roadmap" icon={<Map className="w-5 h-5" />} title="Development Roadmap 🗺️">
+          <ul className="space-y-2">
+            <li>✅ V1 — Marketplace, AMM swap, liquidity, profile, AI assistant</li>
+            <li>🔄 V2 — Concentrated liquidity, limit orders, NFT lending</li>
+            <li>🌐 V3 — Cross-chain bridges, mainnet launch, mobile app</li>
+          </ul>
+        </Section>
+
+        <Section id="faq" icon={<HelpCircle className="w-5 h-5" />} title="FAQ ❓">
+          <FAQ q="Is this real money?" a="No. SakuraNFT runs on the LitVM LiteForge testnet. zkLTC has no monetary value and is freely claimable from the faucet." />
+          <FAQ q="Do I pay gas?" a="Yes. Every on-chain action consumes testnet zkLTC for gas." />
+          <FAQ q="Which file types can I mint?" a="PNG, JPEG, WebP, and GIF up to 5 MB. Larger files are rejected client-side and auto-compressed to WebP when possible." />
+          <FAQ q="Can I cancel a listing?" a="Yes. Open the NFT page and click Cancel — it disappears from the marketplace immediately." />
+          <FAQ q="How does the AI execute trades?" a="Hana proposes the transaction and your wallet prompts you to sign. Nothing happens without your approval." />
+        </Section>
+
+        <div className="rounded-2xl glass border border-border/60 p-6 text-center">
+          <Sparkles className="w-7 h-7 mx-auto text-primary mb-2" />
+          <h3 className="font-bold text-lg">Ready to bloom? 🌸</h3>
+          <p className="text-sm text-muted-foreground mt-1">Connect a wallet and start your SakuraNFT journey in under a minute.</p>
+          <div className="flex justify-center gap-2 mt-4">
+            <Link to="/mint" className="rounded-full px-4 py-2 text-sm font-semibold bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white inline-flex items-center gap-1"><Plus className="w-4 h-4" /> Mint NFT</Link>
+            <Link to="/dex/swap" className="rounded-full px-4 py-2 text-sm font-semibold border border-border bg-card inline-flex items-center gap-1"><Repeat className="w-4 h-4" /> Try a swap</Link>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
 
 function Section({ id, icon, title, children }: { id: string; icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24">
+    <section data-doc id={id} className="scroll-mt-24">
       <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2 mb-4">
-        <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent text-primary-foreground flex items-center justify-center">{icon}</span>
+        <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white flex items-center justify-center shadow-lg">{icon}</span>
         {title}
       </h2>
       <div className="space-y-3 text-[15px] leading-relaxed text-foreground/90">{children}</div>
@@ -231,25 +334,40 @@ function Section({ id, icon, title, children }: { id: string; icon: React.ReactN
   );
 }
 
-function Cards({ children }: { children: React.ReactNode }) {
-  return <div className="grid sm:grid-cols-2 gap-3 mt-4">{children}</div>;
-}
-
-function Card({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
     <div className="rounded-2xl form-solid p-4">
-      <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">{icon}</div>
+      <div className="w-9 h-9 rounded-lg bg-fuchsia-500/15 text-fuchsia-300 flex items-center justify-center mb-2">{icon}</div>
       <h4 className="font-semibold">{title}</h4>
       <p className="text-sm text-muted-foreground mt-1">{body}</p>
     </div>
   );
 }
 
-function Callout({ tone, children }: { tone: "info" | "tip"; children: React.ReactNode }) {
+function KeyFeature({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+  return (
+    <div className="rounded-2xl form-solid p-4 hover:border-fuchsia-400/40 transition">
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-pink-500/10 text-fuchsia-300 flex items-center justify-center shrink-0">{icon}</div>
+        <div>
+          <h4 className="font-semibold">{title}</h4>
+          <p className="text-xs text-muted-foreground mt-0.5">{body}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Callout({ tone, icon, children }: { tone: "info" | "tip"; icon?: React.ReactNode; children: React.ReactNode }) {
   const cls = tone === "tip"
-    ? "border-amber-400/40 bg-amber-400/10"
-    : "border-primary/40 bg-primary/10";
-  return <div className={`rounded-xl border ${cls} p-3.5 text-sm`}>{children}</div>;
+    ? "border-amber-400/40 bg-amber-400/10 text-amber-100"
+    : "border-fuchsia-400/40 bg-fuchsia-500/10";
+  return (
+    <div className={`rounded-xl border ${cls} p-3.5 text-sm flex items-start gap-2 mt-5`}>
+      {icon && <div className="mt-0.5 shrink-0">{icon}</div>}
+      <div>{children}</div>
+    </div>
+  );
 }
 
 function FAQ({ q, a }: { q: string; a: string }) {
@@ -261,5 +379,32 @@ function FAQ({ q, a }: { q: string; a: string }) {
       </summary>
       <p className="text-sm text-muted-foreground mt-2">{a}</p>
     </details>
+  );
+}
+
+function ContractRow({ name, addr, copied, onCopy, explorer }: { name: string; addr: string; copied: boolean; onCopy: () => void; explorer: string }) {
+  const labels: Record<string, string> = {
+    marketplace: "Marketplace",
+    nftCollection: "NFT Collection (ERC-721)",
+    offer: "Offer / Bids",
+    factory: "DEX Factory",
+    weth: "Wrapped zkLTC (wzkLTC)",
+    router: "DEX Router (V2)",
+  };
+  return (
+    <div className="rounded-xl form-solid p-3 flex items-center justify-between gap-3">
+      <div className="min-w-0">
+        <div className="font-semibold text-sm">{labels[name] ?? name}</div>
+        <code className="text-xs text-muted-foreground truncate block">{addr}</code>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button onClick={onCopy} className="p-2 rounded-lg hover:bg-accent/40 text-muted-foreground hover:text-primary" title="Copy">
+          {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+        </button>
+        <a href={explorer} target="_blank" rel="noreferrer" className="p-2 rounded-lg hover:bg-accent/40 text-muted-foreground hover:text-primary" title="Open in explorer">
+          <ExternalLink className="w-4 h-4" />
+        </a>
+      </div>
+    </div>
   );
 }
