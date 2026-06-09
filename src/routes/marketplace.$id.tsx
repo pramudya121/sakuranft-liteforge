@@ -188,7 +188,7 @@ function NFTDetail() {
                   () => listNFT(signer, nft.tokenId, listPrice),
                   async () => {
                     try {
-                      await recordListing({ tokenId: nft.tokenId, seller: nft.owner, priceWei: (BigInt(Math.floor(Number(listPrice) * 1e9)) * 10n ** 9n), priceEth: listPrice });
+                      await recordListing({ tokenId: nft.tokenId, seller: nft.owner, priceWei: parseEther(listPrice), priceEth: listPrice });
                     } catch {}
                     setListPrice("");
                   },
