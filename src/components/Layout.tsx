@@ -32,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-50 glass border-b">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
             <Link to="/" className="flex items-center gap-2 group">
-              <img src={sakuraLogo} alt="SakuraNFT" className="w-10 h-10 rounded-full shadow-lg group-hover:scale-110 transition-transform ring-1 ring-primary/40" / loading="lazy" decoding="async">
+              <img src={sakuraLogo} alt="SakuraNFT" className="w-10 h-10 rounded-full shadow-lg group-hover:scale-110 transition-transform ring-1 ring-primary/40" loading="lazy" decoding="async" />
               <span className="font-bold text-lg gradient-text">SakuraNFT</span>
             </Link>
             <nav className="hidden lg:flex items-center gap-1">

@@ -211,11 +211,11 @@ function AddLiq({ slippage }: { slippage: number }) {
         {poolActive && reserves ? (
           <div className="space-y-2 text-xs">
             <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2"><img src={tokenA.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> {tokenA.symbol}</span>
+              <span className="flex items-center gap-2"><img src={tokenA.logo} className="w-4 h-4 rounded-full" loading="lazy" decoding="async" /> {tokenA.symbol}</span>
               <span className="font-mono">{(+formatEther(reserves.reserveWeth)).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> {tokenB.symbol}</span>
+              <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" loading="lazy" decoding="async" /> {tokenB.symbol}</span>
               <span className="font-mono">{(+formatEther(reserves.reserveB)).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
             </div>
             <div className="flex justify-between"><span>Your LP</span>
@@ -303,10 +303,10 @@ function RemoveLiq({ slippage }: { slippage: number }) {
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={TOKENS[0].logo} className="w-6 h-6 rounded-full" / loading="lazy" decoding="async">
+            <img src={TOKENS[0].logo} className="w-6 h-6 rounded-full" loading="lazy" decoding="async" />
             <span className="font-semibold">zkLTC</span>
             <span className="text-muted-foreground">/</span>
-            <img src={tokenB.logo} className="w-6 h-6 rounded-full" / loading="lazy" decoding="async">
+            <img src={tokenB.logo} className="w-6 h-6 rounded-full" loading="lazy" decoding="async" />
             <span className="font-semibold">{tokenB.symbol}</span>
           </div>
           <TokenSelectButton value={tokenB} onChange={setTokenB} />
@@ -337,11 +337,11 @@ function RemoveLiq({ slippage }: { slippage: number }) {
       <div className="rounded-2xl p-4 dex-inner opacity-80 border-dashed space-y-2 text-sm">
         <p className="text-xs font-semibold tracking-wider text-muted-foreground mb-2">YOU WILL RECEIVE</p>
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2"><img src={TOKENS[0].logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> zkLTC</span>
+          <span className="flex items-center gap-2"><img src={TOKENS[0].logo} className="w-4 h-4 rounded-full" loading="lazy" decoding="async" /> zkLTC</span>
           <span className="font-mono">{reserves ? reserves.eth.toFixed(6) : "0.00"}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> {tokenB.symbol}</span>
+          <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" loading="lazy" decoding="async" /> {tokenB.symbol}</span>
           <span className="font-mono">{reserves ? reserves.tok.toFixed(6) : "0.00"}</span>
         </div>
       </div>
