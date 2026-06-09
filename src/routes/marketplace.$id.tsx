@@ -52,6 +52,17 @@ function NFTDetail() {
   const { id } = Route.useParams();
   const { nft, listing, loading } = useNFT(id);
   const { offers } = useOffers(id);
+  const { listings: dbActive } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
+
+  // Sync DB listing row for the current token (used for buy/cancel/sold transitions).
+  async function syncListingSold() {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (row) { try { await markListingSold(row.id); } catch {} }
+  }
+  async function syncListingCancelled() {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (row) { try { await cancelListingDB(row.id); } catch {} }
+  }
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
