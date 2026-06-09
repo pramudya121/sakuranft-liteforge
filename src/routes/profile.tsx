@@ -163,6 +163,20 @@ function Profile() {
             </div>
           )}
         </TabsContent>
+        <TabsContent value="watchlist" className="mt-4">
+          {(() => {
+            const set = new Set(watchlistIds);
+            const list = nfts.filter((n) => set.has(n.tokenId.toString()));
+            if (list.length === 0) {
+              return <div className="text-center py-12 glass rounded-2xl text-muted-foreground">Your watchlist is empty. Tap the heart icon on any NFT to add it.</div>;
+            }
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {list.map((n) => <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />)}
+              </div>
+            );
+          })()}
+        </TabsContent>
         <TabsContent value="portfolio" className="mt-4">
           <PortfolioPanel />
         </TabsContent>
