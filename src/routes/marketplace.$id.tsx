@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNFT, useOffers } from "@/lib/web3/hooks";
 import { useWallet } from "@/contexts/WalletContext";
-import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice, transferNFT, getMarketplaceFeeInfo } from "@/lib/web3/ethers";
+import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice, transferNFT, getMarketplaceFeeInfo, parseEther } from "@/lib/web3/ethers";
 import { isAddress } from "ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
 import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
+import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB } from "@/lib/useRealtimeListings";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
@@ -50,7 +51,18 @@ export const Route = createFileRoute("/marketplace/$id")({
 function NFTDetail() {
   const { id } = Route.useParams();
   const { nft, listing, loading } = useNFT(id);
-  const offers = useOffers(id);
+  const { offers } = useOffers(id);
+  const { listings: dbActive } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
+
+  // Sync DB listing row for the current token (used for buy/cancel/sold transitions).
+  async function syncListingSold() {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (row) { try { await markListingSold(row.id); } catch {} }
+  }
+  async function syncListingCancelled() {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (row) { try { await cancelListingDB(row.id); } catch {} }
+  }
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
   const [offerPrice, setOfferPrice] = useState("");
@@ -113,7 +125,10 @@ function NFTDetail() {
           {listing && !isOwner && (
             <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy",
               () => buyNFT(signer, listing.listingId, listing.price),
-              () => pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`),
+              async () => {
+                await syncListingSold();
+                await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
+              },
             )}>
               <ShoppingCart className="w-4 h-4 mr-2" /> Buy Now for {listing.priceEth} {CHAIN.symbol}
             </Button>
@@ -125,7 +140,7 @@ function NFTDetail() {
                   <Button variant="outline" className="flex-1" onClick={() => { setEditing(true); setEditPrice(listing.priceEth); }}>
                     <Tag className="w-4 h-4 mr-2" /> Edit Price
                   </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId))}>
+                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId), syncListingCancelled)}>
                     <X className="w-4 h-4 mr-2" /> Cancel Listing
                   </Button>
                 </div>
@@ -169,7 +184,15 @@ function NFTDetail() {
               <p className="text-sm font-medium">List this NFT for sale</p>
               <div className="flex gap-2">
                 <Input type="number" step="0.001" placeholder={`Price in ${CHAIN.symbol}`} value={listPrice} onChange={(e) => setListPrice(e.target.value)} />
-                <Button onClick={() => wrap("list", () => listNFT(signer, nft.tokenId, listPrice))} disabled={!listPrice}>
+                <Button onClick={() => wrap("list",
+                  () => listNFT(signer, nft.tokenId, listPrice),
+                  async () => {
+                    try {
+                      await recordListing({ tokenId: nft.tokenId, seller: nft.owner, priceWei: parseEther(listPrice), priceEth: listPrice });
+                    } catch {}
+                    setListPrice("");
+                  },
+                )} disabled={!listPrice}>
                   <Tag className="w-4 h-4 mr-2" /> List
                 </Button>
               </div>
@@ -215,7 +238,10 @@ function NFTDetail() {
                     <span className="font-bold text-primary">{o.valueEth} {CHAIN.symbol}</span>
                     {o.active && isOwner && <Button size="sm" onClick={() => wrap("acc",
                       () => acceptOffer(signer, nft.tokenId, o.idx),
-                      () => pushNotification(o.offerer, "offer_accepted", "✅ Offer accepted!", `Your offer of ${o.valueEth} ${CHAIN.symbol} on ${nft.name} was accepted`, nft.tokenId, `/marketplace/${id}`),
+                      async () => {
+                        await syncListingSold();
+                        await pushNotification(o.offerer, "offer_accepted", "✅ Offer accepted!", `Your offer of ${o.valueEth} ${CHAIN.symbol} on ${nft.name} was accepted`, nft.tokenId, `/marketplace/${id}`);
+                      },
                     )}><Check className="w-3 h-3 mr-1" /> Accept</Button>}
                     {o.active && address?.toLowerCase() === o.offerer.toLowerCase() && (
                       <Button size="sm" variant="outline" onClick={() => wrap("co", () => cancelOffer(signer, nft.tokenId, o.idx))}><X className="w-3 h-3" /></Button>

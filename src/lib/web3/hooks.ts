@@ -25,7 +25,10 @@ export type Listing = {
 export function useAllNFTs() {
   const [nfts, setNfts] = useState<NFTMeta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
+  const refetch = () => setTick((t) => t + 1);
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
@@ -43,17 +46,28 @@ export function useAllNFTs() {
             });
           } catch {}
         }
-        setNfts(items.reverse());
-      } finally { setLoading(false); }
+        if (!cancelled) setNfts(items.reverse());
+      } finally { if (!cancelled) setLoading(false); }
     })();
+    return () => { cancelled = true; };
+  }, [tick]);
+  // Auto-refresh owner data on any Transfer event
+  useEffect(() => {
+    const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
+    const handler = () => refetch();
+    nft.on("Transfer", handler);
+    return () => { nft.off("Transfer", handler); };
   }, []);
-  return { nfts, loading };
+  return { nfts, loading, refetch };
 }
 
 export function useAllListings() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
+  const refetch = () => setTick((t) => t + 1);
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
@@ -71,25 +85,43 @@ export function useAllListings() {
             }
           } catch {}
         }
-        setListings(items);
-      } finally { setLoading(false); }
+        if (!cancelled) setListings(items);
+      } finally { if (!cancelled) setLoading(false); }
     })();
+    return () => { cancelled = true; };
+  }, [tick]);
+  // Auto-refresh on listing lifecycle events
+  useEffect(() => {
+    const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
+    const handler = () => refetch();
+    mp.on("Listed", handler);
+    mp.on("Sold", handler);
+    mp.on("ListingCancelled", handler);
+    return () => {
+      mp.off("Listed", handler);
+      mp.off("Sold", handler);
+      mp.off("ListingCancelled", handler);
+    };
   }, []);
-  return { listings, loading };
+  return { listings, loading, refetch };
 }
 
 export function useNFT(tokenId: string | undefined) {
   const [nft, setNft] = useState<NFTMeta | null>(null);
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
+  const refetch = () => setTick((t) => t + 1);
   useEffect(() => {
     if (!tokenId) return;
+    let cancelled = false;
     (async () => {
       try {
         const id = BigInt(tokenId);
         const nftC = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
         const [uri, owner] = await Promise.all([nftC.tokenURI(id), nftC.ownerOf(id)]);
         const meta = decodeTokenUri(uri) ?? {};
+        if (cancelled) return;
         setNft({
           tokenId: id, owner, tokenURI: uri,
           name: meta.name ?? `NFT #${id}`,
@@ -99,23 +131,49 @@ export function useNFT(tokenId: string | undefined) {
         try {
           const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
           const r = await mp.getActiveListing(CONTRACTS.nftCollection, id);
+          if (cancelled) return;
           if (r.active) {
             setListing({
               listingId: r.listingId, seller: r.seller, nft: CONTRACTS.nftCollection,
               tokenId: id, price: r.price, priceEth: formatEther(r.price), active: true,
             });
+          } else {
+            setListing(null);
           }
         } catch {}
-      } finally { setLoading(false); }
+      } finally { if (!cancelled) setLoading(false); }
     })();
+    return () => { cancelled = true; };
+  }, [tokenId, tick]);
+  // Auto-refresh on any relevant on-chain event for this token
+  useEffect(() => {
+    if (!tokenId) return;
+    const nftC = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
+    const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
+    const handler = () => refetch();
+    nftC.on("Transfer", handler);
+    mp.on("Listed", handler);
+    mp.on("Sold", handler);
+    mp.on("ListingCancelled", handler);
+    mp.on("PriceUpdated", handler);
+    return () => {
+      nftC.off("Transfer", handler);
+      mp.off("Listed", handler);
+      mp.off("Sold", handler);
+      mp.off("ListingCancelled", handler);
+      mp.off("PriceUpdated", handler);
+    };
   }, [tokenId]);
-  return { nft, listing, loading };
+  return { nft, listing, loading, refetch };
 }
 
 export function useOffers(tokenId: string | undefined) {
   const [offers, setOffers] = useState<{ idx: number; offerer: string; value: bigint; valueEth: string; active: boolean }[]>([]);
+  const [tick, setTick] = useState(0);
+  const refetch = () => setTick((t) => t + 1);
   useEffect(() => {
     if (!tokenId) return;
+    let cancelled = false;
     (async () => {
       const c = new Contract(CONTRACTS.offer, OFFER_ABI, readProvider);
       const items: any[] = [];
@@ -126,10 +184,25 @@ export function useOffers(tokenId: string | undefined) {
           items.push({ idx: i, offerer: r.offerer, value: r.value, valueEth: formatEther(r.value), active: r.active });
         } catch { break; }
       }
-      setOffers(items);
+      if (!cancelled) setOffers(items);
     })();
+    return () => { cancelled = true; };
+  }, [tokenId, tick]);
+  // Auto-refresh on offer lifecycle events
+  useEffect(() => {
+    if (!tokenId) return;
+    const c = new Contract(CONTRACTS.offer, OFFER_ABI, readProvider);
+    const handler = () => refetch();
+    c.on("OfferMade", handler);
+    c.on("OfferCancelled", handler);
+    c.on("OfferAccepted", handler);
+    return () => {
+      c.off("OfferMade", handler);
+      c.off("OfferCancelled", handler);
+      c.off("OfferAccepted", handler);
+    };
   }, [tokenId]);
-  return offers;
+  return { offers, refetch };
 }
 
 // Local storage helpers for off-chain features (watchlist, profile, notifications)
