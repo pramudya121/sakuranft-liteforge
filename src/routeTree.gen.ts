@@ -9,11 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WatchlistRouteImport } from './routes/watchlist'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MintRouteImport } from './routes/mint'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DexRouteImport } from './routes/dex'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as ActivityRouteImport } from './routes/activity'
@@ -25,11 +25,6 @@ import { Route as MarketplaceIdRouteImport } from './routes/marketplace.$id'
 import { Route as DexSwapRouteImport } from './routes/dex.swap'
 import { Route as DexLiquidityRouteImport } from './routes/dex.liquidity'
 
-const WatchlistRoute = WatchlistRouteImport.update({
-  id: '/watchlist',
-  path: '/watchlist',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -48,6 +43,11 @@ const MintRoute = MintRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DexRoute = DexRouteImport.update({
@@ -106,11 +106,11 @@ export interface FileRoutesByFullPath {
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
   '/dex': typeof DexRouteWithChildren
+  '/docs': typeof DocsRoute
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/watchlist': typeof WatchlistRoute
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -122,11 +122,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
+  '/docs': typeof DocsRoute
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/watchlist': typeof WatchlistRoute
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -140,11 +140,11 @@ export interface FileRoutesById {
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
   '/dex': typeof DexRouteWithChildren
+  '/docs': typeof DocsRoute
   '/leaderboard': typeof LeaderboardRoute
   '/mint': typeof MintRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/watchlist': typeof WatchlistRoute
   '/dex/liquidity': typeof DexLiquidityRoute
   '/dex/swap': typeof DexSwapRoute
   '/marketplace/$id': typeof MarketplaceIdRoute
@@ -159,11 +159,11 @@ export interface FileRouteTypes {
     | '/activity'
     | '/analytics'
     | '/dex'
+    | '/docs'
     | '/leaderboard'
     | '/mint'
     | '/profile'
     | '/sitemap.xml'
-    | '/watchlist'
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
@@ -175,11 +175,11 @@ export interface FileRouteTypes {
     | '/'
     | '/activity'
     | '/analytics'
+    | '/docs'
     | '/leaderboard'
     | '/mint'
     | '/profile'
     | '/sitemap.xml'
-    | '/watchlist'
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
@@ -192,11 +192,11 @@ export interface FileRouteTypes {
     | '/activity'
     | '/analytics'
     | '/dex'
+    | '/docs'
     | '/leaderboard'
     | '/mint'
     | '/profile'
     | '/sitemap.xml'
-    | '/watchlist'
     | '/dex/liquidity'
     | '/dex/swap'
     | '/marketplace/$id'
@@ -210,11 +210,11 @@ export interface RootRouteChildren {
   ActivityRoute: typeof ActivityRoute
   AnalyticsRoute: typeof AnalyticsRoute
   DexRoute: typeof DexRouteWithChildren
+  DocsRoute: typeof DocsRoute
   LeaderboardRoute: typeof LeaderboardRoute
   MintRoute: typeof MintRoute
   ProfileRoute: typeof ProfileRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  WatchlistRoute: typeof WatchlistRoute
   MarketplaceIdRoute: typeof MarketplaceIdRoute
   UAddressRoute: typeof UAddressRoute
   MarketplaceIndexRoute: typeof MarketplaceIndexRoute
@@ -222,13 +222,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/watchlist': {
-      id: '/watchlist'
-      path: '/watchlist'
-      fullPath: '/watchlist'
-      preLoaderRoute: typeof WatchlistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -255,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dex': {
@@ -349,11 +349,11 @@ const rootRouteChildren: RootRouteChildren = {
   ActivityRoute: ActivityRoute,
   AnalyticsRoute: AnalyticsRoute,
   DexRoute: DexRouteWithChildren,
+  DocsRoute: DocsRoute,
   LeaderboardRoute: LeaderboardRoute,
   MintRoute: MintRoute,
   ProfileRoute: ProfileRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  WatchlistRoute: WatchlistRoute,
   MarketplaceIdRoute: MarketplaceIdRoute,
   UAddressRoute: UAddressRoute,
   MarketplaceIndexRoute: MarketplaceIndexRoute,
@@ -361,3 +361,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
