@@ -375,8 +375,6 @@ export function decodeTokenUri(uri: string): { name?: string; description?: stri
       meta = JSON.parse(decodeURIComponent(uri.split(",")[1] ?? ""));
     }
     if (meta?.image) {
-      // Rewrite ipfs:// images to Cloudflare's edge-cached gateway.
-      const { ipfsToHttp } = require("@/lib/ipfs") as typeof import("@/lib/ipfs");
       meta.image = ipfsToHttp(meta.image);
     }
     return meta;
