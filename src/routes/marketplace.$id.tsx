@@ -97,7 +97,7 @@ function NFTDetail() {
 
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="glass rounded-3xl overflow-hidden glow-card">
-          {nft.image ? <img src={nft.image} alt={nft.name} className="w-full aspect-square object-cover" />
+          {nft.image ? <img src={nft.image} alt={nft.name} className="w-full aspect-square object-cover" / loading="lazy" decoding="async">
             : <div className="aspect-square flex items-center justify-center text-9xl">🌸</div>}
         </div>
 
