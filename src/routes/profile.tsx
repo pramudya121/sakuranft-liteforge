@@ -26,6 +26,7 @@ function Profile() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
   const { profile, save } = useProfile(address);
+  const { items: watchlistIds } = useWatchlist(address);
   const [sort, setSort] = useState("newest");
 
   const owned = useMemo(() => {
