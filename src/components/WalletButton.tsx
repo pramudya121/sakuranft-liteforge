@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Wallet, ChevronDown, LogOut, Copy } from "lucide-react";
+import { Wallet, ChevronDown, LogOut, Copy, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -7,13 +7,20 @@ import { useWallet, isCorrectChain } from "@/contexts/WalletContext";
 import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { toast } from "sonner";
+import { SendTokenDialog } from "./SendTokenDialog";
 
-const wallets: { kind: "metamask" | "okx" | "bitget"; name: string; logo: string; desc: string }[] = [
+const wallets: { kind: "metamask" | "okx" | "bitget" | "rabby"; name: string; logo: string; desc: string }[] = [
   {
     kind: "metamask",
     name: "MetaMask",
     desc: "Most popular Web3 wallet",
     logo: "https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg",
+  },
+  {
+    kind: "rabby",
+    name: "Rabby Wallet",
+    desc: "Multi-chain wallet by DeBank",
+    logo: "https://rabby.io/assets/images/logo-128.png",
   },
   {
     kind: "okx",
@@ -32,6 +39,7 @@ const wallets: { kind: "metamask" | "okx" | "bitget"; name: string; logo: string
 export function WalletButton() {
   const { address, chainId, balance, connect, disconnect } = useWallet();
   const [open, setOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
 
   if (!address) {
@@ -103,12 +111,15 @@ export function WalletButton() {
           <ChevronDown className="w-3 h-3 ml-1" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="glass">
+      <DropdownMenuContent align="end" className="form-solid">
         {wrongChain && (
           <DropdownMenuItem onClick={() => connect((localStorage.getItem("walletKind") as any) ?? "metamask")}>
             Switch to {CHAIN.name}
           </DropdownMenuItem>
         )}
+        <DropdownMenuItem onClick={() => setSendOpen(true)}>
+          <Send className="w-4 h-4 mr-2" /> Send Token
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(address); toast.success("Address copied"); }}>
           <Copy className="w-4 h-4 mr-2" /> Copy Address
         </DropdownMenuItem>
@@ -116,6 +127,7 @@ export function WalletButton() {
           <LogOut className="w-4 h-4 mr-2" /> Disconnect
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <SendTokenDialog open={sendOpen} onOpenChange={setSendOpen} />
     </DropdownMenu>
   );
 }

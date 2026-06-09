@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon } from "lucide-react";
+import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import { NFTCard } from "@/components/NFTCard";
 import { PortfolioPanel } from "@/components/PortfolioPanel";
 import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
-import { useProfile, type DBProfile } from "@/lib/supabase-hooks";
+import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
 import { safeHttpUrl } from "@/lib/safe-url";
 export const Route = createFileRoute("/profile")({
@@ -26,6 +26,7 @@ function Profile() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
   const { profile, save } = useProfile(address);
+  const { items: watchlistIds } = useWatchlist(address);
   const [sort, setSort] = useState("newest");
 
   const owned = useMemo(() => {
@@ -126,6 +127,7 @@ function Profile() {
         <TabsList className="glass">
           <TabsTrigger value="collection">Collection ({owned.length})</TabsTrigger>
           <TabsTrigger value="listed">Listed ({myListings.length})</TabsTrigger>
+          <TabsTrigger value="watchlist"><Heart className="w-3 h-3 mr-1" /> Watchlist ({watchlistIds.length})</TabsTrigger>
           <TabsTrigger value="portfolio">Tokens</TabsTrigger>
         </TabsList>
         <TabsContent value="collection" className="space-y-4 mt-4">
@@ -160,6 +162,20 @@ function Profile() {
               })}
             </div>
           )}
+        </TabsContent>
+        <TabsContent value="watchlist" className="mt-4">
+          {(() => {
+            const set = new Set(watchlistIds);
+            const list = nfts.filter((n) => set.has(n.tokenId.toString()));
+            if (list.length === 0) {
+              return <div className="text-center py-12 glass rounded-2xl text-muted-foreground">Your watchlist is empty. Tap the heart icon on any NFT to add it.</div>;
+            }
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {list.map((n) => <NFTCard key={n.tokenId.toString()} nft={n} listing={listings.find((l) => l.tokenId === n.tokenId)} />)}
+              </div>
+            );
+          })()}
         </TabsContent>
         <TabsContent value="portfolio" className="mt-4">
           <PortfolioPanel />
