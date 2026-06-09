@@ -165,7 +165,7 @@ function Marketplace() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {items.map(({ nft, listing }) => (
               <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing}
-                onBuy={listing ? () => handleBuy(listing.listingId, listing.price) : undefined} />
+                onBuy={() => handleBuy(listing)} />
             ))}
           </div>
         ) : (
