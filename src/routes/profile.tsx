@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon } from "lucide-react";
+import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import { NFTCard } from "@/components/NFTCard";
 import { PortfolioPanel } from "@/components/PortfolioPanel";
 import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
-import { useProfile, type DBProfile } from "@/lib/supabase-hooks";
+import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
 import { safeHttpUrl } from "@/lib/safe-url";
 export const Route = createFileRoute("/profile")({
