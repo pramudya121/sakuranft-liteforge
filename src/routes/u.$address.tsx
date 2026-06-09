@@ -42,7 +42,7 @@ function PublicProfile() {
         )}
         <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-16 md:-mt-20 border-4 border-background">
-            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "🌸"}
+            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" / loading="lazy" decoding="async"> : "🌸"}
           </div>
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl font-bold flex items-center gap-2 justify-center md:justify-start">

@@ -31,16 +31,16 @@ function LiquidityPage() {
     <div className="dex-panel rounded-3xl p-5 max-w-md mx-auto">
       <div className="flex items-center gap-2 mb-4">
         <button onClick={() => setMode("add")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "add" ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg" : "bg-white/5 text-white/60"}`}>
+          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "add" ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg" : "bg-foreground/5 dex-muted"}`}>
           <Plus className="w-4 h-4" /> Add Liquidity
         </button>
         <button onClick={() => setMode("remove")}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "remove" ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg" : "bg-white/5 text-white/60"}`}>
+          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 ${mode === "remove" ? "bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white shadow-lg" : "bg-foreground/5 dex-muted"}`}>
           <Minus className="w-4 h-4" /> Remove Liquidity
         </button>
         <Popover>
           <PopoverTrigger asChild>
-            <button className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10">
+            <button className="w-10 h-10 rounded-xl bg-foreground/5 flex items-center justify-center hover:bg-foreground/10">
               <Settings className="w-4 h-4" />
             </button>
           </PopoverTrigger>
@@ -67,7 +67,7 @@ function LiquidityPage() {
 function NativeTokenBadge({ value }: { value: TokenInfo }) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1230] border border-white/10 shrink-0">
-      <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
+      <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
       <span className="font-semibold text-sm">{value.symbol}</span>
     </div>
   );
@@ -151,9 +151,9 @@ function AddLiq({ slippage }: { slippage: number }) {
   return (
     <div className="space-y-3">
       {/* TOKEN A */}
-      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
+      <div className="rounded-2xl p-4 dex-inner">
         <div className="flex justify-between text-xs mb-2">
-          <span className="text-white/60 tracking-wider">TOKEN A</span>
+          <span className="dex-muted tracking-wider">TOKEN A</span>
           <button onClick={() => setAmtA(balA)} className="text-fuchsia-300 hover:underline">
             Balance: {(+balA).toFixed(4)} <span className="font-bold ml-1">MAX</span>
           </button>
@@ -161,7 +161,7 @@ function AddLiq({ slippage }: { slippage: number }) {
         <div className="flex items-center gap-2">
           <Input type="number" placeholder="0.0" value={amtA}
             onChange={(e) => setAmtA(e.target.value)}
-            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-white" />
+            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-foreground" />
           <NativeTokenBadge value={tokenA} />
         </div>
       </div>
@@ -173,10 +173,10 @@ function AddLiq({ slippage }: { slippage: number }) {
       </div>
 
       {/* TOKEN B */}
-      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
+      <div className="rounded-2xl p-4 dex-inner">
         <div className="flex justify-between text-xs mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-white/60 tracking-wider">TOKEN B</span>
+            <span className="dex-muted tracking-wider">TOKEN B</span>
             {poolActive && <span className="text-green-500 text-[10px]">● auto</span>}
           </div>
           <button onClick={() => setAmtB(balB)} className="text-fuchsia-300 hover:underline">
@@ -186,7 +186,7 @@ function AddLiq({ slippage }: { slippage: number }) {
         <div className="flex items-center gap-2">
           <Input type="number" placeholder="0.0" value={amtB}
             onChange={(e) => setAmtB(e.target.value)} readOnly={poolActive}
-            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-white" />
+            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-foreground" />
           <TokenSelectButton value={tokenB} onChange={setTokenB} />
         </div>
       </div>
@@ -201,7 +201,7 @@ function AddLiq({ slippage }: { slippage: number }) {
       )}
 
       {/* Pool Info */}
-      <div className="rounded-2xl p-4 bg-[#160c26]/60 border border-white/10 border-dashed">
+      <div className="rounded-2xl p-4 dex-inner opacity-80 border-dashed">
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-semibold tracking-wider text-muted-foreground">POOL INFORMATION</p>
           <span className={`text-xs flex items-center gap-1 ${poolActive ? "text-green-500" : "text-muted-foreground"}`}>
@@ -211,11 +211,11 @@ function AddLiq({ slippage }: { slippage: number }) {
         {poolActive && reserves ? (
           <div className="space-y-2 text-xs">
             <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2"><img src={tokenA.logo} className="w-4 h-4 rounded-full" /> {tokenA.symbol}</span>
+              <span className="flex items-center gap-2"><img src={tokenA.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> {tokenA.symbol}</span>
               <span className="font-mono">{(+formatEther(reserves.reserveWeth)).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" /> {tokenB.symbol}</span>
+              <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> {tokenB.symbol}</span>
               <span className="font-mono">{(+formatEther(reserves.reserveB)).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
             </div>
             <div className="flex justify-between"><span>Your LP</span>
@@ -303,19 +303,19 @@ function RemoveLiq({ slippage }: { slippage: number }) {
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={TOKENS[0].logo} className="w-6 h-6 rounded-full" />
+            <img src={TOKENS[0].logo} className="w-6 h-6 rounded-full" / loading="lazy" decoding="async">
             <span className="font-semibold">zkLTC</span>
             <span className="text-muted-foreground">/</span>
-            <img src={tokenB.logo} className="w-6 h-6 rounded-full" />
+            <img src={tokenB.logo} className="w-6 h-6 rounded-full" / loading="lazy" decoding="async">
             <span className="font-semibold">{tokenB.symbol}</span>
           </div>
           <TokenSelectButton value={tokenB} onChange={setTokenB} />
         </div>
       </div>
 
-      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
+      <div className="rounded-2xl p-4 dex-inner">
         <div className="flex items-baseline justify-between mb-3">
-          <span className="text-xs text-white/60 tracking-wider">REMOVE</span>
+          <span className="text-xs dex-muted tracking-wider">REMOVE</span>
           <span className="text-3xl font-bold gradient-text">{pct}%</span>
         </div>
         <input type="range" min={0} max={100} step={1} value={pct}
@@ -334,14 +334,14 @@ function RemoveLiq({ slippage }: { slippage: number }) {
         </p>
       </div>
 
-      <div className="rounded-2xl p-4 bg-[#160c26]/60 border border-white/10 border-dashed space-y-2 text-sm">
+      <div className="rounded-2xl p-4 dex-inner opacity-80 border-dashed space-y-2 text-sm">
         <p className="text-xs font-semibold tracking-wider text-muted-foreground mb-2">YOU WILL RECEIVE</p>
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2"><img src={TOKENS[0].logo} className="w-4 h-4 rounded-full" /> zkLTC</span>
+          <span className="flex items-center gap-2"><img src={TOKENS[0].logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> zkLTC</span>
           <span className="font-mono">{reserves ? reserves.eth.toFixed(6) : "0.00"}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" /> {tokenB.symbol}</span>
+          <span className="flex items-center gap-2"><img src={tokenB.logo} className="w-4 h-4 rounded-full" / loading="lazy" decoding="async"> {tokenB.symbol}</span>
           <span className="font-mono">{reserves ? reserves.tok.toFixed(6) : "0.00"}</span>
         </div>
       </div>

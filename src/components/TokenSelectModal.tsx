@@ -13,10 +13,10 @@ export function TokenSelectButton({ value, onChange }: { value: TokenInfo; onCha
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1230] hover:bg-[#221638] border border-white/10 shrink-0"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full dex-inner hover:opacity-90 shrink-0"
       >
         {value.logo && (
-          <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
+          <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
         )}
         <span className="font-semibold text-sm">{value.symbol}</span>
         <span className="text-xs opacity-60">▾</span>
@@ -83,22 +83,22 @@ export function TokenSelectModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-sm p-0 overflow-hidden border-white/10 bg-[#0c0718] text-white rounded-3xl">
+      <DialogContent className="max-w-sm p-0 overflow-hidden border-white/10 dex-panel text-foreground rounded-3xl">
         <DialogTitle className="sr-only">Select a token</DialogTitle>
         <div className="px-5 pt-5 pb-3 flex items-center gap-3">
           <h3 className="text-lg font-bold">Select Token</h3>
           <span className="text-[10px] px-2 py-0.5 rounded-full bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-400/30">BALANCES LIVE</span>
-          <button onClick={onClose} className="ml-auto text-white/60 hover:text-white"><X className="w-4 h-4" /></button>
+          <button onClick={onClose} className="ml-auto dex-muted hover:text-foreground"><X className="w-4 h-4" /></button>
         </div>
         <div className="px-5 pb-3">
-          <div className="flex items-center gap-2 rounded-2xl bg-[#160c26] border border-white/10 px-3 py-2.5">
-            <Search className="w-4 h-4 text-white/50" />
+          <div className="flex items-center gap-2 rounded-2xl dex-inner px-3 py-2.5">
+            <Search className="w-4 h-4 dex-muted" />
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, symbol or paste 0x address..."
-              className="bg-transparent outline-none flex-1 text-sm placeholder:text-white/40"
+              className="bg-transparent outline-none flex-1 text-sm placeholder:dex-muted opacity-80"
             />
           </div>
         </div>
@@ -109,9 +109,9 @@ export function TokenSelectModal({
               <button
                 key={t.symbol}
                 onClick={() => onSelect(t)}
-                className="flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-[#160c26] border border-white/10 hover:border-fuchsia-400/50"
+                className="flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full dex-inner hover:border-fuchsia-400/50"
               >
-                <img src={t.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
+                <img src={t.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
                 <span className="text-xs font-semibold">{t.symbol}</span>
                 <span className="text-[10px] text-fuchsia-300/80">{bal ? Number(bal).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "10"}</span>
               </button>
@@ -125,16 +125,16 @@ export function TokenSelectModal({
               <button
                 key={t.symbol}
                 onClick={() => onSelect(t)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-white/5 text-left"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-foreground/5 text-left"
               >
-                <img src={t.logo} alt="" className="w-8 h-8 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
+                <img src={t.logo} alt="" className="w-8 h-8 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{t.symbol}</div>
-                  <div className="text-[11px] text-white/50 truncate">{t.name}</div>
+                  <div className="text-[11px] dex-muted truncate">{t.name}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-semibold">{bal ? Number(bal).toLocaleString(undefined, { maximumFractionDigits: 4 }) : (t.address && t.address !== "native" && isAddress(t.address) ? "0" : "10")}</div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/40">Balance</div>
+                  <div className="text-[10px] uppercase tracking-wider dex-muted opacity-80">Balance</div>
                 </div>
               </button>
             );

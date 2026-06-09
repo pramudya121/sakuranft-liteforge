@@ -26,11 +26,11 @@ function StatCard({ icon: Icon, label, value, sub }: { icon: any; label: string;
   return (
     <div className="rounded-2xl p-5 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 hover:border-fuchsia-400/40 transition">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-white/60 uppercase tracking-wider">{label}</span>
+        <span className="text-xs dex-muted uppercase tracking-wider">{label}</span>
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 flex items-center justify-center"><Icon className="w-4 h-4 text-fuchsia-300" /></div>
       </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
-      {sub && <div className="text-[11px] text-white/50 mt-1">{sub}</div>}
+      <div className="text-2xl font-bold text-foreground">{value}</div>
+      {sub && <div className="text-[11px] dex-muted mt-1">{sub}</div>}
     </div>
   );
 }
@@ -39,7 +39,7 @@ function Section({ title, children, right }: { title: string; children: React.Re
   return (
     <div className="rounded-3xl p-5 bg-white/[0.02] border border-white/10">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold text-white">{title}</h3>
+        <h3 className="text-sm font-bold text-foreground">{title}</h3>
         {right}
       </div>
       {children}
@@ -141,7 +141,7 @@ function Analytics() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <ShoppingBag className="w-5 h-5 text-fuchsia-400" />
-          <h2 className="text-xl font-bold text-white">NFT Marketplace</h2>
+          <h2 className="text-xl font-bold text-foreground">NFT Marketplace</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard icon={Sparkles} label="Total NFTs" value={mp.count.toString()} sub={`${mp.owners} unique owners`} />
@@ -151,9 +151,9 @@ function Analytics() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-4">
-          <Section title="Daily Trading Volume (on-chain sales)" right={<span className="text-[10px] text-white/40">{historyLoading ? "Scanning chain…" : `${history.length} days`}</span>}>
+          <Section title="Daily Trading Volume (on-chain sales)" right={<span className="text-[10px] dex-muted opacity-80">{historyLoading ? "Scanning chain…" : `${history.length} days`}</span>}>
             {history.length === 0 ? (
-              <p className="text-xs text-white/50 py-8 text-center">{historyLoading ? "Reading Sold events from chain…" : "No recorded sales yet."}</p>
+              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Reading Sold events from chain…" : "No recorded sales yet."}</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={history}>
@@ -174,9 +174,9 @@ function Analytics() {
             )}
           </Section>
 
-          <Section title="Floor Price Trend (on-chain)" right={<LineChartIcon className="w-3.5 h-3.5 text-white/40" />}>
+          <Section title="Floor Price Trend (on-chain)" right={<LineChartIcon className="w-3.5 h-3.5 dex-muted opacity-80" />}>
             {history.length === 0 ? (
-              <p className="text-xs text-white/50 py-8 text-center">{historyLoading ? "Loading…" : "No floor data yet."}</p>
+              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Loading…" : "No floor data yet."}</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <LineChart data={history}>
@@ -205,7 +205,7 @@ function Analytics() {
 
           <Section title="Daily Sales Count (on-chain)">
             {history.length === 0 ? (
-              <p className="text-xs text-white/50 py-8 text-center">{historyLoading ? "Loading…" : "No sales yet."}</p>
+              <p className="text-xs dex-muted py-8 text-center">{historyLoading ? "Loading…" : "No sales yet."}</p>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={history}>
@@ -220,7 +220,7 @@ function Analytics() {
           </Section>
 
           <Section title="Top Holders">
-            {topHolders.length === 0 ? <p className="text-xs text-white/50">No data yet.</p> : (
+            {topHolders.length === 0 ? <p className="text-xs dex-muted">No data yet.</p> : (
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
                   <Pie data={topHolders} dataKey="value" nameKey="name" innerRadius={45} outerRadius={80} paddingAngle={3}>
@@ -234,13 +234,13 @@ function Analytics() {
           </Section>
 
           <Section title="Marketplace Summary">
-            <ul className="text-sm space-y-2 text-white/80">
-              <li className="flex justify-between"><span className="text-white/60">Total Value Listed</span><span className="font-semibold">{mp.total.toFixed(4)} {CHAIN.symbol}</span></li>
-              <li className="flex justify-between"><span className="text-white/60">On-chain Volume</span><span className="font-semibold">{histStats.totalVolume.toFixed(4)} {CHAIN.symbol}</span></li>
-              <li className="flex justify-between"><span className="text-white/60">Avg Sale Price</span><span className="font-semibold">{histStats.avgSale.toFixed(4)} {CHAIN.symbol}</span></li>
-              <li className="flex justify-between"><span className="text-white/60">Sales (7d)</span><span className="font-semibold">{histStats.last7Sales}</span></li>
-              <li className="flex justify-between"><span className="text-white/60">Listed Ratio</span><span className="font-semibold">{mp.listedRatio.toFixed(2)}%</span></li>
-              <li className="flex justify-between"><span className="text-white/60">Concentration (top owner)</span><span className="font-semibold">{topHolders[0] && mp.count ? `${((topHolders[0].value / mp.count) * 100).toFixed(1)}%` : "—"}</span></li>
+            <ul className="text-sm space-y-2 text-foreground">
+              <li className="flex justify-between"><span className="dex-muted">Total Value Listed</span><span className="font-semibold">{mp.total.toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="dex-muted">On-chain Volume</span><span className="font-semibold">{histStats.totalVolume.toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="dex-muted">Avg Sale Price</span><span className="font-semibold">{histStats.avgSale.toFixed(4)} {CHAIN.symbol}</span></li>
+              <li className="flex justify-between"><span className="dex-muted">Sales (7d)</span><span className="font-semibold">{histStats.last7Sales}</span></li>
+              <li className="flex justify-between"><span className="dex-muted">Listed Ratio</span><span className="font-semibold">{mp.listedRatio.toFixed(2)}%</span></li>
+              <li className="flex justify-between"><span className="dex-muted">Concentration (top owner)</span><span className="font-semibold">{topHolders[0] && mp.count ? `${((topHolders[0].value / mp.count) * 100).toFixed(1)}%` : "—"}</span></li>
             </ul>
           </Section>
         </div>
@@ -250,7 +250,7 @@ function Analytics() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <Repeat className="w-5 h-5 text-pink-400" />
-          <h2 className="text-xl font-bold text-white">Sakura DEX</h2>
+          <h2 className="text-xl font-bold text-foreground">Sakura DEX</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard icon={Droplet} label="Active Pools" value={pools.length.toString()} sub={poolsLoading ? "Scanning…" : `vs wzkLTC`} />
@@ -259,9 +259,9 @@ function Analytics() {
           <StatCard icon={ActivityIcon} label="Top Pair" value={pools[0]?.pair ?? "—"} sub={pools[0] ? `${pools[0].tvlEth.toFixed(2)} ${CHAIN.symbol} TVL` : "No pools"} />
         </div>
 
-        <Section title="Liquidity per Pool" right={<span className="text-[10px] text-white/40">{poolsLoading ? "Loading…" : `${pools.length} pools`}</span>}>
+        <Section title="Liquidity per Pool" right={<span className="text-[10px] dex-muted opacity-80">{poolsLoading ? "Loading…" : `${pools.length} pools`}</span>}>
           {pools.length === 0 ? (
-            <p className="text-xs text-white/50 py-4 text-center">{poolsLoading ? "Probing pools on-chain…" : "No active pools yet."}</p>
+            <p className="text-xs dex-muted py-4 text-center">{poolsLoading ? "Probing pools on-chain…" : "No active pools yet."}</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={pools} layout="vertical">
@@ -278,11 +278,11 @@ function Analytics() {
 
         <Section title="Pool Reserves">
           {pools.length === 0 ? (
-            <p className="text-xs text-white/50 py-4 text-center">{poolsLoading ? "Loading…" : "No pools to display."}</p>
+            <p className="text-xs dex-muted py-4 text-center">{poolsLoading ? "Loading…" : "No pools to display."}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-xs text-white/50 uppercase">
+                <thead className="text-xs dex-muted uppercase">
                   <tr className="border-b border-white/10">
                     <th className="text-left py-2 px-2">Pair</th>
                     <th className="text-right py-2 px-2">wzkLTC</th>
@@ -294,8 +294,8 @@ function Analytics() {
                   {pools.map((p) => (
                     <tr key={p.pair} className="border-b border-white/5 hover:bg-white/[0.02]">
                       <td className="py-2 px-2 font-semibold">{p.pair}</td>
-                      <td className="py-2 px-2 text-right text-white/80">{p.reserveA}</td>
-                      <td className="py-2 px-2 text-right text-white/80">{p.reserveB} <span className="text-white/40 text-xs">{p.symB}</span></td>
+                      <td className="py-2 px-2 text-right text-foreground">{p.reserveA}</td>
+                      <td className="py-2 px-2 text-right text-foreground">{p.reserveB} <span className="dex-muted opacity-80 text-xs">{p.symB}</span></td>
                       <td className="py-2 px-2 text-right font-semibold text-fuchsia-300">{p.tvlEth.toFixed(4)}</td>
                     </tr>
                   ))}

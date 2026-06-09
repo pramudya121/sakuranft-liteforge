@@ -77,7 +77,7 @@ function Profile() {
         </div>
         <div className="px-6 md:px-8 pb-6 md:pb-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
           <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-14 md:-mt-16 border-4 border-background shadow-xl relative z-10">
-            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" /> : "🌸"}
+            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" / loading="lazy" decoding="async"> : "🌸"}
           </div>
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl font-bold">{profile?.display_name || "Anonymous Collector"}</h1>
@@ -210,7 +210,7 @@ function EditDialog({ profile, onSave }: { profile: DBProfile | null; onSave: (p
             <label className="text-xs text-muted-foreground">Avatar</label>
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-full bg-muted overflow-hidden flex items-center justify-center text-2xl shrink-0">
-                {draft.avatar_url ? <img src={draft.avatar_url} alt="" className="w-full h-full object-cover" /> : "🌸"}
+                {draft.avatar_url ? <img src={draft.avatar_url} alt="" className="w-full h-full object-cover" / loading="lazy" decoding="async"> : "🌸"}
               </div>
               <Input type="file" accept="image/*" disabled={uploading === "avatar"}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload("avatar", f); }} />

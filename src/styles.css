@@ -137,16 +137,43 @@
 .glass {
   background: color-mix(in oklab, var(--card) 80%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
   border: 1px solid color-mix(in oklab, var(--border) 100%, transparent);
 }
 
-/* Solid DEX panel (no transparency) */
+/* Theme-aware solid panel */
+:root {
+  --panel: oklch(0.99 0.005 320);
+  --panel-inner: oklch(0.965 0.012 320);
+  --panel-border: oklch(0.88 0.02 320);
+  --panel-foreground: var(--foreground);
+  --panel-muted: var(--muted-foreground);
+}
+.dark {
+  --panel: #0c0718;
+  --panel-inner: #160c26;
+  --panel-border: rgba(255,255,255,0.08);
+  --panel-foreground: #fff;
+  --panel-muted: rgba(255,255,255,0.6);
+}
 .dex-panel {
-  background: #0c0718;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 20px 60px -20px rgba(236, 72, 153, 0.25);
+  background: var(--panel);
+  color: var(--panel-foreground);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 20px 60px -20px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+.dex-inner {
+  background: var(--panel-inner);
+  border: 1px solid var(--panel-border);
+  color: var(--panel-foreground);
+  border-radius: 1rem;
+}
+.dex-muted { color: var(--panel-muted); }
+
+/* Opaque form surface */
+.form-solid {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
 }
 
 .glow-card {
