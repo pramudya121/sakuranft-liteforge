@@ -1,19 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { MessageCircle, Send, X, Mic, MicOff, Volume2, VolumeX, Loader2, Sparkles, Bot, User } from "lucide-react";
+import { Send, X, Mic, MicOff, Volume2, VolumeX, Loader2, Sparkles, Bot, User, ArrowDownUp, Repeat, Plus, Minus } from "lucide-react";
 import { chatAgent } from "@/lib/ai-chat.functions";
 import { TOKENS, type TokenInfo } from "@/lib/tokens";
 import { CONTRACTS } from "@/lib/web3/contracts";
-import { findBestRoute, getNativeBalance, getTokenBalance, swapExactETHForTokens, swapExactTokensForETH, swapExactTokensForTokens, wrapNative, unwrapNative } from "@/lib/web3/ethers";
+import {
+  findBestRoute, getNativeBalance, getTokenBalance,
+  swapExactETHForTokens, swapExactTokensForETH, swapExactTokensForTokens,
+  wrapNative, unwrapNative, addLiquidityETH, removeLiquidityETH, getPairInfo,
+} from "@/lib/web3/ethers";
 import { formatEther, parseEther, isAddress } from "ethers";
 import { useWallet } from "@/contexts/WalletContext";
 import { Button } from "@/components/ui/button";
+import { TokenSelectButton } from "@/components/TokenSelectModal";
 import { toast } from "sonner";
 
 type Msg = { role: "system" | "user" | "assistant" | "tool"; content: string; tool_call_id?: string; name?: string };
 
-// ----- Web Speech API (browser native, free, multilingual) -----
 function getRecognizer(): any | null {
   if (typeof window === "undefined") return null;
   const W = window as any;
@@ -25,29 +29,153 @@ function findToken(sym: string): TokenInfo | null {
   const s = sym.trim().toLowerCase();
   return TOKENS.find((t) => t.symbol.toLowerCase() === s) ?? null;
 }
-
 function resolveAddr(t: TokenInfo): string {
   return t.address === "native" ? CONTRACTS.weth : t.address;
 }
 
+// ───────────────────────── Quick Swap inline panel ─────────────────────────
+function QuickSwap({ onClose }: { onClose: () => void }) {
+  const { signer, address } = useWallet();
+  const [from, setFrom] = useState<TokenInfo>(TOKENS[0]);
+  const [to, setTo]     = useState<TokenInfo>(TOKENS[2] ?? TOKENS[1]);
+  const [amt, setAmt]   = useState("");
+  const [out, setOut]   = useState("");
+  const [route, setRoute] = useState<string[]>([]);
+  const [balFrom, setBalFrom] = useState("0");
+  const [balTo, setBalTo] = useState("0");
+  const [busy, setBusy] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  const fromAddr = from.address === "native" ? CONTRACTS.weth : from.address;
+  const toAddr   = to.address   === "native" ? CONTRACTS.weth : to.address;
+  const isWrap   = from.address === "native" && toAddr.toLowerCase() === CONTRACTS.weth.toLowerCase();
+  const isUnwrap = to.address   === "native" && fromAddr.toLowerCase() === CONTRACTS.weth.toLowerCase();
+  const isWrapMode = isWrap || isUnwrap;
+
+  useEffect(() => {
+    if (!address) return;
+    let alive = true;
+    (async () => {
+      try {
+        const f = from.address === "native" ? await getNativeBalance(address) : await getTokenBalance(from.address, address);
+        if (alive) setBalFrom(formatEther(f));
+      } catch { if (alive) setBalFrom("0"); }
+      try {
+        const t = to.address === "native" ? await getNativeBalance(address) : await getTokenBalance(to.address, address);
+        if (alive) setBalTo(formatEther(t));
+      } catch { if (alive) setBalTo("0"); }
+    })();
+    return () => { alive = false; };
+  }, [address, from, to, tick]);
+
+  useEffect(() => {
+    if (isWrapMode) { setOut(amt || ""); setRoute([]); return; }
+    if (!amt || isNaN(+amt) || +amt <= 0 || !isAddress(fromAddr) || !isAddress(toAddr) || fromAddr.toLowerCase() === toAddr.toLowerCase()) {
+      setOut(""); setRoute([]); return;
+    }
+    let c = false;
+    (async () => {
+      try {
+        const best = await findBestRoute(parseEther(amt), fromAddr, toAddr);
+        if (c) return;
+        if (!best) { setOut(""); setRoute([]); return; }
+        setOut(formatEther(best.out)); setRoute(best.path);
+      } catch { if (!c) { setOut(""); setRoute([]); } }
+    })();
+    return () => { c = true; };
+  }, [amt, fromAddr, toAddr, isWrapMode]);
+
+  function flip() { const a = from; setFrom(to); setTo(a); setAmt(out); setOut(""); }
+
+  async function doSwap() {
+    if (!signer) return toast.error("Connect wallet");
+    if (!amt) return;
+    setBusy(true);
+    try {
+      toast.loading("Confirm in wallet…", { id: "qs" });
+      if (isWrap)        { await wrapNative(signer, amt); toast.success("Wrapped ✓", { id: "qs" }); }
+      else if (isUnwrap) { await unwrapNative(signer, amt); toast.success("Unwrapped ✓", { id: "qs" }); }
+      else if (route.length) {
+        if (from.address === "native") await swapExactETHForTokens(signer, route[route.length - 1], amt, 0.5);
+        else if (to.address === "native") await swapExactTokensForETH(signer, from.address, parseEther(amt), 0.5);
+        else await swapExactTokensForTokens(signer, parseEther(amt), route, 0.5);
+        toast.success("Swap submitted ✓", { id: "qs" });
+      } else { toast.error("No route", { id: "qs" }); return; }
+      setAmt(""); setOut(""); setTick((t) => t + 1);
+    } catch (e: any) {
+      toast.error(e?.shortMessage ?? e?.message ?? "Swap failed", { id: "qs" });
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-3 space-y-2 shadow-md">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-1.5 text-xs font-semibold"><Repeat className="w-3.5 h-3.5 text-primary" /> Quick Swap</div>
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+      </div>
+
+      {/* From */}
+      <div className="rounded-xl p-3 bg-muted/40 border border-border/60">
+        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+          <span>You pay</span>
+          <button onClick={() => setAmt(balFrom)} className="hover:text-primary">Bal {(+balFrom).toFixed(4)} · MAX</button>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="number" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder="0.0"
+            className="flex-1 bg-transparent outline-none text-xl font-bold min-w-0" />
+          <TokenSelectButton value={from} onChange={setFrom} />
+        </div>
+      </div>
+
+      <div className="flex justify-center -my-1.5 relative z-10">
+        <button onClick={flip} className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center hover:rotate-180 transition-transform">
+          <ArrowDownUp className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* To */}
+      <div className="rounded-xl p-3 bg-muted/40 border border-border/60">
+        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+          <span>You receive</span><span>Bal {(+balTo).toFixed(4)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <input value={out} readOnly placeholder="0.0" className="flex-1 bg-transparent outline-none text-xl font-bold min-w-0" />
+          <TokenSelectButton value={to} onChange={setTo} />
+        </div>
+      </div>
+
+      <Button onClick={doSwap} disabled={busy || !signer || !amt || (!isWrapMode && !route.length)}
+        size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
+        {busy ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Processing…</>
+          : !signer ? "Connect Wallet"
+          : isWrap ? "Wrap" : isUnwrap ? "Unwrap"
+          : !route.length && amt ? "No route" : "Swap"}
+      </Button>
+    </div>
+  );
+}
+
+// ───────────────────────── Main widget ─────────────────────────
 export function AIChatWidget() {
   const [open, setOpen] = useState(false);
+  const [showSwap, setShowSwap] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([
-    { role: "assistant", content: "Hi! I'm Sakura 🌸 — your AI guide. Ask me about NFTs, swaps, or say 'swap 0.1 zkLTC to ETH'. I speak any language." },
+    { role: "assistant", content: "Hi! I'm Sakura 🌸 — your AI guide.\n\nTry: *swap 0.1 zkLTC to ETH*, *add liquidity 1 zkLTC + 0.001 ETH*, or tap the Quick Swap button below." },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
-  const [voiceOut, setVoiceOut] = useState(true);
+  const [voiceOut, setVoiceOut] = useState(false);
   const callChat = useServerFn(chatAgent);
   const navigate = useNavigate();
   const { signer, address } = useWallet();
   const recRef = useRef<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs, busy]);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [msgs, busy, showSwap]);
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 100); }, [open]);
 
-  // ----- Voice input -----
   function toggleMic() {
     if (listening) { recRef.current?.stop(); setListening(false); return; }
     const r = getRecognizer();
@@ -61,7 +189,6 @@ export function AIChatWidget() {
     try { r.start(); setListening(true); } catch { setListening(false); }
   }
 
-  // ----- Voice output -----
   function speak(text: string) {
     if (!voiceOut || typeof window === "undefined" || !("speechSynthesis" in window)) return;
     try {
@@ -72,24 +199,29 @@ export function AIChatWidget() {
     } catch {}
   }
 
-  // ----- Tool executors -----
   async function execTool(name: string, args: any): Promise<string> {
     try {
       if (name === "list_tokens") {
         return JSON.stringify(TOKENS.map((t) => ({ symbol: t.symbol, name: t.name, address: t.address })));
       }
+      if (name === "get_balance") {
+        if (!address) return JSON.stringify({ error: "Wallet not connected" });
+        const t = findToken(args.symbol);
+        if (!t) return JSON.stringify({ error: "Unknown token" });
+        const bal = t.address === "native" ? await getNativeBalance(address) : await getTokenBalance(t.address, address);
+        return JSON.stringify({ symbol: t.symbol, balance: formatEther(bal) });
+      }
       if (name === "get_swap_quote") {
         const from = findToken(args.fromSymbol); const to = findToken(args.toSymbol);
         if (!from || !to) return JSON.stringify({ error: "Unknown token" });
         const fromAddr = resolveAddr(from); const toAddr = resolveAddr(to);
-        if (!isAddress(fromAddr) || !isAddress(toAddr)) return JSON.stringify({ error: "Missing contract for token" });
+        if (!isAddress(fromAddr) || !isAddress(toAddr)) return JSON.stringify({ error: "Missing contract" });
         const amtIn = parseEther(String(args.amountIn));
-        // wrap/unwrap → 1:1
         if (fromAddr.toLowerCase() === toAddr.toLowerCase()) {
-          return JSON.stringify({ amountOut: args.amountIn, route: [from.symbol, to.symbol], type: "wrap_or_unwrap", note: "1:1, no fee" });
+          return JSON.stringify({ amountOut: args.amountIn, route: [from.symbol, to.symbol], type: "wrap_or_unwrap" });
         }
         const best = await findBestRoute(amtIn, fromAddr, toAddr);
-        if (!best) return JSON.stringify({ error: "No liquidity route found" });
+        if (!best) return JSON.stringify({ error: "No liquidity route" });
         return JSON.stringify({
           amountOut: formatEther(best.out),
           hops: best.hops,
@@ -97,18 +229,17 @@ export function AIChatWidget() {
         });
       }
       if (name === "propose_swap") {
-        if (!signer || !address) return JSON.stringify({ error: "Wallet not connected. Ask the user to connect their wallet." });
+        if (!signer || !address) return JSON.stringify({ error: "Wallet not connected" });
         const from = findToken(args.fromSymbol); const to = findToken(args.toSymbol);
         if (!from || !to) return JSON.stringify({ error: "Unknown token" });
         const slippage = Number(args.slippagePct ?? 0.5);
         const amtIn = parseEther(String(args.amountIn));
         const fromAddr = resolveAddr(from); const toAddr = resolveAddr(to);
-        // wrap / unwrap
-        const isWrap = from.address === "native" && toAddr.toLowerCase() === CONTRACTS.weth.toLowerCase();
+        const isWrap   = from.address === "native" && toAddr.toLowerCase() === CONTRACTS.weth.toLowerCase();
         const isUnwrap = to.address === "native" && fromAddr.toLowerCase() === CONTRACTS.weth.toLowerCase();
         toast.loading("Confirm in wallet…", { id: "ai-swap" });
-        if (isWrap) { await wrapNative(signer, String(args.amountIn)); toast.success("Wrapped", { id: "ai-swap" }); return JSON.stringify({ ok: true, action: "wrap" }); }
-        if (isUnwrap) { await unwrapNative(signer, String(args.amountIn)); toast.success("Unwrapped", { id: "ai-swap" }); return JSON.stringify({ ok: true, action: "unwrap" }); }
+        if (isWrap)   { await wrapNative(signer, String(args.amountIn));   toast.success("Wrapped ✓", { id: "ai-swap" }); return JSON.stringify({ ok: true, action: "wrap" }); }
+        if (isUnwrap) { await unwrapNative(signer, String(args.amountIn)); toast.success("Unwrapped ✓", { id: "ai-swap" }); return JSON.stringify({ ok: true, action: "unwrap" }); }
         const best = await findBestRoute(amtIn, fromAddr, toAddr);
         if (!best) { toast.error("No route", { id: "ai-swap" }); return JSON.stringify({ error: "No route" }); }
         if (from.address === "native") await swapExactETHForTokens(signer, best.path[best.path.length - 1], String(args.amountIn), slippage);
@@ -116,6 +247,28 @@ export function AIChatWidget() {
         else await swapExactTokensForTokens(signer, amtIn, best.path, slippage);
         toast.success("Swap submitted ✓", { id: "ai-swap" });
         return JSON.stringify({ ok: true, action: "swap" });
+      }
+      if (name === "propose_add_liquidity") {
+        if (!signer || !address) return JSON.stringify({ error: "Wallet not connected" });
+        const t = findToken(args.tokenSymbol);
+        if (!t || t.address === "native" || !isAddress(t.address)) return JSON.stringify({ error: "Bad token" });
+        toast.loading("Adding liquidity…", { id: "ai-lp" });
+        await addLiquidityETH(signer, t.address, parseEther(String(args.tokenAmount)), String(args.ethAmount));
+        toast.success("Liquidity added ✓", { id: "ai-lp" });
+        return JSON.stringify({ ok: true });
+      }
+      if (name === "propose_remove_liquidity") {
+        if (!signer || !address) return JSON.stringify({ error: "Wallet not connected" });
+        const t = findToken(args.tokenSymbol);
+        if (!t || t.address === "native" || !isAddress(t.address)) return JSON.stringify({ error: "Bad token" });
+        const info = await getPairInfo(CONTRACTS.weth, t.address, address);
+        if (!info.pair || info.lpBalance === 0n) return JSON.stringify({ error: "No LP balance" });
+        const pct = Math.max(1, Math.min(100, Number(args.percent)));
+        const amt = (info.lpBalance * BigInt(pct)) / 100n;
+        toast.loading("Removing liquidity…", { id: "ai-lp" });
+        await removeLiquidityETH(signer, t.address, amt, info.pair);
+        toast.success("Liquidity removed ✓", { id: "ai-lp" });
+        return JSON.stringify({ ok: true });
       }
       if (name === "navigate") {
         navigate({ to: args.path });
@@ -132,26 +285,17 @@ export function AIChatWidget() {
     if (!userText.trim() || busy) return;
     const newMsgs: Msg[] = [...msgs, { role: "user", content: userText.trim() }];
     setMsgs(newMsgs); setInput(""); setBusy(true);
-
     try {
-      // Up to 3 tool-call rounds
       let working: Msg[] = newMsgs;
-      for (let round = 0; round < 3; round++) {
-        // Only send roles the API expects; assistant tool-call rounds keep tool messages
+      for (let round = 0; round < 4; round++) {
         const res = await callChat({ data: { messages: working.filter((m) => m.role !== "system") as any } });
         if ("error" in res && res.error) {
-          setMsgs((p) => [...p, { role: "assistant", content: `⚠️ ${res.error}` }]);
-          break;
+          setMsgs((p) => [...p, { role: "assistant", content: `⚠️ ${res.error}` }]); break;
         }
         const { content, toolCalls } = res as { content: string; toolCalls: any[] };
         if (toolCalls && toolCalls.length > 0) {
-          // Run tools, push tool replies, loop
           const toolMsgs: Msg[] = [];
-          // Insert an assistant message stub so the API context stays consistent on next turn
-          if (content) {
-            working = [...working, { role: "assistant", content }];
-            setMsgs((p) => [...p, { role: "assistant", content }]);
-          }
+          if (content) { working = [...working, { role: "assistant", content }]; setMsgs((p) => [...p, { role: "assistant", content }]); }
           for (const tc of toolCalls) {
             let parsed: any = {};
             try { parsed = JSON.parse(tc.function.arguments || "{}"); } catch {}
@@ -161,22 +305,19 @@ export function AIChatWidget() {
           working = [...working, ...toolMsgs];
           continue;
         }
-        if (content) {
-          setMsgs((p) => [...p, { role: "assistant", content }]);
-          speak(content);
-        }
+        if (content) { setMsgs((p) => [...p, { role: "assistant", content }]); speak(content); }
         break;
       }
     } catch (e: any) {
       setMsgs((p) => [...p, { role: "assistant", content: `⚠️ ${e?.message ?? "Failed"}` }]);
-    } finally { setBusy(false); }
+    } finally { setBusy(false); inputRef.current?.focus(); }
   }
 
   return (
     <>
       {!open && (
         <button onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-2xl flex items-center justify-center hover:scale-110 transition-transform ring-2 ring-white/20"
+          className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-2xl flex items-center justify-center hover:scale-110 transition-transform ring-2 ring-primary/20"
           aria-label="Open Sakura AI">
           <Sparkles className="w-6 h-6 text-white" />
           <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
@@ -184,57 +325,68 @@ export function AIChatWidget() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 w-[380px] max-w-[calc(100vw-1.5rem)] h-[560px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-white/10 bg-[#0c0718]">
-          <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-600/40 to-pink-600/40 border-b border-white/10">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-4 h-4 text-white" /></div>
+        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[600px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
+          {/* Header */}
+          <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/15 to-pink-500/15 border-b border-border">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4 h-4 text-white" /></div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-white">Sakura AI</div>
-              <div className="text-[10px] text-fuchsia-200/80 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Agent • DEX-enabled</div>
+              <div className="text-sm font-bold">Sakura AI</div>
+              <div className="text-[10px] text-muted-foreground flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> DEX-enabled · Multilingual</div>
             </div>
-            <button onClick={() => setVoiceOut((v) => !v)} className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/80" title={voiceOut ? "Mute voice" : "Unmute voice"}>
+            <button onClick={() => setShowSwap((s) => !s)} title="Quick Swap"
+              className={`w-8 h-8 rounded-lg flex items-center justify-center ${showSwap ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}>
+              <Repeat className="w-4 h-4" />
+            </button>
+            <button onClick={() => setVoiceOut((v) => !v)} title={voiceOut ? "Mute voice" : "Unmute voice"}
+              className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground">
               {voiceOut ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
-            <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-white/80"><X className="w-4 h-4" /></button>
+            <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground"><X className="w-4 h-4" /></button>
           </div>
 
+          {/* Body */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+            {showSwap && <QuickSwap onClose={() => setShowSwap(false)} />}
+
             {msgs.filter((m) => m.role === "user" || m.role === "assistant").map((m, i) => (
               <div key={i} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.role === "user" ? "bg-white/10" : "bg-gradient-to-br from-fuchsia-500 to-pink-500"}`}>
-                  {m.role === "user" ? <User className="w-3.5 h-3.5 text-white" /> : <Bot className="w-3.5 h-3.5 text-white" />}
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.role === "user" ? "bg-muted" : "bg-gradient-to-br from-fuchsia-500 to-pink-500"}`}>
+                  {m.role === "user" ? <User className="w-3.5 h-3.5 text-foreground" /> : <Bot className="w-3.5 h-3.5 text-white" />}
                 </div>
-                <div className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] whitespace-pre-wrap break-words ${m.role === "user" ? "bg-fuchsia-500/20 text-white rounded-tr-sm" : "bg-white/5 text-white/90 rounded-tl-sm"}`}>
+                <div className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] whitespace-pre-wrap break-words ${m.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted text-foreground rounded-tl-sm"}`}>
                   {m.content}
                 </div>
               </div>
             ))}
             {busy && (
               <div className="flex gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-white" /></div>
-                <div className="px-3 py-2 rounded-2xl bg-white/5"><Loader2 className="w-4 h-4 animate-spin text-fuchsia-300" /></div>
+                <div className="px-3 py-2 rounded-2xl bg-muted"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
               </div>
             )}
           </div>
 
-          <div className="p-3 border-t border-white/10 bg-[#0c0718]">
-            <div className="flex items-center gap-2 rounded-2xl bg-[#160c26] border border-white/10 px-2 py-1.5">
+          {/* Composer */}
+          <div className="p-3 border-t border-border bg-card">
+            <div className="flex items-center gap-2 rounded-2xl bg-muted/60 border border-border px-2 py-1.5">
               <button onClick={toggleMic} disabled={busy}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-red-500/30 text-red-300 animate-pulse" : "hover:bg-white/10 text-white/70"}`}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
                 title="Voice input">
                 {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </button>
               <input
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
                 placeholder={listening ? "Listening…" : "Ask Sakura anything…"}
                 disabled={busy}
-                className="flex-1 bg-transparent outline-none text-sm text-white placeholder:text-white/40 min-w-0"
+                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground min-w-0"
               />
-              <Button onClick={() => send(input)} disabled={busy || !input.trim()} size="sm" className="rounded-xl h-9 px-3 bg-gradient-to-r from-fuchsia-500 to-pink-500 border-0">
+              <Button onClick={() => send(input)} disabled={busy || !input.trim()} size="sm" className="rounded-xl h-9 px-3 bg-gradient-to-r from-fuchsia-500 to-pink-500 border-0 text-white">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
-            <p className="text-[10px] text-white/40 text-center mt-1.5">Speaks every language · Powered by Lovable AI</p>
+            <p className="text-[10px] text-muted-foreground text-center mt-1.5">Multilingual · Powered by Lovable AI</p>
           </div>
         </div>
       )}

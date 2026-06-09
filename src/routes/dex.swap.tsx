@@ -38,6 +38,7 @@ function Swap() {
   const [route, setRoute] = useState<string[]>([]);
   const [balFrom, setBalFrom] = useState("0");
   const [balTo, setBalTo] = useState("0");
+  const [tick, setTick] = useState(0);
 
   const fromAddr = from.address === "native" ? CONTRACTS.weth : from.address;
   const toAddr = to.address === "native" ? CONTRACTS.weth : to.address;
@@ -62,7 +63,7 @@ function Swap() {
       } catch { if (alive) setBalTo("0"); }
     })();
     return () => { alive = false; };
-  }, [address, from, to]);
+  }, [address, from, to, tick]);
 
   // quote (or 1:1 for wrap)
   useEffect(() => {
@@ -129,6 +130,7 @@ function Swap() {
       }
       toast.success("Swap complete!", { id: "swap" });
       setFromAmt(""); setToAmt("");
+      setTick((t) => t + 1);
     } catch (e: any) {
       toast.error(e?.shortMessage ?? e?.message ?? "Swap failed", { id: "swap" });
     } finally { setBusy(false); }

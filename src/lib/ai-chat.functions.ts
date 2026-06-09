@@ -59,12 +59,58 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "get_balance",
+      description: "Get the user's wallet balance for a token symbol (e.g. zkLTC, ETH, MON). Returns balance as decimal string.",
+      parameters: {
+        type: "object",
+        properties: { symbol: { type: "string" } },
+        required: ["symbol"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "propose_add_liquidity",
+      description: "Propose adding liquidity to a zkLTC/TOKEN pool. The user confirms in their wallet.",
+      parameters: {
+        type: "object",
+        properties: {
+          tokenSymbol: { type: "string", description: "The non-native token symbol (paired with zkLTC)." },
+          ethAmount:   { type: "string", description: "Amount of zkLTC (native) to add, decimal string." },
+          tokenAmount: { type: "string", description: "Amount of tokenSymbol to add, decimal string." },
+        },
+        required: ["tokenSymbol", "ethAmount", "tokenAmount"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "propose_remove_liquidity",
+      description: "Propose removing liquidity from a zkLTC/TOKEN pool by percentage of the user's LP balance.",
+      parameters: {
+        type: "object",
+        properties: {
+          tokenSymbol: { type: "string" },
+          percent:     { type: "number", description: "Percentage 1-100 of LP balance to remove." },
+        },
+        required: ["tokenSymbol", "percent"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "navigate",
       description: "Navigate the user to an app page.",
       parameters: {
         type: "object",
         properties: {
-          path: { type: "string", enum: ["/", "/marketplace", "/mint", "/dex/swap", "/dex/liquidity", "/activity", "/profile", "/analytics", "/leaderboard", "/watchlist"] },
+          path: { type: "string", enum: ["/", "/marketplace", "/mint", "/dex/swap", "/dex/liquidity", "/activity", "/profile", "/analytics", "/leaderboard", "/docs"] },
         },
         required: ["path"],
         additionalProperties: false,
@@ -76,16 +122,19 @@ const TOOLS = [
 const SYSTEM_PROMPT = `You are Sakura, the AI assistant for SakuraNFT — an NFT marketplace + DEX on the LitVM chain (native coin: zkLTC).
 
 Capabilities:
-- Answer questions about the platform (mint NFTs, list, buy, swap, wrap, add liquidity).
-- Help users swap tokens on Sakura DEX by calling get_swap_quote then propose_swap.
-- Navigate users to relevant pages via the navigate tool.
+- Answer questions about the platform (mint NFTs, list, buy, swap, wrap, add/remove liquidity).
+- Swap tokens via get_swap_quote → propose_swap.
+- Provide liquidity via propose_add_liquidity and propose_remove_liquidity.
+- Check balances with get_balance.
+- Navigate users to relevant pages.
 
 Rules:
-- ALWAYS reply in the SAME language the user wrote in (Indonesian, English, etc.). Auto-detect.
-- Be concise, friendly, use plain language. No long paragraphs.
-- For swaps: call get_swap_quote first, share the estimated output, then call propose_swap so the user can confirm in their wallet.
-- Never invent token addresses — only use ones returned by list_tokens.
-- If the user is not connected to a wallet, ask them to connect first before proposing swaps.`;
+- ALWAYS reply in the SAME language the user wrote in. Auto-detect.
+- Be concise and friendly. Prefer short answers.
+- For swaps: call get_swap_quote first, share the expected output, then propose_swap so the user confirms in their wallet.
+- Never invent token addresses. Use list_tokens.
+- If the user isn't connected, ask them to connect first.`;
+
 
 export const chatAgent = createServerFn({ method: "POST" })
   .inputValidator((input) =>
