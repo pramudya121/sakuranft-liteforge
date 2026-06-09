@@ -28,8 +28,8 @@ export const Route = createFileRoute("/marketplace/")({
 });
 
 function Marketplace() {
-  const { nfts, loading } = useAllNFTs();
-  const { listings: chainListings } = useAllListings();
+  const { nfts, loading, refetch: refetchNFTs } = useAllNFTs();
+  const { listings: chainListings, refetch: refetchListings } = useAllListings();
   const { listings: dbListings } = useRealtimeListings({ status: "active" });
   const { signer } = useWallet();
 
@@ -54,7 +54,6 @@ function Marketplace() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
   const [maxPrice, setMaxPrice] = useState(100);
-  const [onlyListed, setOnlyListed] = useState("all");
   const [view, setView] = useState<"grid" | "list">("grid");
 
   const stats = useMemo(() => {
@@ -65,24 +64,37 @@ function Marketplace() {
     return { total: nfts.length, listed: listings.length, floor, volume, owners };
   }, [nfts, listings]);
 
+  // Only iterate over actively-listed NFTs. Items that have been bought/cancelled
+  // are filtered out of `listings` upstream (chain refetches on Sold event, DB
+  // row flips to `sold` on buy), so they disappear from the marketplace
+  // automatically without a manual refresh.
   const items = useMemo(() => {
-    let arr = nfts.map((n) => ({ nft: n, listing: listings.find((l) => l.tokenId === n.tokenId) }));
-    if (onlyListed === "listed") arr = arr.filter((x) => x.listing);
-    if (onlyListed === "unlisted") arr = arr.filter((x) => !x.listing);
+    const nftByToken = new Map(nfts.map((n) => [n.tokenId.toString(), n]));
+    let arr = listings
+      .map((listing) => ({ nft: nftByToken.get(listing.tokenId.toString()), listing }))
+      .filter((x): x is { nft: typeof nfts[number]; listing: typeof listings[number] } => !!x.nft);
     if (search) arr = arr.filter((x) => x.nft.name.toLowerCase().includes(search.toLowerCase()) || x.nft.tokenId.toString().includes(search));
-    arr = arr.filter((x) => !x.listing || +x.listing.priceEth <= maxPrice);
-    if (sort === "price-asc") arr.sort((a, b) => (+(a.listing?.priceEth ?? 1e9)) - (+(b.listing?.priceEth ?? 1e9)));
-    if (sort === "price-desc") arr.sort((a, b) => (+(b.listing?.priceEth ?? 0)) - (+(a.listing?.priceEth ?? 0)));
+    arr = arr.filter((x) => +x.listing.priceEth <= maxPrice);
+    if (sort === "price-asc") arr.sort((a, b) => +a.listing.priceEth - +b.listing.priceEth);
+    if (sort === "price-desc") arr.sort((a, b) => +b.listing.priceEth - +a.listing.priceEth);
     if (sort === "oldest") arr.sort((a, b) => Number(a.nft.tokenId - b.nft.tokenId));
+    if (sort === "newest") arr.sort((a, b) => Number(b.nft.tokenId - a.nft.tokenId));
     return arr;
-  }, [nfts, listings, search, sort, maxPrice, onlyListed]);
+  }, [nfts, listings, search, sort, maxPrice]);
 
-  async function handleBuy(listingId: bigint, price: bigint) {
+  async function handleBuy(listing: typeof listings[number]) {
     if (!signer) return toast.error("Connect wallet first");
     try {
       toast.loading("Confirm in wallet...", { id: "buy" });
-      await buyNFT(signer, listingId, price);
-      toast.success("Purchased!", { id: "buy" });
+      await buyNFT(signer, listing.listingId, listing.price);
+      // Mark DB listing as sold so realtime subscribers (including this page)
+      // immediately drop it without waiting for a chain re-scan.
+      const dbRow = dbListings.find((d) => String(d.token_id) === listing.tokenId.toString() && d.status === "active");
+      if (dbRow) { try { await markListingSold(dbRow.id); } catch {} }
+      // Force a chain refetch so owner + listings update without page reload.
+      refetchListings();
+      refetchNFTs();
+      toast.success("Purchased! Ownership transferred.", { id: "buy" });
     } catch (e: any) {
       toast.error(e?.shortMessage ?? e?.message ?? "Buy failed", { id: "buy" });
     }
