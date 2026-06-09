@@ -15,6 +15,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
+import { safeHttpUrl } from "@/lib/safe-url";
 export const Route = createFileRoute("/profile")({
   component: Profile,
   head: () => ({ meta: [{ title: "Profile — SakuraNFT" }] }),
@@ -94,7 +95,7 @@ function Profile() {
             <p className="mt-2 text-sm">{profile?.bio || "No bio yet."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
               {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
-              {profile?.website && <a href={profile.website} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
+              {safeHttpUrl(profile?.website) && <a href={safeHttpUrl(profile?.website)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
             </div>
           </div>
           <EditDialog profile={profile} onSave={async (p) => { await save(p); toast.success("Profile saved!"); }} />
@@ -225,8 +226,14 @@ function EditDialog({ profile, onSave }: { profile: DBProfile | null; onSave: (p
 
           <Textarea placeholder="Bio" value={draft.bio ?? ""} onChange={(e) => setDraft({ ...draft, bio: e.target.value })} />
           <Input placeholder="Twitter handle" value={draft.twitter ?? ""} onChange={(e) => setDraft({ ...draft, twitter: e.target.value })} />
-          <Input placeholder="Website URL" value={draft.website ?? ""} onChange={(e) => setDraft({ ...draft, website: e.target.value })} />
-          <Button onClick={async () => { await onSave(draft); setOpen(false); }} className="w-full" disabled={!!uploading}>Save</Button>
+          <Input placeholder="Website URL (https://...)" value={draft.website ?? ""} onChange={(e) => setDraft({ ...draft, website: e.target.value })} />
+          <Button onClick={async () => {
+            if (draft.website && !safeHttpUrl(draft.website)) {
+              toast.error("Website must start with http:// or https://");
+              return;
+            }
+            await onSave(draft); setOpen(false);
+          }} className="w-full" disabled={!!uploading}>Save</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -7,6 +7,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile } from "@/lib/supabase-hooks";
 import { Button } from "@/components/ui/button";
+import { safeHttpUrl } from "@/lib/safe-url";
 
 export const Route = createFileRoute("/u/$address")({
   component: PublicProfile,
@@ -52,7 +53,7 @@ function PublicProfile() {
             <p className="mt-2 text-sm max-w-xl">{profile?.bio || "No bio yet."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
               {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
-              {profile?.website && <a href={profile.website} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
+              {safeHttpUrl(profile?.website) && <a href={safeHttpUrl(profile?.website)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
             </div>
           </div>
         </div>
