@@ -177,6 +177,24 @@ function Profile() {
   );
 }
 
+function InfiniteNFTGrid({ items }: { items: { nft: any; listing?: any }[] }) {
+  const { slice, sentinelRef, hasMore } = useInfiniteSlice(items, 24, 24);
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {slice.map(({ nft, listing }) => (
+          <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing} />
+        ))}
+      </div>
+      {hasMore && (
+        <div ref={sentinelRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+          {Array.from({ length: 4 }).map((_, i) => <NFTCardSkeleton key={i} />)}
+        </div>
+      )}
+    </>
+  );
+}
+
 function Stat({ label, v, icon }: { label: string; v: any; icon?: React.ReactNode }) {
   return (
     <div className="glass rounded-2xl p-4 text-center">
