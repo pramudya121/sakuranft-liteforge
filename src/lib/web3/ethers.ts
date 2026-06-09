@@ -3,22 +3,33 @@ import { CHAIN, CONTRACTS, MARKETPLACE_ABI, NFT_ABI, OFFER_ABI, ROUTER_ABI, FACT
 
 declare global {
   interface Window {
-    ethereum?: Eip1193Provider & { providers?: Eip1193Provider[]; isMetaMask?: boolean; isOkxWallet?: boolean; isBitKeep?: boolean };
+    ethereum?: Eip1193Provider & { providers?: Eip1193Provider[]; isMetaMask?: boolean; isOkxWallet?: boolean; isBitKeep?: boolean; isRabby?: boolean };
     okxwallet?: Eip1193Provider;
     bitkeep?: { ethereum?: Eip1193Provider };
+    rabby?: Eip1193Provider;
   }
 }
 
-export type WalletKind = "metamask" | "okx" | "bitget";
+export type WalletKind = "metamask" | "okx" | "bitget" | "rabby";
 
 export function pickProvider(kind: WalletKind): Eip1193Provider | null {
   if (typeof window === "undefined") return null;
   if (kind === "okx") return window.okxwallet ?? null;
   if (kind === "bitget") return window.bitkeep?.ethereum ?? null;
+  if (kind === "rabby") {
+    if (window.rabby) return window.rabby;
+    const eth = window.ethereum;
+    if (eth?.providers?.length) {
+      const r = eth.providers.find((p: any) => p.isRabby);
+      if (r) return r;
+    }
+    if ((window.ethereum as any)?.isRabby) return window.ethereum!;
+    return null;
+  }
   const eth = window.ethereum;
   if (!eth) return null;
   if (eth.providers?.length) {
-    const mm = eth.providers.find((p: any) => p.isMetaMask && !p.isOkxWallet && !p.isBitKeep);
+    const mm = eth.providers.find((p: any) => p.isMetaMask && !p.isOkxWallet && !p.isBitKeep && !p.isRabby);
     if (mm) return mm;
   }
   return eth;
