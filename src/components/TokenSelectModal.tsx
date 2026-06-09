@@ -16,7 +16,7 @@ export function TokenSelectButton({ value, onChange }: { value: TokenInfo; onCha
         className="flex items-center gap-2 px-3 py-1.5 rounded-full dex-inner hover:opacity-90 shrink-0"
       >
         {value.logo && (
-          <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
+          <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
         )}
         <span className="font-semibold text-sm">{value.symbol}</span>
         <span className="text-xs opacity-60">▾</span>
@@ -111,7 +111,7 @@ export function TokenSelectModal({
                 onClick={() => onSelect(t)}
                 className="flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full dex-inner hover:border-fuchsia-400/50"
               >
-                <img src={t.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
+                <img src={t.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
                 <span className="text-xs font-semibold">{t.symbol}</span>
                 <span className="text-[10px] text-fuchsia-300/80">{bal ? Number(bal).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "10"}</span>
               </button>
@@ -127,7 +127,7 @@ export function TokenSelectModal({
                 onClick={() => onSelect(t)}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl hover:bg-foreground/5 text-left"
               >
-                <img src={t.logo} alt="" className="w-8 h-8 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
+                <img src={t.logo} alt="" className="w-8 h-8 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold truncate">{t.symbol}</div>
                   <div className="text-[11px] dex-muted truncate">{t.name}</div>

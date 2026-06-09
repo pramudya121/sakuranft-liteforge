@@ -67,7 +67,7 @@ function LiquidityPage() {
 function NativeTokenBadge({ value }: { value: TokenInfo }) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1a1230] border border-white/10 shrink-0">
-      <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) = loading="lazy" decoding="async"> (e.currentTarget.style.display = "none")} />
+      <img src={value.logo} alt="" className="w-5 h-5 rounded-full" onError={(e) => (e.currentTarget.style.display = "none")} />
       <span className="font-semibold text-sm">{value.symbol}</span>
     </div>
   );

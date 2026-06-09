@@ -86,7 +86,7 @@ export function PortfolioPanel() {
                 {holdings.map((h) => (
                   <div key={h.symbol} className="flex items-center justify-between p-2 rounded-xl hover:bg-accent/30 transition">
                     <div className="flex items-center gap-3">
-                      <img src={h.logo} alt="" className="w-8 h-8 rounded-full bg-muted" onError={(e) = loading="lazy" decoding="async"> { (e.currentTarget.style.display = "none"); }} />
+                      <img src={h.logo} alt="" className="w-8 h-8 rounded-full bg-muted" onError={(e) => { (e.currentTarget.style.display = "none"); }} />
                       <div>
                         <div className="font-medium text-sm">{h.symbol}</div>
                         <div className="text-xs text-muted-foreground">{h.name}</div>
