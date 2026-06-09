@@ -111,12 +111,15 @@ export function WalletButton() {
           <ChevronDown className="w-3 h-3 ml-1" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="glass">
+      <DropdownMenuContent align="end" className="form-solid">
         {wrongChain && (
           <DropdownMenuItem onClick={() => connect((localStorage.getItem("walletKind") as any) ?? "metamask")}>
             Switch to {CHAIN.name}
           </DropdownMenuItem>
         )}
+        <DropdownMenuItem onClick={() => setSendOpen(true)}>
+          <Send className="w-4 h-4 mr-2" /> Send Token
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(address); toast.success("Address copied"); }}>
           <Copy className="w-4 h-4 mr-2" /> Copy Address
         </DropdownMenuItem>
@@ -124,6 +127,7 @@ export function WalletButton() {
           <LogOut className="w-4 h-4 mr-2" /> Disconnect
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <SendTokenDialog open={sendOpen} onOpenChange={setSendOpen} />
     </DropdownMenu>
   );
 }
