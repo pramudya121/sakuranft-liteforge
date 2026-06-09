@@ -1,5 +1,6 @@
 import { BrowserProvider, Contract, JsonRpcProvider, Network, parseEther, formatEther, type Eip1193Provider } from "ethers";
 import { CHAIN, CONTRACTS, MARKETPLACE_ABI, NFT_ABI, OFFER_ABI, ROUTER_ABI, FACTORY_ABI, ERC20_ABI, PAIR_ABI } from "./contracts";
+import { ipfsToHttp } from "@/lib/ipfs";
 
 declare global {
   interface Window {
@@ -366,14 +367,17 @@ export function shortAddr(a?: string) {
 
 export function decodeTokenUri(uri: string): { name?: string; description?: string; image?: string } | null {
   try {
+    let meta: { name?: string; description?: string; image?: string } | null = null;
     if (uri.startsWith("data:application/json;base64,")) {
       const json = atob(uri.replace("data:application/json;base64,", ""));
-      return JSON.parse(decodeURIComponent(escape(json)));
+      meta = JSON.parse(decodeURIComponent(escape(json)));
+    } else if (uri.startsWith("data:application/json")) {
+      meta = JSON.parse(decodeURIComponent(uri.split(",")[1] ?? ""));
     }
-    if (uri.startsWith("data:application/json")) {
-      return JSON.parse(decodeURIComponent(uri.split(",")[1] ?? ""));
+    if (meta?.image) {
+      meta.image = ipfsToHttp(meta.image);
     }
-    return null;
+    return meta;
   } catch { return null; }
 }
 
