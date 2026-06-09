@@ -125,7 +125,10 @@ function NFTDetail() {
           {listing && !isOwner && (
             <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy",
               () => buyNFT(signer, listing.listingId, listing.price),
-              () => pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`),
+              async () => {
+                await syncListingSold();
+                await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
+              },
             )}>
               <ShoppingCart className="w-4 h-4 mr-2" /> Buy Now for {listing.priceEth} {CHAIN.symbol}
             </Button>
