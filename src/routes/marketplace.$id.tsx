@@ -140,7 +140,7 @@ function NFTDetail() {
                   <Button variant="outline" className="flex-1" onClick={() => { setEditing(true); setEditPrice(listing.priceEth); }}>
                     <Tag className="w-4 h-4 mr-2" /> Edit Price
                   </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId))}>
+                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId), syncListingCancelled)}>
                     <X className="w-4 h-4 mr-2" /> Cancel Listing
                   </Button>
                 </div>
