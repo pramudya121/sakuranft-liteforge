@@ -39,6 +39,7 @@ const wallets: { kind: "metamask" | "okx" | "bitget" | "rabby"; name: string; lo
 export function WalletButton() {
   const { address, chainId, balance, connect, disconnect } = useWallet();
   const [open, setOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const [connecting, setConnecting] = useState<string | null>(null);
 
   if (!address) {
