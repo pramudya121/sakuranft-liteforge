@@ -145,11 +145,11 @@ function Swap() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">{title}</h2>
         <div className="flex items-center gap-1">
-          <button className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10"><Plus className="w-4 h-4" /></button>
-          <button className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10"><MoreHorizontal className="w-4 h-4" /></button>
+          <button className="w-9 h-9 rounded-xl bg-foreground/5 flex items-center justify-center hover:bg-foreground/10"><Plus className="w-4 h-4" /></button>
+          <button className="w-9 h-9 rounded-xl bg-foreground/5 flex items-center justify-center hover:bg-foreground/10"><MoreHorizontal className="w-4 h-4" /></button>
           <Popover>
             <PopoverTrigger asChild>
-              <button className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10"><Settings className="w-4 h-4" /></button>
+              <button className="w-9 h-9 rounded-xl bg-foreground/5 flex items-center justify-center hover:bg-foreground/10"><Settings className="w-4 h-4" /></button>
             </PopoverTrigger>
             <PopoverContent className="w-64 glass">
               <p className="text-sm font-medium mb-2">Slippage tolerance</p>
@@ -166,11 +166,11 @@ function Swap() {
       </div>
 
       {/* From */}
-      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
+      <div className="rounded-2xl p-4 dex-inner">
         <div className="flex justify-between text-xs mb-2">
-          <span className="text-white/60">You pay</span>
+          <span className="dex-muted">You pay</span>
           <div className="flex items-center gap-1">
-            <span className="text-white/60">{(+balFrom).toFixed(4)}</span>
+            <span className="dex-muted">{(+balFrom).toFixed(4)}</span>
             {[25, 50, 75, 100].map((p) => (
               <button key={p} onClick={() => setFromAmt(((+balFrom * p) / 100).toString())}
                 className="px-1.5 text-[10px] rounded text-fuchsia-300 hover:bg-fuchsia-500/10 font-semibold">
@@ -182,34 +182,34 @@ function Swap() {
         <div className="flex items-center gap-2">
           <Input type="number" placeholder="0.0" value={fromAmt}
             onChange={(e) => setFromAmt(e.target.value)}
-            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-white" />
+            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-foreground" />
           <TokenSelectButton value={from} onChange={setFrom} />
         </div>
       </div>
 
       <div className="flex justify-center -my-2 relative z-10">
         <button onClick={flip}
-          className="w-10 h-10 rounded-xl bg-[#0c0718] border border-white/10 flex items-center justify-center hover:rotate-180 transition-transform duration-300 shadow-lg">
+          className="w-10 h-10 rounded-xl dex-panel flex items-center justify-center hover:rotate-180 transition-transform duration-300 shadow-lg">
           <ArrowDownUp className="w-4 h-4" />
         </button>
       </div>
 
       {/* To */}
-      <div className="rounded-2xl p-4 bg-[#160c26] border border-white/10">
+      <div className="rounded-2xl p-4 dex-inner">
         <div className="flex justify-between text-xs mb-2">
-          <span className="text-white/60">You receive</span>
-          <span className="text-white/60">{(+balTo).toFixed(4)}</span>
+          <span className="dex-muted">You receive</span>
+          <span className="dex-muted">{(+balTo).toFixed(4)}</span>
         </div>
         <div className="flex items-center gap-2">
           <Input type="number" placeholder="0.0" value={toAmt} readOnly
-            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-white" />
+            className="text-3xl font-bold bg-transparent border-0 px-0 focus-visible:ring-0 h-12 text-foreground" />
           <TokenSelectButton value={to} onChange={setTo} />
         </div>
       </div>
 
       {toAmt && !isWrapMode && (
         <div className="flex justify-between text-xs px-1">
-          <span className="text-white/60">1 {from.symbol} = {(+toAmt / +fromAmt).toLocaleString(undefined, { maximumFractionDigits: 6 })} {to.symbol}</span>
+          <span className="dex-muted">1 {from.symbol} = {(+toAmt / +fromAmt).toLocaleString(undefined, { maximumFractionDigits: 6 })} {to.symbol}</span>
           {priceImpact !== null && (
             <span className={priceImpact > 5 ? "text-destructive font-semibold" : priceImpact > 1 ? "text-yellow-500" : "text-green-500"}>
               Impact {priceImpact.toFixed(2)}%
@@ -218,11 +218,11 @@ function Swap() {
         </div>
       )}
       {isWrapMode && fromAmt && (
-        <div className="text-xs px-1 text-white/60">1 {from.symbol} = 1 {to.symbol} · No fees, no slippage</div>
+        <div className="text-xs px-1 dex-muted">1 {from.symbol} = 1 {to.symbol} · No fees, no slippage</div>
       )}
 
       {route.length > 0 && !isWrapMode && (
-        <div className="rounded-2xl p-3 bg-[#160c26] border border-white/10">
+        <div className="rounded-2xl p-3 dex-inner">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs flex items-center gap-1.5 font-semibold"><Zap className="w-3 h-3 text-fuchsia-400" /> Smart Route</span>
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${hops === 1 ? "bg-green-500/20 text-green-500" : "bg-yellow-500/20 text-yellow-500"}`}>
@@ -236,21 +236,21 @@ function Swap() {
                       : tokenForAddr(addr);
               return (
                 <span key={i} className="flex items-center gap-1">
-                  <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/5 text-xs">
+                  <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-foreground/5 text-xs">
                     {t.logo && <img src={t.logo} className="w-4 h-4 rounded-full" />}
                     <span className="font-semibold">{t.symbol}</span>
                   </span>
-                  {i < route.length - 1 && <ChevronRight className="w-3 h-3 text-white/40" />}
+                  {i < route.length - 1 && <ChevronRight className="w-3 h-3 dex-muted opacity-80" />}
                 </span>
               );
             })}
-            <span className="ml-auto text-[10px] text-white/50">{totalFee}% fee</span>
+            <span className="ml-auto text-[10px] dex-muted">{totalFee}% fee</span>
           </div>
         </div>
       )}
 
       <Button size="lg" disabled={busy || !fromAmt || !signer || (!isWrapMode && !route.length)} onClick={handleSwap}
-        className="w-full h-12 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 text-white font-bold text-base shadow-lg border-0">
+        className="w-full h-12 rounded-2xl bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:from-fuchsia-400 hover:to-pink-400 text-foreground font-bold text-base shadow-lg border-0">
         {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
           : !signer ? "Connect Wallet"
           : isWrap ? "Wrap"
