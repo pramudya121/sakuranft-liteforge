@@ -262,13 +262,14 @@ function Analytics() {
 
         <Section title="Liquidity per Pool" right={<span className="text-[10px] dex-muted opacity-80">{poolsLoading ? "Loading…" : `${pools.length} pools`}</span>}>
           {pools.length === 0 ? (
-            <p className="text-xs dex-muted py-4 text-center">{poolsLoading ? "Probing pools on-chain…" : "No active pools yet."}</p>
+            poolsLoading ? <ChartSkeleton height={260} /> : <p className="text-xs dex-muted py-4 text-center">No active pools yet.</p>
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={pools} layout="vertical">
+            <ResponsiveContainer width="100%" height={Math.max(260, pools.length * 44)}>
+              <BarChart data={pools} layout="vertical" margin={{ left: 20, right: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis type="number" stroke="rgba(255,255,255,0.5)" fontSize={10} />
-                <YAxis type="category" dataKey="pair" stroke="rgba(255,255,255,0.5)" fontSize={11} width={100} />
+                <YAxis type="category" dataKey="pair" stroke="rgba(255,255,255,0.5)" fontSize={11} width={140}
+                  tick={<PairTick />} />
                 <Tooltip contentStyle={{ background: "#160c26", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
                   formatter={(v: any) => [`${Number(v).toFixed(4)} ${CHAIN.symbol}`, "TVL"]} />
                 <Bar dataKey="tvlEth" fill="#f472b6" radius={[0, 8, 8, 0]} />
@@ -279,7 +280,7 @@ function Analytics() {
 
         <Section title="Pool Reserves">
           {pools.length === 0 ? (
-            <p className="text-xs dex-muted py-4 text-center">{poolsLoading ? "Loading…" : "No pools to display."}</p>
+            poolsLoading ? <TableSkeleton rows={5} /> : <p className="text-xs dex-muted py-4 text-center">No pools to display.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
