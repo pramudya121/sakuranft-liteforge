@@ -48,6 +48,22 @@ function Section({ title, children, right }: { title: string; children: React.Re
   );
 }
 
+// Custom Y-axis tick that renders paired token logos alongside the pair label.
+function PairTick(props: any) {
+  const { x, y, payload } = props;
+  const pair = String(payload?.value ?? "");
+  const [symA, symB] = pair.split("/");
+  const tA = TOKENS.find((t) => t.symbol === symA);
+  const tB = TOKENS.find((t) => t.symbol === symB);
+  return (
+    <g transform={`translate(${x - 8},${y})`}>
+      {tA && <image href={tA.logo} x={-118} y={-9} width={18} height={18} clipPath="circle(9px at 9px 9px)" />}
+      {tB && <image href={tB.logo} x={-104} y={-9} width={18} height={18} clipPath="circle(9px at 9px 9px)" />}
+      <text x={-80} y={4} fill="rgba(255,255,255,0.75)" fontSize={11}>{pair}</text>
+    </g>
+  );
+}
+
 function Analytics() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
