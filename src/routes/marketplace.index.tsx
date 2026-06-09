@@ -142,14 +142,9 @@ function Marketplace() {
             <SelectItem value="price-desc">Price: High → Low</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={onlyListed} onValueChange={setOnlyListed}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All NFTs</SelectItem>
-            <SelectItem value="listed">Listed only</SelectItem>
-            <SelectItem value="unlisted">Unlisted only</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center justify-end text-xs text-muted-foreground px-1">
+          Showing <span className="font-semibold text-primary mx-1">{items.length}</span> listed NFTs
+        </div>
         <div className="md:col-span-4 flex items-center gap-3">
           <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm">Max price: <b>{maxPrice} zkLTC</b></span>
