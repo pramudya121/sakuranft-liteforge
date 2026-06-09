@@ -291,14 +291,32 @@ function Analytics() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pools.map((p) => (
-                    <tr key={p.pair} className="border-b border-white/5 hover:bg-white/[0.02]">
-                      <td className="py-2 px-2 font-semibold">{p.pair}</td>
-                      <td className="py-2 px-2 text-right text-foreground">{p.reserveA}</td>
-                      <td className="py-2 px-2 text-right text-foreground">{p.reserveB} <span className="dex-muted opacity-80 text-xs">{p.symB}</span></td>
-                      <td className="py-2 px-2 text-right font-semibold text-fuchsia-300">{p.tvlEth.toFixed(4)}</td>
-                    </tr>
-                  ))}
+                  {pools.map((p) => {
+                    const tA = TOKENS.find((t) => t.symbol === p.symA);
+                    const tB = TOKENS.find((t) => t.symbol === p.symB);
+                    return (
+                      <tr key={p.pair} className="border-b border-white/5 hover:bg-white/[0.02]">
+                        <td className="py-2 px-2 font-semibold">
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-2">
+                              {tA && <img src={tA.logo} alt={tA.symbol} className="w-6 h-6 rounded-full ring-2 ring-background" loading="lazy" decoding="async" />}
+                              {tB && <img src={tB.logo} alt={tB.symbol} className="w-6 h-6 rounded-full ring-2 ring-background" loading="lazy" decoding="async" />}
+                            </div>
+                            <span>{p.pair}</span>
+                          </div>
+                        </td>
+                        <td className="py-2 px-2 text-right text-foreground">{p.reserveA}</td>
+                        <td className="py-2 px-2 text-right text-foreground">
+                          <span className="inline-flex items-center gap-1.5 justify-end">
+                            {p.reserveB}
+                            {tB && <img src={tB.logo} alt={tB.symbol} className="w-4 h-4 rounded-full" loading="lazy" decoding="async" />}
+                            <span className="dex-muted opacity-80 text-xs">{p.symB}</span>
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 text-right font-semibold text-fuchsia-300">{p.tvlEth.toFixed(4)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
