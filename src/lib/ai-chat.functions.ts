@@ -4,10 +4,12 @@ import { z } from "zod";
 const LOVABLE_API_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const MessageSchema = z.object({
-  role: z.enum(["system", "user", "assistant", "tool"]),
-  content: z.string(),
-  tool_call_id: z.string().optional(),
-  name: z.string().optional(),
+  // SECURITY: client may only send user/assistant/tool roles.
+  // "system" is reserved for the server-side prompt to prevent prompt-injection.
+  role: z.enum(["user", "assistant", "tool"]),
+  content: z.string().max(8000),
+  tool_call_id: z.string().max(200).optional(),
+  name: z.string().max(120).optional(),
 });
 
 // Tools exposed to the AI. The CLIENT executes swap/wrap actions because
