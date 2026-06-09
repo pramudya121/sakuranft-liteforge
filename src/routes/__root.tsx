@@ -49,6 +49,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:image", content: ROOT_OG_IMAGE },
       { name: "twitter:image", content: ROOT_OG_IMAGE },
+      { property: "og:title", content: "SakuraNFT — Winter Sakura NFT Marketplace & DEX on LitVM" },
+      { name: "twitter:title", content: "SakuraNFT — Winter Sakura NFT Marketplace & DEX on LitVM" },
+      { property: "og:description", content: "Mint, trade NFTs and swap zkLTC on LitVM LiteForge Testnet with a magical winter sakura aesthetic." },
+      { name: "twitter:description", content: "Mint, trade NFTs and swap zkLTC on LitVM LiteForge Testnet with a magical winter sakura aesthetic." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8cbd12b9-aade-4220-8c19-6570a6e7e4cf/id-preview-019e647b--b27d27db-4f93-4376-a7f6-d5505e894cfa.lovable.app-1781017377668.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8cbd12b9-aade-4220-8c19-6570a6e7e4cf/id-preview-019e647b--b27d27db-4f93-4376-a7f6-d5505e894cfa.lovable.app-1781017377668.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
