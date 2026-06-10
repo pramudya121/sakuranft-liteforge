@@ -34,6 +34,8 @@ function resolveAddr(t: TokenInfo): string {
 }
 
 // ───────────────────────── Quick Swap inline panel ─────────────────────────
+type TxStage = "idle" | "approving" | "swapping" | "confirming" | "done" | "error";
+
 function QuickSwap({ onClose }: { onClose: () => void }) {
   const { signer, address } = useWallet();
   const [from, setFrom] = useState<TokenInfo>(TOKENS[0]);
@@ -44,6 +46,9 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
   const [balFrom, setBalFrom] = useState("0");
   const [balTo, setBalTo] = useState("0");
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<TxStage>("idle");
+  const [txHash, setTxHash] = useState<string>("");
+  const [stageError, setStageError] = useState<string>("");
   const [tick, setTick] = useState(0);
 
   const fromAddr = from.address === "native" ? CONTRACTS.weth : from.address;
