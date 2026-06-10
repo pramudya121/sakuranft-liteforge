@@ -96,19 +96,38 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
     if (!signer) return toast.error("Connect wallet");
     if (!amt) return;
     setBusy(true);
+    setStageError("");
+    setTxHash("");
+    const needsApproval = !isWrapMode && from.address !== "native";
     try {
-      toast.loading("Confirm in wallet…", { id: "qs" });
-      if (isWrap)        { await wrapNative(signer, amt); toast.success("Wrapped ✓", { id: "qs" }); }
-      else if (isUnwrap) { await unwrapNative(signer, amt); toast.success("Unwrapped ✓", { id: "qs" }); }
+      if (needsApproval) setStage("approving"); else setStage("swapping");
+      toast.loading(needsApproval ? "Approve token in wallet…" : "Confirm in wallet…", { id: "qs" });
+      let tx: any;
+      if (isWrap)        { setStage("swapping"); tx = await wrapNative(signer, amt); }
+      else if (isUnwrap) { setStage("swapping"); tx = await unwrapNative(signer, amt); }
       else if (route.length) {
-        if (from.address === "native") await swapExactETHForTokens(signer, route[route.length - 1], amt, 0.5);
-        else if (to.address === "native") await swapExactTokensForETH(signer, from.address, parseEther(amt), 0.5);
-        else await swapExactTokensForTokens(signer, parseEther(amt), route, 0.5);
-        toast.success("Swap submitted ✓", { id: "qs" });
-      } else { toast.error("No route", { id: "qs" }); return; }
+        setStage("swapping");
+        if (from.address === "native") tx = await swapExactETHForTokens(signer, route[route.length - 1], amt, 0.5);
+        else if (to.address === "native") tx = await swapExactTokensForETH(signer, from.address, parseEther(amt), 0.5);
+        else tx = await swapExactTokensForTokens(signer, parseEther(amt), route, 0.5);
+      } else {
+        toast.error("No route available for this pair", { id: "qs" });
+        setStage("error"); setStageError("No liquidity route");
+        return;
+      }
+      if (tx?.hash) setTxHash(tx.hash);
+      setStage("confirming");
+      toast.loading("Waiting for on-chain confirmation…", { id: "qs" });
+      // ethers v6 returns ContractTransactionResponse; .wait() blocks until mined
+      if (tx?.wait) { try { await tx.wait(); } catch {} }
+      setStage("done");
+      toast.success(isWrap ? "Wrapped ✓" : isUnwrap ? "Unwrapped ✓" : "Swap confirmed ✓", { id: "qs" });
       setAmt(""); setOut(""); setTick((t) => t + 1);
     } catch (e: any) {
-      toast.error(e?.shortMessage ?? e?.message ?? "Swap failed", { id: "qs" });
+      const msg = e?.shortMessage ?? e?.reason ?? e?.message ?? "Transaction failed";
+      setStage("error");
+      setStageError(msg);
+      toast.error(msg, { id: "qs" });
     } finally { setBusy(false); }
   }
 
