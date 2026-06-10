@@ -73,8 +73,15 @@ function Marketplace() {
   const items = useMemo(() => {
     const nftByToken = new Map(nfts.map((n) => [n.tokenId.toString(), n]));
     let arr = listings
-      .map((listing) => ({ nft: nftByToken.get(listing.tokenId.toString()), listing }))
-      .filter((x): x is { nft: typeof nfts[number]; listing: typeof listings[number] } => !!x.nft);
+      .map((listing) => {
+        const baseNft = nftByToken.get(listing.tokenId.toString());
+        if (!baseNft) return null;
+        // When an NFT is listed, on-chain ownerOf() returns the marketplace
+        // escrow contract. The *real* owner is the seller on the listing.
+        const nft = { ...baseNft, owner: listing.seller || baseNft.owner };
+        return { nft, listing };
+      })
+      .filter((x): x is { nft: typeof nfts[number]; listing: typeof listings[number] } => !!x);
     if (search) arr = arr.filter((x) => x.nft.name.toLowerCase().includes(search.toLowerCase()) || x.nft.tokenId.toString().includes(search));
     arr = arr.filter((x) => +x.listing.priceEth <= maxPrice);
     if (sort === "price-asc") arr.sort((a, b) => +a.listing.priceEth - +b.listing.priceEth);

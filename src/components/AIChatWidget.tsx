@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Send, X, Mic, MicOff, Volume2, VolumeX, Loader2, Sparkles, Bot, User, ArrowDownUp, Repeat, Plus, Minus } from "lucide-react";
+import { Send, X, Mic, MicOff, Volume2, VolumeX, Loader2, Sparkles, Bot, User, ArrowDownUp, Repeat, Plus, Minus, MessageSquare, Zap, Wallet } from "lucide-react";
 import { chatAgent } from "@/lib/ai-chat.functions";
 import { TOKENS, type TokenInfo } from "@/lib/tokens";
 import { CONTRACTS } from "@/lib/web3/contracts";
@@ -108,49 +108,60 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-3 space-y-2 shadow-md">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-1.5 text-xs font-semibold"><Repeat className="w-3.5 h-3.5 text-primary" /> Quick Swap</div>
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+    <div className="space-y-3">
+      {/* Wallet status pill */}
+      <div className="flex items-center gap-2 rounded-xl bg-background border border-border/80 px-3 py-2.5 text-xs">
+        <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
+        <span className="text-muted-foreground">Wallet</span>
+        <span className={`font-medium ml-auto ${address ? "text-green-400" : "text-foreground"}`}>
+          {address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "Not connected"}
+        </span>
       </div>
 
-      {/* From */}
-      <div className="rounded-xl p-3 bg-muted/40 border border-border/60">
-        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+      {/* From — solid opaque panel */}
+      <div className="rounded-xl p-3.5 bg-background border border-border/80">
+        <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
           <span>You pay</span>
-          <button onClick={() => setAmt(balFrom)} className="hover:text-primary">Bal {(+balFrom).toFixed(4)} · MAX</button>
+          <button onClick={() => setAmt(balFrom)} className="hover:text-primary font-medium">
+            {(+balFrom).toFixed(4)} <span className="text-primary ml-1">MAX</span>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <input type="number" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder="0.0"
-            className="flex-1 bg-transparent outline-none text-xl font-bold min-w-0" />
+            className="flex-1 bg-transparent outline-none text-2xl font-bold min-w-0 text-foreground placeholder:text-muted-foreground/50" />
           <TokenSelectButton value={from} onChange={setFrom} />
         </div>
       </div>
 
-      <div className="flex justify-center -my-1.5 relative z-10">
-        <button onClick={flip} className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center hover:rotate-180 transition-transform">
-          <ArrowDownUp className="w-3 h-3" />
+      <div className="flex justify-center -my-2 relative z-10">
+        <button onClick={flip} className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center hover:rotate-180 transition-transform shadow-md">
+          <ArrowDownUp className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* To */}
-      <div className="rounded-xl p-3 bg-muted/40 border border-border/60">
-        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-          <span>You receive</span><span>Bal {(+balTo).toFixed(4)}</span>
+      {/* To — solid opaque panel */}
+      <div className="rounded-xl p-3.5 bg-background border border-border/80">
+        <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
+          <span>You receive</span><span>{(+balTo).toFixed(4)}</span>
         </div>
         <div className="flex items-center gap-2">
-          <input value={out} readOnly placeholder="0.0" className="flex-1 bg-transparent outline-none text-xl font-bold min-w-0" />
+          <input value={out} readOnly placeholder="0.0" className="flex-1 bg-transparent outline-none text-2xl font-bold min-w-0 text-foreground placeholder:text-muted-foreground/50" />
           <TokenSelectButton value={to} onChange={setTo} />
         </div>
       </div>
 
-      <Button onClick={doSwap} disabled={busy || !signer || !amt || (!isWrapMode && !route.length)}
-        size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
-        {busy ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Processing…</>
+      <Button onClick={doSwap} disabled={busy || !signer || (!isWrapMode && !route.length && !!amt)}
+        size="lg" className="w-full h-12 rounded-xl text-sm font-bold bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:opacity-90 border-0 text-white disabled:opacity-60">
+        {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing…</>
           : !signer ? "Connect Wallet"
+          : !amt ? "Enter amount"
           : isWrap ? "Wrap" : isUnwrap ? "Unwrap"
-          : !route.length && amt ? "No route" : "Swap"}
+          : !route.length ? "No route" : "Swap"}
       </Button>
+
+      <button onClick={onClose} className="w-full text-center text-xs text-muted-foreground hover:text-primary py-1">
+        🌸 Ask Sakura AI to do this for me
+      </button>
     </div>
   );
 }
@@ -325,18 +336,14 @@ export function AIChatWidget() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[600px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
+        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[640px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
           {/* Header */}
-          <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/15 to-pink-500/15 border-b border-border">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4 h-4 text-white" /></div>
+          <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 border-b border-border">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4.5 h-4.5 text-white" /></div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold">Sakura AI</div>
-              <div className="text-[10px] text-muted-foreground flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> DEX-enabled · Multilingual</div>
+              <div className="text-[10px] text-muted-foreground flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Agent · DEX-enabled</div>
             </div>
-            <button onClick={() => setShowSwap((s) => !s)} title="Quick Swap"
-              className={`w-8 h-8 rounded-lg flex items-center justify-center ${showSwap ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}>
-              <Repeat className="w-4 h-4" />
-            </button>
             <button onClick={() => setVoiceOut((v) => !v)} title={voiceOut ? "Mute voice" : "Unmute voice"}
               className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground">
               {voiceOut ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -344,50 +351,68 @@ export function AIChatWidget() {
             <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground"><X className="w-4 h-4" /></button>
           </div>
 
+          {/* Tabs */}
+          <div className="px-3 pt-3 grid grid-cols-2 gap-2">
+            <button onClick={() => setShowSwap(false)}
+              className={`h-10 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition ${!showSwap ? "bg-gradient-to-r from-fuchsia-500/30 to-pink-500/30 text-foreground border border-primary/40" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>
+              <MessageSquare className="w-4 h-4" /> Chat
+            </button>
+            <button onClick={() => setShowSwap(true)}
+              className={`h-10 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition ${showSwap ? "bg-gradient-to-r from-fuchsia-500/30 to-pink-500/30 text-foreground border border-primary/40" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>
+              <Zap className="w-4 h-4" /> Quick Swap
+            </button>
+          </div>
+
           {/* Body */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-            {showSwap && <QuickSwap onClose={() => setShowSwap(false)} />}
-
-            {msgs.filter((m) => m.role === "user" || m.role === "assistant").map((m, i) => (
-              <div key={i} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.role === "user" ? "bg-muted" : "bg-gradient-to-br from-fuchsia-500 to-pink-500"}`}>
-                  {m.role === "user" ? <User className="w-3.5 h-3.5 text-foreground" /> : <Bot className="w-3.5 h-3.5 text-white" />}
-                </div>
-                <div className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] whitespace-pre-wrap break-words ${m.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted text-foreground rounded-tl-sm"}`}>
-                  {m.content}
-                </div>
-              </div>
-            ))}
-            {busy && (
-              <div className="flex gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-white" /></div>
-                <div className="px-3 py-2 rounded-2xl bg-muted"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
-              </div>
+            {showSwap ? (
+              <QuickSwap onClose={() => setShowSwap(false)} />
+            ) : (
+              <>
+                {msgs.filter((m) => m.role === "user" || m.role === "assistant").map((m, i) => (
+                  <div key={i} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.role === "user" ? "bg-muted" : "bg-gradient-to-br from-fuchsia-500 to-pink-500"}`}>
+                      {m.role === "user" ? <User className="w-3.5 h-3.5 text-foreground" /> : <Bot className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <div className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] whitespace-pre-wrap break-words ${m.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted text-foreground rounded-tl-sm"}`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {busy && (
+                  <div className="flex gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-white" /></div>
+                    <div className="px-3 py-2 rounded-2xl bg-muted"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          {/* Composer */}
-          <div className="p-3 border-t border-border bg-card">
-            <div className="flex items-center gap-2 rounded-2xl bg-muted/60 border border-border px-2 py-1.5">
-              <button onClick={toggleMic} disabled={busy}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
-                title="Voice input">
-                {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-                placeholder={listening ? "Listening…" : "Ask Sakura anything…"}
-                disabled={busy}
-                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground min-w-0"
-              />
-              <Button onClick={() => send(input)} disabled={busy || !input.trim()} size="sm" className="rounded-xl h-9 px-3 bg-gradient-to-r from-fuchsia-500 to-pink-500 border-0 text-white">
-                <Send className="w-4 h-4" />
-              </Button>
+          {/* Composer — only when on Chat tab */}
+          {!showSwap && (
+            <div className="p-3 border-t border-border bg-card">
+              <div className="flex items-center gap-2 rounded-2xl bg-background border border-border px-2 py-1.5">
+                <button onClick={toggleMic} disabled={busy}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
+                  title="Voice input">
+                  {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
+                  placeholder={listening ? "Listening…" : "Ask Sakura anything…"}
+                  disabled={busy}
+                  className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground min-w-0"
+                />
+                <Button onClick={() => send(input)} disabled={busy || !input.trim()} size="sm" className="rounded-xl h-9 px-3 bg-gradient-to-r from-fuchsia-500 to-pink-500 border-0 text-white">
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center mt-1.5">Multilingual · Powered by Lovable AI</p>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center mt-1.5">Multilingual · Powered by Lovable AI</p>
-          </div>
+          )}
         </div>
       )}
     </>

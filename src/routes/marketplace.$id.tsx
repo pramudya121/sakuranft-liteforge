@@ -76,7 +76,10 @@ function NFTDetail() {
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
   useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
 
-  const isOwner = address && nft && address.toLowerCase() === nft.owner.toLowerCase();
+  // When an NFT is listed, ownerOf() returns the marketplace escrow contract.
+  // Use the listing.seller as the canonical owner for display & ownership checks.
+  const effectiveOwner = listing?.seller || nft?.owner || "";
+  const isOwner = address && nft && address.toLowerCase() === effectiveOwner.toLowerCase();
 
   async function wrap<T>(label: string, fn: () => Promise<T>, onSuccess?: () => void) {
     if (!signer) return toast.error("Connect wallet");
@@ -105,7 +108,7 @@ function NFTDetail() {
           <div>
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
-            <p className="text-muted-foreground mt-2">{nft.description || "No description."}</p>
+            <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">{nft.description?.trim() ? nft.description : "No description."}</p>
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Eye className="w-3 h-3" /> {viewCount} views
@@ -114,7 +117,7 @@ function NFTDetail() {
             </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Owner</span><span className="font-mono">{shortAddr(nft.owner)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Owner</span><Link to="/u/$address" params={{ address: effectiveOwner }} className="font-mono hover:text-primary">{shortAddr(effectiveOwner)}</Link></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Collection</span><span>SakuraNFT</span></div>
             {listing && <div className="flex justify-between"><span className="text-muted-foreground">Current Price</span><span className="font-bold text-primary">{listing.priceEth} {CHAIN.symbol}</span></div>}
             {listing && feeBps !== null && (
