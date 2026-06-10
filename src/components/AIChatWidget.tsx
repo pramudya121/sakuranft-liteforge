@@ -18,6 +18,25 @@ import { toast } from "sonner";
 
 type Msg = { role: "system" | "user" | "assistant" | "tool"; content: string; tool_call_id?: string; name?: string };
 
+function TxStep({ label, state }: { label: string; state: "pending" | "active" | "done" | "error" }) {
+  const color =
+    state === "done" ? "text-green-400 border-green-400/50"
+    : state === "active" ? "text-primary border-primary"
+    : state === "error" ? "text-destructive border-destructive/60"
+    : "text-muted-foreground border-border";
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${color}`}>
+        {state === "active" ? <Loader2 className="w-3 h-3 animate-spin" />
+          : state === "done" ? <span className="text-[10px] leading-none">✓</span>
+          : state === "error" ? <span className="text-[10px] leading-none">×</span>
+          : <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />}
+      </div>
+      <span className={state === "pending" ? "text-muted-foreground" : "text-foreground"}>{label}</span>
+    </div>
+  );
+}
+
 function getRecognizer(): any | null {
   if (typeof window === "undefined") return null;
   const W = window as any;
