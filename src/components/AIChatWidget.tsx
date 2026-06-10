@@ -18,6 +18,25 @@ import { toast } from "sonner";
 
 type Msg = { role: "system" | "user" | "assistant" | "tool"; content: string; tool_call_id?: string; name?: string };
 
+function TxStep({ label, state }: { label: string; state: "pending" | "active" | "done" | "error" }) {
+  const color =
+    state === "done" ? "text-green-400 border-green-400/50"
+    : state === "active" ? "text-primary border-primary"
+    : state === "error" ? "text-destructive border-destructive/60"
+    : "text-muted-foreground border-border";
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${color}`}>
+        {state === "active" ? <Loader2 className="w-3 h-3 animate-spin" />
+          : state === "done" ? <span className="text-[10px] leading-none">✓</span>
+          : state === "error" ? <span className="text-[10px] leading-none">×</span>
+          : <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50" />}
+      </div>
+      <span className={state === "pending" ? "text-muted-foreground" : "text-foreground"}>{label}</span>
+    </div>
+  );
+}
+
 function getRecognizer(): any | null {
   if (typeof window === "undefined") return null;
   const W = window as any;
@@ -34,6 +53,8 @@ function resolveAddr(t: TokenInfo): string {
 }
 
 // ───────────────────────── Quick Swap inline panel ─────────────────────────
+type TxStage = "idle" | "approving" | "swapping" | "confirming" | "done" | "error";
+
 function QuickSwap({ onClose }: { onClose: () => void }) {
   const { signer, address } = useWallet();
   const [from, setFrom] = useState<TokenInfo>(TOKENS[0]);
@@ -44,6 +65,9 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
   const [balFrom, setBalFrom] = useState("0");
   const [balTo, setBalTo] = useState("0");
   const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<TxStage>("idle");
+  const [txHash, setTxHash] = useState<string>("");
+  const [stageError, setStageError] = useState<string>("");
   const [tick, setTick] = useState(0);
 
   const fromAddr = from.address === "native" ? CONTRACTS.weth : from.address;
@@ -91,19 +115,38 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
     if (!signer) return toast.error("Connect wallet");
     if (!amt) return;
     setBusy(true);
+    setStageError("");
+    setTxHash("");
+    const needsApproval = !isWrapMode && from.address !== "native";
     try {
-      toast.loading("Confirm in wallet…", { id: "qs" });
-      if (isWrap)        { await wrapNative(signer, amt); toast.success("Wrapped ✓", { id: "qs" }); }
-      else if (isUnwrap) { await unwrapNative(signer, amt); toast.success("Unwrapped ✓", { id: "qs" }); }
+      if (needsApproval) setStage("approving"); else setStage("swapping");
+      toast.loading(needsApproval ? "Approve token in wallet…" : "Confirm in wallet…", { id: "qs" });
+      let tx: any;
+      if (isWrap)        { setStage("swapping"); tx = await wrapNative(signer, amt); }
+      else if (isUnwrap) { setStage("swapping"); tx = await unwrapNative(signer, amt); }
       else if (route.length) {
-        if (from.address === "native") await swapExactETHForTokens(signer, route[route.length - 1], amt, 0.5);
-        else if (to.address === "native") await swapExactTokensForETH(signer, from.address, parseEther(amt), 0.5);
-        else await swapExactTokensForTokens(signer, parseEther(amt), route, 0.5);
-        toast.success("Swap submitted ✓", { id: "qs" });
-      } else { toast.error("No route", { id: "qs" }); return; }
+        setStage("swapping");
+        if (from.address === "native") tx = await swapExactETHForTokens(signer, route[route.length - 1], amt, 0.5);
+        else if (to.address === "native") tx = await swapExactTokensForETH(signer, from.address, parseEther(amt), 0.5);
+        else tx = await swapExactTokensForTokens(signer, parseEther(amt), route, 0.5);
+      } else {
+        toast.error("No route available for this pair", { id: "qs" });
+        setStage("error"); setStageError("No liquidity route");
+        return;
+      }
+      if (tx?.hash) setTxHash(tx.hash);
+      setStage("confirming");
+      toast.loading("Waiting for on-chain confirmation…", { id: "qs" });
+      // ethers v6 returns ContractTransactionResponse; .wait() blocks until mined
+      if (tx?.wait) { try { await tx.wait(); } catch {} }
+      setStage("done");
+      toast.success(isWrap ? "Wrapped ✓" : isUnwrap ? "Unwrapped ✓" : "Swap confirmed ✓", { id: "qs" });
       setAmt(""); setOut(""); setTick((t) => t + 1);
     } catch (e: any) {
-      toast.error(e?.shortMessage ?? e?.message ?? "Swap failed", { id: "qs" });
+      const msg = e?.shortMessage ?? e?.reason ?? e?.message ?? "Transaction failed";
+      setStage("error");
+      setStageError(msg);
+      toast.error(msg, { id: "qs" });
     } finally { setBusy(false); }
   }
 
@@ -158,6 +201,34 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
           : isWrap ? "Wrap" : isUnwrap ? "Unwrap"
           : !route.length ? "No route" : "Swap"}
       </Button>
+
+      {/* Transaction progress tracker */}
+      {(busy || stage === "done" || stage === "error") && (
+        <div className="rounded-xl bg-background border border-border/80 p-3 space-y-2 text-xs">
+          <TxStep
+            label={isWrapMode || from.address === "native" ? "Wallet confirmation" : "Token approval"}
+            state={stage === "approving" ? "active" : (stage === "swapping" || stage === "confirming" || stage === "done") ? "done" : stage === "error" && !stageError.includes("liquidity") ? "error" : "pending"}
+          />
+          <TxStep
+            label="Submit swap"
+            state={stage === "swapping" ? "active" : (stage === "confirming" || stage === "done") ? "done" : stage === "error" ? "error" : "pending"}
+          />
+          <TxStep
+            label="On-chain confirmation"
+            state={stage === "confirming" ? "active" : stage === "done" ? "done" : stage === "error" ? "error" : "pending"}
+          />
+          {txHash && (
+            <div className="pt-1 border-t border-border/60 text-[10px] text-muted-foreground font-mono break-all">
+              tx: {txHash.slice(0, 10)}…{txHash.slice(-8)}
+            </div>
+          )}
+          {stage === "error" && stageError && (
+            <div className="pt-1 border-t border-border/60 text-[11px] text-destructive break-words">
+              {stageError}
+            </div>
+          )}
+        </div>
+      )}
 
       <button onClick={onClose} className="w-full text-center text-xs text-muted-foreground hover:text-primary py-1">
         🌸 Ask Sakura AI to do this for me
@@ -336,7 +407,7 @@ export function AIChatWidget() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[640px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
+        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[640px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-popover text-popover-foreground">
           {/* Header */}
           <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 border-b border-border">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4.5 h-4.5 text-white" /></div>
@@ -390,7 +461,7 @@ export function AIChatWidget() {
 
           {/* Composer — only when on Chat tab */}
           {!showSwap && (
-            <div className="p-3 border-t border-border bg-card">
+            <div className="p-3 border-t border-border bg-popover">
               <div className="flex items-center gap-2 rounded-2xl bg-background border border-border px-2 py-1.5">
                 <button onClick={toggleMic} disabled={busy}
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
