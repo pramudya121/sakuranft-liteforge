@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate } from "@tanstack/react-router";
-import { Send, X, Mic, MicOff, Volume2, VolumeX, Loader2, Sparkles, Bot, User, ArrowDownUp, Repeat, Plus, Minus } from "lucide-react";
+import { Send, X, Mic, MicOff, Volume2, VolumeX, Loader2, Sparkles, Bot, User, ArrowDownUp, Repeat, Plus, Minus, MessageSquare, Zap, Wallet } from "lucide-react";
 import { chatAgent } from "@/lib/ai-chat.functions";
 import { TOKENS, type TokenInfo } from "@/lib/tokens";
 import { CONTRACTS } from "@/lib/web3/contracts";
