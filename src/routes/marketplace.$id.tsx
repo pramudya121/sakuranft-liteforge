@@ -76,7 +76,10 @@ function NFTDetail() {
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
   useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
 
-  const isOwner = address && nft && address.toLowerCase() === nft.owner.toLowerCase();
+  // When an NFT is listed, ownerOf() returns the marketplace escrow contract.
+  // Use the listing.seller as the canonical owner for display & ownership checks.
+  const effectiveOwner = listing?.seller || nft?.owner || "";
+  const isOwner = address && nft && address.toLowerCase() === effectiveOwner.toLowerCase();
 
   async function wrap<T>(label: string, fn: () => Promise<T>, onSuccess?: () => void) {
     if (!signer) return toast.error("Connect wallet");
