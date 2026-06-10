@@ -407,7 +407,7 @@ export function AIChatWidget() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[640px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
+        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[640px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-popover text-popover-foreground">
           {/* Header */}
           <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 border-b border-border">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4.5 h-4.5 text-white" /></div>
@@ -461,7 +461,7 @@ export function AIChatWidget() {
 
           {/* Composer — only when on Chat tab */}
           {!showSwap && (
-            <div className="p-3 border-t border-border bg-card">
+            <div className="p-3 border-t border-border bg-popover">
               <div className="flex items-center gap-2 rounded-2xl bg-background border border-border px-2 py-1.5">
                 <button onClick={toggleMic} disabled={busy}
                   className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
