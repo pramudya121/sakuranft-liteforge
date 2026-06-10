@@ -183,6 +183,34 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
           : !route.length ? "No route" : "Swap"}
       </Button>
 
+      {/* Transaction progress tracker */}
+      {(busy || stage === "done" || stage === "error") && (
+        <div className="rounded-xl bg-background border border-border/80 p-3 space-y-2 text-xs">
+          <TxStep
+            label={isWrapMode || from.address === "native" ? "Wallet confirmation" : "Token approval"}
+            state={stage === "approving" ? "active" : (stage === "swapping" || stage === "confirming" || stage === "done") ? "done" : stage === "error" && !stageError.includes("liquidity") ? "error" : "pending"}
+          />
+          <TxStep
+            label="Submit swap"
+            state={stage === "swapping" ? "active" : (stage === "confirming" || stage === "done") ? "done" : stage === "error" ? "error" : "pending"}
+          />
+          <TxStep
+            label="On-chain confirmation"
+            state={stage === "confirming" ? "active" : stage === "done" ? "done" : stage === "error" ? "error" : "pending"}
+          />
+          {txHash && (
+            <div className="pt-1 border-t border-border/60 text-[10px] text-muted-foreground font-mono break-all">
+              tx: {txHash.slice(0, 10)}…{txHash.slice(-8)}
+            </div>
+          )}
+          {stage === "error" && stageError && (
+            <div className="pt-1 border-t border-border/60 text-[11px] text-destructive break-words">
+              {stageError}
+            </div>
+          )}
+        </div>
+      )}
+
       <button onClick={onClose} className="w-full text-center text-xs text-muted-foreground hover:text-primary py-1">
         🌸 Ask Sakura AI to do this for me
       </button>
