@@ -336,18 +336,14 @@ export function AIChatWidget() {
       )}
 
       {open && (
-        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[600px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
+        <div className="fixed bottom-5 right-5 z-50 w-[400px] max-w-[calc(100vw-1.5rem)] h-[640px] max-h-[calc(100vh-2rem)] rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border bg-card text-card-foreground">
           {/* Header */}
-          <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/15 to-pink-500/15 border-b border-border">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4 h-4 text-white" /></div>
+          <div className="px-4 py-3 flex items-center gap-2 bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 border-b border-border">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center shadow"><Bot className="w-4.5 h-4.5 text-white" /></div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold">Sakura AI</div>
-              <div className="text-[10px] text-muted-foreground flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> DEX-enabled · Multilingual</div>
+              <div className="text-[10px] text-muted-foreground flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Agent · DEX-enabled</div>
             </div>
-            <button onClick={() => setShowSwap((s) => !s)} title="Quick Swap"
-              className={`w-8 h-8 rounded-lg flex items-center justify-center ${showSwap ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}>
-              <Repeat className="w-4 h-4" />
-            </button>
             <button onClick={() => setVoiceOut((v) => !v)} title={voiceOut ? "Mute voice" : "Unmute voice"}
               className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground">
               {voiceOut ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -355,50 +351,68 @@ export function AIChatWidget() {
             <button onClick={() => setOpen(false)} className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground"><X className="w-4 h-4" /></button>
           </div>
 
+          {/* Tabs */}
+          <div className="px-3 pt-3 grid grid-cols-2 gap-2">
+            <button onClick={() => setShowSwap(false)}
+              className={`h-10 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition ${!showSwap ? "bg-gradient-to-r from-fuchsia-500/30 to-pink-500/30 text-foreground border border-primary/40" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>
+              <MessageSquare className="w-4 h-4" /> Chat
+            </button>
+            <button onClick={() => setShowSwap(true)}
+              className={`h-10 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition ${showSwap ? "bg-gradient-to-r from-fuchsia-500/30 to-pink-500/30 text-foreground border border-primary/40" : "bg-background border border-border text-muted-foreground hover:text-foreground"}`}>
+              <Zap className="w-4 h-4" /> Quick Swap
+            </button>
+          </div>
+
           {/* Body */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-            {showSwap && <QuickSwap onClose={() => setShowSwap(false)} />}
-
-            {msgs.filter((m) => m.role === "user" || m.role === "assistant").map((m, i) => (
-              <div key={i} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.role === "user" ? "bg-muted" : "bg-gradient-to-br from-fuchsia-500 to-pink-500"}`}>
-                  {m.role === "user" ? <User className="w-3.5 h-3.5 text-foreground" /> : <Bot className="w-3.5 h-3.5 text-white" />}
-                </div>
-                <div className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] whitespace-pre-wrap break-words ${m.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted text-foreground rounded-tl-sm"}`}>
-                  {m.content}
-                </div>
-              </div>
-            ))}
-            {busy && (
-              <div className="flex gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-white" /></div>
-                <div className="px-3 py-2 rounded-2xl bg-muted"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
-              </div>
+            {showSwap ? (
+              <QuickSwap onClose={() => setShowSwap(false)} />
+            ) : (
+              <>
+                {msgs.filter((m) => m.role === "user" || m.role === "assistant").map((m, i) => (
+                  <div key={i} className={`flex gap-2 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.role === "user" ? "bg-muted" : "bg-gradient-to-br from-fuchsia-500 to-pink-500"}`}>
+                      {m.role === "user" ? <User className="w-3.5 h-3.5 text-foreground" /> : <Bot className="w-3.5 h-3.5 text-white" />}
+                    </div>
+                    <div className={`px-3 py-2 rounded-2xl text-sm max-w-[78%] whitespace-pre-wrap break-words ${m.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted text-foreground rounded-tl-sm"}`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {busy && (
+                  <div className="flex gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-white" /></div>
+                    <div className="px-3 py-2 rounded-2xl bg-muted"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
-          {/* Composer */}
-          <div className="p-3 border-t border-border bg-card">
-            <div className="flex items-center gap-2 rounded-2xl bg-muted/60 border border-border px-2 py-1.5">
-              <button onClick={toggleMic} disabled={busy}
-                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
-                title="Voice input">
-                {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-                placeholder={listening ? "Listening…" : "Ask Sakura anything…"}
-                disabled={busy}
-                className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground min-w-0"
-              />
-              <Button onClick={() => send(input)} disabled={busy || !input.trim()} size="sm" className="rounded-xl h-9 px-3 bg-gradient-to-r from-fuchsia-500 to-pink-500 border-0 text-white">
-                <Send className="w-4 h-4" />
-              </Button>
+          {/* Composer — only when on Chat tab */}
+          {!showSwap && (
+            <div className="p-3 border-t border-border bg-card">
+              <div className="flex items-center gap-2 rounded-2xl bg-background border border-border px-2 py-1.5">
+                <button onClick={toggleMic} disabled={busy}
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${listening ? "bg-destructive/20 text-destructive animate-pulse" : "hover:bg-muted text-muted-foreground"}`}
+                  title="Voice input">
+                  {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </button>
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
+                  placeholder={listening ? "Listening…" : "Ask Sakura anything…"}
+                  disabled={busy}
+                  className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground min-w-0"
+                />
+                <Button onClick={() => send(input)} disabled={busy || !input.trim()} size="sm" className="rounded-xl h-9 px-3 bg-gradient-to-r from-fuchsia-500 to-pink-500 border-0 text-white">
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center mt-1.5">Multilingual · Powered by Lovable AI</p>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center mt-1.5">Multilingual · Powered by Lovable AI</p>
-          </div>
+          )}
         </div>
       )}
     </>
