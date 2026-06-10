@@ -108,49 +108,60 @@ function QuickSwap({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-3 space-y-2 shadow-md">
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-1.5 text-xs font-semibold"><Repeat className="w-3.5 h-3.5 text-primary" /> Quick Swap</div>
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+    <div className="space-y-3">
+      {/* Wallet status pill */}
+      <div className="flex items-center gap-2 rounded-xl bg-background border border-border/80 px-3 py-2.5 text-xs">
+        <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
+        <span className="text-muted-foreground">Wallet</span>
+        <span className={`font-medium ml-auto ${address ? "text-green-400" : "text-foreground"}`}>
+          {address ? `${address.slice(0, 6)}…${address.slice(-4)}` : "Not connected"}
+        </span>
       </div>
 
-      {/* From */}
-      <div className="rounded-xl p-3 bg-muted/40 border border-border/60">
-        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+      {/* From — solid opaque panel */}
+      <div className="rounded-xl p-3.5 bg-background border border-border/80">
+        <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
           <span>You pay</span>
-          <button onClick={() => setAmt(balFrom)} className="hover:text-primary">Bal {(+balFrom).toFixed(4)} · MAX</button>
+          <button onClick={() => setAmt(balFrom)} className="hover:text-primary font-medium">
+            {(+balFrom).toFixed(4)} <span className="text-primary ml-1">MAX</span>
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <input type="number" value={amt} onChange={(e) => setAmt(e.target.value)} placeholder="0.0"
-            className="flex-1 bg-transparent outline-none text-xl font-bold min-w-0" />
+            className="flex-1 bg-transparent outline-none text-2xl font-bold min-w-0 text-foreground placeholder:text-muted-foreground/50" />
           <TokenSelectButton value={from} onChange={setFrom} />
         </div>
       </div>
 
-      <div className="flex justify-center -my-1.5 relative z-10">
-        <button onClick={flip} className="w-7 h-7 rounded-lg bg-background border border-border flex items-center justify-center hover:rotate-180 transition-transform">
-          <ArrowDownUp className="w-3 h-3" />
+      <div className="flex justify-center -my-2 relative z-10">
+        <button onClick={flip} className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center hover:rotate-180 transition-transform shadow-md">
+          <ArrowDownUp className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* To */}
-      <div className="rounded-xl p-3 bg-muted/40 border border-border/60">
-        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-          <span>You receive</span><span>Bal {(+balTo).toFixed(4)}</span>
+      {/* To — solid opaque panel */}
+      <div className="rounded-xl p-3.5 bg-background border border-border/80">
+        <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
+          <span>You receive</span><span>{(+balTo).toFixed(4)}</span>
         </div>
         <div className="flex items-center gap-2">
-          <input value={out} readOnly placeholder="0.0" className="flex-1 bg-transparent outline-none text-xl font-bold min-w-0" />
+          <input value={out} readOnly placeholder="0.0" className="flex-1 bg-transparent outline-none text-2xl font-bold min-w-0 text-foreground placeholder:text-muted-foreground/50" />
           <TokenSelectButton value={to} onChange={setTo} />
         </div>
       </div>
 
-      <Button onClick={doSwap} disabled={busy || !signer || !amt || (!isWrapMode && !route.length)}
-        size="sm" className="w-full h-9 rounded-xl text-xs font-bold">
-        {busy ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Processing…</>
+      <Button onClick={doSwap} disabled={busy || !signer || (!isWrapMode && !route.length && !!amt)}
+        size="lg" className="w-full h-12 rounded-xl text-sm font-bold bg-gradient-to-r from-fuchsia-500 to-pink-500 hover:opacity-90 border-0 text-white disabled:opacity-60">
+        {busy ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing…</>
           : !signer ? "Connect Wallet"
+          : !amt ? "Enter amount"
           : isWrap ? "Wrap" : isUnwrap ? "Unwrap"
-          : !route.length && amt ? "No route" : "Swap"}
+          : !route.length ? "No route" : "Swap"}
       </Button>
+
+      <button onClick={onClose} className="w-full text-center text-xs text-muted-foreground hover:text-primary py-1">
+        🌸 Ask Sakura AI to do this for me
+      </button>
     </div>
   );
 }
