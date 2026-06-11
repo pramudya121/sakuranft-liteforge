@@ -184,7 +184,28 @@ function NFTDetail() {
                   <p className="text-sm font-medium">Update listing price</p>
                   <div className="flex gap-2">
                     <Input type="number" step="0.001" placeholder={`New price in ${CHAIN.symbol}`} value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                    <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), async () => { await syncListingPrice(editPrice); setEditing(false); })} disabled={!editPrice}>Save</Button>
+                    <Button
+                      onClick={async () => {
+                        if (!signer || !editPrice) return;
+                        const prevPrice = listing.priceEth;
+                        // Optimistic: push new price to DB immediately so the marketplace
+                        // grid & this page reflect the change before chain confirmation.
+                        try { await syncListingPrice(editPrice); } catch {}
+                        setEditing(false);
+                        toast.loading("Confirm price update in wallet…", { id: "upd" });
+                        try {
+                          await updateListingPrice(signer, listing.listingId, editPrice);
+                          toast.success("Price updated ✓", { id: "upd" });
+                          refetchNFT();
+                        } catch (e: any) {
+                          // Revert DB row if the on-chain tx failed/was rejected.
+                          try { await syncListingPrice(prevPrice); } catch {}
+                          refetchNFT();
+                          toast.error(e?.shortMessage ?? e?.message ?? "Update failed", { id: "upd" });
+                        }
+                      }}
+                      disabled={!editPrice}
+                    >Save</Button>
                     <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
                   </div>
                 </div>

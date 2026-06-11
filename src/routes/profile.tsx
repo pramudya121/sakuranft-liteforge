@@ -71,20 +71,26 @@ function Profile() {
 
   return (
     <div className="space-y-8">
-      <div className="glass rounded-3xl glow-card">
-        <div className="h-32 md:h-48 bg-cover bg-center relative rounded-t-3xl overflow-hidden"
+      <div className="relative rounded-3xl overflow-hidden border border-border/60 bg-card shadow-xl">
+        <div className="h-40 md:h-56 bg-cover bg-center relative"
              style={{ backgroundImage: safeCssUrl(profile?.banner_url)
                ?? "linear-gradient(135deg, oklch(0.6 0.18 350), oklch(0.55 0.2 280), oklch(0.6 0.18 220))" }}>
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          {/* decorative orbs */}
+          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-fuchsia-500/30 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-10 left-1/3 w-56 h-56 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
         </div>
-        <div className="px-6 md:px-8 pb-6 md:pb-8 flex flex-col md:flex-row gap-6 items-center md:items-start">
-          <div className="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl shrink-0 -mt-14 md:-mt-16 border-4 border-background shadow-xl relative z-10">
-            {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" /> : "🌸"}
+        <div className="px-6 md:px-8 pb-6 md:pb-8 flex flex-col md:flex-row gap-6 items-center md:items-end">
+          <div className="relative -mt-16 md:-mt-20 shrink-0">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-fuchsia-500 via-pink-500 to-amber-400 blur opacity-80" />
+            <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-br from-primary to-accent overflow-hidden flex items-center justify-center text-5xl border-4 border-background shadow-2xl">
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" /> : "🌸"}
+            </div>
           </div>
-          <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl font-bold">{profile?.display_name || "Anonymous Collector"}</h1>
-            <div className="flex items-center gap-2 justify-center md:justify-start mt-1">
-              <p className="font-mono text-sm text-muted-foreground">{shortAddr(address)}</p>
+          <div className="flex-1 text-center md:text-left min-w-0">
+            <h1 className="text-3xl md:text-4xl font-bold gradient-text truncate">{profile?.display_name || "Anonymous Collector"}</h1>
+            <div className="flex items-center gap-2 justify-center md:justify-start mt-1.5">
+              <span className="font-mono text-xs md:text-sm text-muted-foreground px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">{shortAddr(address)}</span>
               <button onClick={() => { navigator.clipboard.writeText(address); toast.success("Address copied"); }}
                 className="text-muted-foreground hover:text-primary" aria-label="Copy address">
                 <Copy className="w-3.5 h-3.5" />
@@ -94,7 +100,7 @@ function Profile() {
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
-            <p className="mt-2 text-sm">{profile?.bio || "No bio yet."}</p>
+            <p className="mt-3 text-sm text-foreground/90 max-w-2xl">{profile?.bio || "No bio yet — tell the community what you collect."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
               {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
               {safeHttpUrl(profile?.website) && <a href={safeHttpUrl(profile?.website)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
@@ -123,6 +129,7 @@ function Profile() {
         <Stat icon={<Wallet className="w-3 h-3" />} label={`Listed (${CHAIN.symbol})`} v={myListings.reduce((a, l) => a + +l.priceEth, 0).toFixed(2)} />
         <Stat icon={<TrendingUp className="w-3 h-3" />} label={`Est. Value`} v={`${estimatedValue.toFixed(2)} ${CHAIN.symbol}`} />
       </div>
+
 
       <Tabs defaultValue="collection" className="w-full">
         <TabsList className="glass">

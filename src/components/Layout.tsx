@@ -16,8 +16,8 @@ const navItems = [
   { to: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/dex", label: "DEX", icon: Repeat },
-  { to: "/docs", label: "Docs", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: User },
+  { to: "/docs", label: "Docs", icon: BookOpen },
 ];
 
 
