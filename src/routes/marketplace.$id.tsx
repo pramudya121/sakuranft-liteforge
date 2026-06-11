@@ -206,7 +206,7 @@ function NFTDetail() {
                       if (!isAddress(transferTo)) return toast.error("Invalid address");
                       wrap("xfer",
                         () => transferNFT(signer, transferTo, nft.tokenId),
-                        () => { setShowTransfer(false); setTransferTo(""); });
+                        () => { setShowTransfer(false); setTransferTo(""); refetchNFT(); });
                     }} disabled={!transferTo}>Send</Button>
                     <Button variant="ghost" onClick={() => setShowTransfer(false)}>Cancel</Button>
                   </div>
