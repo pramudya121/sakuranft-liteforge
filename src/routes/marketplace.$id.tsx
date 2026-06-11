@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useNFTViews, pushNotification } from "@/lib/supabase-hooks";
 import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
-import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB } from "@/lib/useRealtimeListings";
+import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB, updateListingPrice as updateListingPriceDB } from "@/lib/useRealtimeListings";
 
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
@@ -50,7 +50,7 @@ export const Route = createFileRoute("/marketplace/$id")({
 
 function NFTDetail() {
   const { id } = Route.useParams();
-  const { nft, listing, loading } = useNFT(id);
+  const { nft, listing, loading, refetch: refetchNFT } = useNFT(id);
   const { offers } = useOffers(id);
   const { listings: dbActive } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
 
@@ -58,10 +58,17 @@ function NFTDetail() {
   async function syncListingSold() {
     const row = dbActive.find((d) => String(d.token_id) === String(id));
     if (row) { try { await markListingSold(row.id); } catch {} }
+    refetchNFT();
   }
   async function syncListingCancelled() {
     const row = dbActive.find((d) => String(d.token_id) === String(id));
     if (row) { try { await cancelListingDB(row.id); } catch {} }
+    refetchNFT();
+  }
+  async function syncListingPrice(newPriceEth: string) {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (row) { try { await updateListingPriceDB(row.id, parseEther(newPriceEth), newPriceEth); } catch {} }
+    refetchNFT();
   }
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
@@ -177,7 +184,7 @@ function NFTDetail() {
                   <p className="text-sm font-medium">Update listing price</p>
                   <div className="flex gap-2">
                     <Input type="number" step="0.001" placeholder={`New price in ${CHAIN.symbol}`} value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                    <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), () => setEditing(false))} disabled={!editPrice}>Save</Button>
+                    <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), async () => { await syncListingPrice(editPrice); setEditing(false); })} disabled={!editPrice}>Save</Button>
                     <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
                   </div>
                 </div>
@@ -199,7 +206,7 @@ function NFTDetail() {
                       if (!isAddress(transferTo)) return toast.error("Invalid address");
                       wrap("xfer",
                         () => transferNFT(signer, transferTo, nft.tokenId),
-                        () => { setShowTransfer(false); setTransferTo(""); });
+                        () => { setShowTransfer(false); setTransferTo(""); refetchNFT(); });
                     }} disabled={!transferTo}>Send</Button>
                     <Button variant="ghost" onClick={() => setShowTransfer(false)}>Cancel</Button>
                   </div>
