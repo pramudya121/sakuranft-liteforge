@@ -184,7 +184,7 @@ function NFTDetail() {
                   <p className="text-sm font-medium">Update listing price</p>
                   <div className="flex gap-2">
                     <Input type="number" step="0.001" placeholder={`New price in ${CHAIN.symbol}`} value={editPrice} onChange={(e) => setEditPrice(e.target.value)} />
-                    <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), () => setEditing(false))} disabled={!editPrice}>Save</Button>
+                    <Button onClick={() => wrap("upd", () => updateListingPrice(signer, listing.listingId, editPrice), async () => { await syncListingPrice(editPrice); setEditing(false); })} disabled={!editPrice}>Save</Button>
                     <Button variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
                   </div>
                 </div>
