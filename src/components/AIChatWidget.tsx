@@ -450,6 +450,28 @@ export function AIChatWidget() {
                     </div>
                   </div>
                 ))}
+                {/* Suggested quick questions — only when the convo is empty (just the greeting) */}
+                {msgs.filter((m) => m.role === "user").length === 0 && !busy && (
+                  <div className="pt-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 px-1">Try asking</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        "What is SakuraNFT?",
+                        "How do I mint an NFT?",
+                        "Swap 0.1 zkLTC to ETH",
+                        "Show my wallet balance",
+                        "How does the marketplace fee work?",
+                        "Add liquidity 1 zkLTC + 0.001 ETH",
+                        "Take me to the marketplace",
+                      ].map((q) => (
+                        <button key={q} onClick={() => send(q)} disabled={busy}
+                          className="text-xs px-2.5 py-1.5 rounded-full bg-background border border-border/80 hover:border-primary/60 hover:bg-primary/10 text-foreground/90 transition">
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {busy && (
                   <div className="flex gap-2"><div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center"><Bot className="w-3.5 h-3.5 text-white" /></div>
                     <div className="px-3 py-2 rounded-2xl bg-muted"><Loader2 className="w-4 h-4 animate-spin text-primary" /></div>
