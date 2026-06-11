@@ -50,7 +50,7 @@ export const Route = createFileRoute("/marketplace/$id")({
 
 function NFTDetail() {
   const { id } = Route.useParams();
-  const { nft, listing, loading } = useNFT(id);
+  const { nft, listing, loading, refetch: refetchNFT } = useNFT(id);
   const { offers } = useOffers(id);
   const { listings: dbActive } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
 
@@ -58,10 +58,17 @@ function NFTDetail() {
   async function syncListingSold() {
     const row = dbActive.find((d) => String(d.token_id) === String(id));
     if (row) { try { await markListingSold(row.id); } catch {} }
+    refetchNFT();
   }
   async function syncListingCancelled() {
     const row = dbActive.find((d) => String(d.token_id) === String(id));
     if (row) { try { await cancelListingDB(row.id); } catch {} }
+    refetchNFT();
+  }
+  async function syncListingPrice(newPriceEth: string) {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (row) { try { await updateListingPriceDB(row.id, parseEther(newPriceEth), newPriceEth); } catch {} }
+    refetchNFT();
   }
   const { signer, address } = useWallet();
   const [listPrice, setListPrice] = useState("");
