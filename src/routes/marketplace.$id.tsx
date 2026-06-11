@@ -192,15 +192,17 @@ function NFTDetail() {
                         // grid & this page reflect the change before chain confirmation.
                         try { await syncListingPrice(editPrice); } catch {}
                         setEditing(false);
-                        await wrap(
-                          "upd",
-                          () => updateListingPrice(signer, listing.listingId, editPrice),
-                          () => { refetchNFT(); },
-                        ).catch(async () => {
-                          // Revert DB row if the on-chain tx failed.
+                        toast.loading("Confirm price update in wallet…", { id: "upd" });
+                        try {
+                          await updateListingPrice(signer, listing.listingId, editPrice);
+                          toast.success("Price updated ✓", { id: "upd" });
+                          refetchNFT();
+                        } catch (e: any) {
+                          // Revert DB row if the on-chain tx failed/was rejected.
                           try { await syncListingPrice(prevPrice); } catch {}
                           refetchNFT();
-                        });
+                          toast.error(e?.shortMessage ?? e?.message ?? "Update failed", { id: "upd" });
+                        }
                       }}
                       disabled={!editPrice}
                     >Save</Button>
