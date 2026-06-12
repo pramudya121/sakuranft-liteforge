@@ -38,11 +38,10 @@ export function CollectionPicker({
 
   async function handleLogoUpload(file: File) {
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return toast.error("Max 5MB");
     setUploading(true);
     try {
-      const { assertSafeImage } = await import("@/lib/upload");
-      assertSafeImage(file);
-      const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
       const path = `collections/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error } = await supabase.storage.from("nft-images").upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;

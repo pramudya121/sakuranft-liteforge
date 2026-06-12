@@ -15,31 +15,6 @@ import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB, updateListingPrice as updateListingPriceDB } from "@/lib/useRealtimeListings";
 
-type NftAttribute = { trait_type: string; value: string | number | boolean };
-type ParsedNftMeta = { description: string; category?: string; attributes: NftAttribute[] };
-
-function parseNftDescription(raw?: string | null): ParsedNftMeta {
-  const empty: ParsedNftMeta = { description: "", attributes: [] };
-  if (!raw) return empty;
-  const trimmed = raw.trim();
-  // If it looks like JSON, try to extract a nested description/attributes/category.
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    try {
-      const obj = JSON.parse(trimmed);
-      const description = typeof obj.description === "string" ? obj.description : "";
-      const category = typeof obj.category === "string" ? obj.category : undefined;
-      const rawAttrs = Array.isArray(obj.attributes) ? obj.attributes : [];
-      const attributes: NftAttribute[] = rawAttrs
-        .filter((a: any) => a && typeof a === "object" && "trait_type" in a)
-        .map((a: any) => ({ trait_type: String(a.trait_type), value: a.value }));
-      return { description, category, attributes };
-    } catch {
-      // fall through
-    }
-  }
-  return { description: trimmed, attributes: [] };
-}
-
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
   head: ({ params }) => {
@@ -165,31 +140,7 @@ function NFTDetail() {
           <div>
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
-            {(() => {
-              const meta = parseNftDescription(nft.description);
-              return (
-                <>
-                  <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">
-                    {meta.description?.trim() ? meta.description : "No description."}
-                  </p>
-                  {(meta.category || meta.attributes.length > 0) && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {meta.category && (
-                        <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-                          {meta.category}
-                        </span>
-                      )}
-                      {meta.attributes.map((attr: NftAttribute, i: number) => (
-                        <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs">
-                          <span className="text-muted-foreground">{attr.trait_type}:</span>
-                          <span className="font-medium text-foreground">{String(attr.value)}</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
+            <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">{nft.description?.trim() ? nft.description : "No description."}</p>
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Eye className="w-3 h-3" /> {viewCount} views
