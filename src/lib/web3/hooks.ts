@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Contract, formatEther } from "ethers";
 import { CONTRACTS, MARKETPLACE_ABI, NFT_ABI, OFFER_ABI } from "./contracts";
 import { readProvider, decodeTokenUri } from "./ethers";
-import { allCached, getCachedNFT, ingest, invalidateOwners, pMapBatched } from "./nft-cache";
+import { allCached, getCachedNFT, ingest, invalidateOwners, pMapBatched, type CachedNFT, type NFTAttribute } from "./nft-cache";
 
 export type NFTMeta = {
   tokenId: bigint;
@@ -11,6 +11,9 @@ export type NFTMeta = {
   name: string;
   description: string;
   image: string;
+  attributes?: NFTAttribute[];
+  category?: string;
+  royalty_bps?: number;
 };
 
 export type Listing = {
@@ -27,7 +30,7 @@ export type Listing = {
 let cachedListings: Listing[] | null = null;
 let cachedListingCount = 0n;
 
-function toMeta(c: { tokenId: string; owner: string; tokenURI: string; name: string; description: string; image: string }): NFTMeta {
+function toMeta(c: CachedNFT): NFTMeta {
   return { ...c, tokenId: BigInt(c.tokenId) };
 }
 
