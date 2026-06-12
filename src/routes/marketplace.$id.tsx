@@ -142,10 +142,14 @@ function NFTDetail() {
   const [transferTo, setTransferTo] = useState("");
   const [showTransfer, setShowTransfer] = useState(false);
   const [feeBps, setFeeBps] = useState<number | null>(null);
+  const [imageBroken, setImageBroken] = useState(false);
   const { count: viewCount, increment } = useNFTViews(id);
 
+  useEffect(() => { setImageBroken(false); }, [id, nft?.image]);
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
   useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
+
+  const meta = useMemo(() => (nft ? resolveMeta(nft) : null), [nft]);
 
   // When an NFT is listed, ownerOf() returns the marketplace escrow contract.
   // Use the listing.seller as the canonical owner for display & ownership checks.
