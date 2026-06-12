@@ -26,6 +26,7 @@ type Group = { title: string; items: Item[] };
 const groups: Group[] = [
   { title: "Getting Started", items: [
     { id: "intro", label: "Introduction", icon: BookOpen },
+    { id: "why", label: "Why SakuraNFT", icon: Sparkles },
     { id: "wallet", label: "Connect Wallet", icon: Wallet },
     { id: "faucet", label: "Get Testnet Tokens", icon: Droplet },
   ]},
