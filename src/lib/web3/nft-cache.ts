@@ -5,6 +5,8 @@
 
 import { decodeTokenUri } from "./ethers";
 
+export type NFTAttribute = { trait_type: string; value: string | number | boolean };
+
 export type CachedNFT = {
   tokenId: string;       // bigint → string for serialization
   owner: string;
@@ -12,6 +14,9 @@ export type CachedNFT = {
   name: string;
   description: string;
   image: string;
+  attributes?: NFTAttribute[];
+  category?: string;
+  royalty_bps?: number;
 };
 
 const KEY = "sakura.nftCache.v2";
