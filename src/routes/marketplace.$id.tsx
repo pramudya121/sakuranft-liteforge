@@ -140,7 +140,31 @@ function NFTDetail() {
           <div>
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
             <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
-            <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">{nft.description?.trim() ? nft.description : "No description."}</p>
+            {(() => {
+              const meta = parseNftDescription(nft.description);
+              return (
+                <>
+                  <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">
+                    {meta.description?.trim() ? meta.description : "No description."}
+                  </p>
+                  {(meta.category || meta.attributes.length > 0) && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {meta.category && (
+                        <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                          {meta.category}
+                        </span>
+                      )}
+                      {meta.attributes.map((attr, i) => (
+                        <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs">
+                          <span className="text-muted-foreground">{attr.trait_type}:</span>
+                          <span className="font-medium text-foreground">{String(attr.value)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Eye className="w-3 h-3" /> {viewCount} views
