@@ -380,7 +380,7 @@ function NFTDetail() {
             <div className="glass rounded-2xl p-4 space-y-3">
               <p className="text-sm font-medium">Make an offer</p>
               <div className="flex gap-2">
-                <Input type="number" step="0.001" placeholder={`Offer in ${CHAIN.symbol}`} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
+                <Input id="make-offer-input" type="number" step="0.001" placeholder={`Offer in ${CHAIN.symbol}`} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
                 <Button variant="secondary" onClick={() => wrap("offer",
                   () => makeOffer(signer, nft.tokenId, offerPrice),
                   () => pushNotification(nft.owner, "offer", "💎 New offer received", `${offerPrice} ${CHAIN.symbol} offered on ${nft.name}`, nft.tokenId, `/marketplace/${id}`),
