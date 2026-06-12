@@ -5,6 +5,8 @@
 
 import { decodeTokenUri } from "./ethers";
 
+export type NFTAttribute = { trait_type: string; value: string | number | boolean };
+
 export type CachedNFT = {
   tokenId: string;       // bigint → string for serialization
   owner: string;
@@ -12,6 +14,9 @@ export type CachedNFT = {
   name: string;
   description: string;
   image: string;
+  attributes?: NFTAttribute[];
+  category?: string;
+  royalty_bps?: number;
 };
 
 const KEY = "sakura.nftCache.v2";
@@ -70,13 +75,23 @@ export function ingest(tokenId: bigint, uri: string, owner: string): CachedNFT {
   const idStr = tokenId.toString();
   const prior = mem.get(idStr);
   const meta = prior?.tokenURI === uri && prior.name
-    ? { name: prior.name, description: prior.description, image: prior.image }
+    ? {
+        name: prior.name,
+        description: prior.description,
+        image: prior.image,
+        attributes: prior.attributes,
+        category: prior.category,
+        royalty_bps: prior.royalty_bps,
+      }
     : (() => {
         const m = decodeTokenUri(uri) ?? {};
         return {
           name: m.name ?? `NFT #${idStr}`,
           description: m.description ?? "",
           image: m.image ?? "",
+          attributes: Array.isArray(m.attributes) ? (m.attributes as NFTAttribute[]) : undefined,
+          category: typeof m.category === "string" ? m.category : undefined,
+          royalty_bps: typeof m.royalty_bps === "number" ? m.royalty_bps : undefined,
         };
       })();
   const next: CachedNFT = { tokenId: idStr, owner, tokenURI: uri, ...meta };

@@ -296,6 +296,7 @@ export type Database = {
     }
     Functions: {
       increment_nft_view: { Args: { p_token_id: number }; Returns: undefined }
+      request_wallet: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
