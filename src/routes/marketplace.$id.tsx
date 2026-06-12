@@ -434,9 +434,51 @@ function NFTDetail() {
           <CommentsPanel tokenId={nft.tokenId} />
         </TabsContent>
         <TabsContent value="metadata" className="glass rounded-2xl p-4">
-          <pre className="text-xs overflow-auto max-h-64">{JSON.stringify({ tokenId: id, name: nft.name, description: nft.description, owner: nft.owner }, null, 2)}</pre>
+          <pre className="text-xs overflow-auto max-h-64">{JSON.stringify({
+            tokenId: id,
+            name: nft.name,
+            description: meta?.description ?? "",
+            image: nft.image,
+            owner: nft.owner,
+            category: meta?.category,
+            attributes: meta?.attributes,
+            royalty_bps: meta?.royalty_bps,
+          }, null, 2)}</pre>
         </TabsContent>
       </Tabs>
+
+      {/* Sticky mobile/scroll action bar: stays visible so Buy/Offer is always one tap away */}
+      {(listing || !isOwner) && (
+        <div className="lg:hidden sticky bottom-2 z-40">
+          <div className="glass rounded-2xl border border-border/60 p-3 flex items-center gap-3 shadow-2xl backdrop-blur">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-muted-foreground truncate">{nft.name}</p>
+              {listing
+                ? <p className="font-bold text-primary truncate">{listing.priceEth} {CHAIN.symbol}</p>
+                : <p className="text-xs text-muted-foreground">Not listed</p>}
+            </div>
+            {listing && !isOwner && (
+              <Button size="sm" className="rounded-full" onClick={() => wrap("buy",
+                () => buyNFT(signer, listing.listingId, listing.price),
+                async () => {
+                  await syncListingSold();
+                  await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
+                },
+              )}>
+                <ShoppingCart className="w-4 h-4 mr-1" /> Buy
+              </Button>
+            )}
+            {!isOwner && (
+              <Button size="sm" variant="secondary" className="rounded-full" onClick={() => {
+                document.getElementById("make-offer-input")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                setTimeout(() => document.getElementById("make-offer-input")?.focus(), 350);
+              }}>
+                <Send className="w-4 h-4 mr-1" /> Offer
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
