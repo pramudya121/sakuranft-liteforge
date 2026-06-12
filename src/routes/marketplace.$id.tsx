@@ -199,45 +199,75 @@ function NFTDetail() {
       <Button asChild variant="ghost" size="sm"><Link to="/marketplace"><ArrowLeft className="w-4 h-4 mr-2" /> Back to Marketplace</Link></Button>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        <div className="glass rounded-3xl overflow-hidden glow-card">
-          {nft.image ? <img src={nft.image} alt={nft.name} className="w-full aspect-square object-cover" loading="lazy" decoding="async" />
-            : <div className="aspect-square flex items-center justify-center text-9xl">🌸</div>}
+        <div className="glass rounded-3xl overflow-hidden glow-card relative">
+          {nft.image && !imageBroken ? (
+            <img
+              src={nft.image}
+              alt={nft.name}
+              className="w-full aspect-square object-cover"
+              loading="eager"
+              decoding="async"
+              onError={() => setImageBroken(true)}
+            />
+          ) : (
+            <div className="aspect-square flex flex-col items-center justify-center gap-3 text-muted-foreground">
+              {nft.image ? <ImageOff className="w-14 h-14" /> : <span className="text-9xl">🌸</span>}
+              <p className="text-xs">{nft.image ? "Image failed to load" : "No artwork attached"}</p>
+            </div>
+          )}
+          {meta?.category && (
+            <span className="absolute top-4 left-4 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-3 py-1 text-xs font-medium border border-border">
+              <Sparkles className="w-3 h-3 text-primary" /> {meta.category}
+            </span>
+          )}
         </div>
 
         <div className="space-y-6">
           <div>
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
-            <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
-            {(() => {
-              const meta = parseNftDescription(nft.description);
-              return (
-                <>
-                  <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">
-                    {meta.description?.trim() ? meta.description : "No description."}
-                  </p>
-                  {(meta.category || meta.attributes.length > 0) && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {meta.category && (
-                        <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-                          {meta.category}
+            <h1 className="text-4xl font-bold gradient-text">{nft.name || `NFT #${nft.tokenId.toString()}`}</h1>
+            <div className="mt-3 space-y-3">
+              {meta && meta.description.trim()
+                ? renderLite(meta.description)
+                : <p className="text-muted-foreground italic">No description provided.</p>}
+            </div>
+            {meta && meta.attributes.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Attributes</p>
+                <TooltipProvider delayDuration={200}>
+                  <div className="flex flex-wrap gap-2">
+                    {meta.attributes.map((attr: NftAttribute, i: number) => {
+                      const val = String(attr.value);
+                      const long = val.length > 18 || attr.trait_type.length > 14;
+                      const chip = (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs max-w-[16rem]">
+                          <span className="text-muted-foreground truncate">{attr.trait_type}:</span>
+                          <span className="font-medium text-foreground truncate">{val}</span>
                         </span>
-                      )}
-                      {meta.attributes.map((attr: NftAttribute, i: number) => (
-                        <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs">
-                          <span className="text-muted-foreground">{attr.trait_type}:</span>
-                          <span className="font-medium text-foreground">{String(attr.value)}</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-            <div className="flex items-center gap-3 mt-3">
+                      );
+                      return long ? (
+                        <Tooltip key={i}>
+                          <TooltipTrigger asChild>{chip}</TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs break-words">
+                            <span className="font-semibold">{attr.trait_type}:</span> {val}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span key={i}>{chip}</span>
+                      );
+                    })}
+                  </div>
+                </TooltipProvider>
+              </div>
+            )}
+            <div className="flex items-center gap-3 mt-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Eye className="w-3 h-3" /> {viewCount} views
               </div>
               <LikeButton tokenId={nft.tokenId} />
+              {meta?.royalty_bps != null && meta.royalty_bps > 0 && (
+                <span className="text-[11px] text-muted-foreground">Royalty: {(meta.royalty_bps / 100).toFixed(2)}%</span>
+              )}
             </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
