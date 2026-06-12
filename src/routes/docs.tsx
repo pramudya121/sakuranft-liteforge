@@ -26,7 +26,6 @@ type Group = { title: string; items: Item[] };
 const groups: Group[] = [
   { title: "Getting Started", items: [
     { id: "intro", label: "Introduction", icon: BookOpen },
-    { id: "why", label: "Why SakuraNFT", icon: Sparkles },
     { id: "wallet", label: "Connect Wallet", icon: Wallet },
     { id: "faucet", label: "Get Testnet Tokens", icon: Droplet },
   ]},
@@ -165,71 +164,6 @@ function Docs() {
             </div>
           </div>
         </section>
-
-        <Section id="why" icon={<Sparkles className="w-5 h-5" />} title="Why SakuraNFT ✨">
-          <p>SakuraNFT isn't another generic OpenSea clone — it's a <strong>vertically integrated trading hub</strong> that
-            combines an NFT marketplace, a UniswapV2-style DEX, deep analytics, a portfolio manager, and an action-capable
-            AI assistant in <em>one</em> dApp on the LitVM LiteForge chain.</p>
-
-          <h3 className="font-bold text-lg mt-5 mb-2">🚀 Key advantages</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <KeyFeature icon={<Layers className="w-5 h-5" />} title="All-in-one dApp"
-              body="Mint, list, swap, add liquidity, and view analytics without switching apps or chains." />
-            <KeyFeature icon={<Bot className="w-5 h-5" />} title="AI that actually trades"
-              body="Hana can quote, propose, and execute swaps + liquidity ops — you only confirm in your wallet." />
-            <KeyFeature icon={<Zap className="w-5 h-5" />} title="Low-fee testnet UX"
-              body="Built on LitVM LiteForge — gas is near-zero so you can iterate and learn risk-free." />
-            <KeyFeature icon={<ShieldCheck className="w-5 h-5" />} title="Non-custodial by design"
-              body="Your wallet stays the source of truth. We never hold keys, balances, or NFTs in escrow off-chain." />
-            <KeyFeature icon={<BarChart3 className="w-5 h-5" />} title="Native analytics & history"
-              body="TVL, floor, volume, per-pair reserves, sales feed and price history are first-class — not an afterthought." />
-            <KeyFeature icon={<Database className="w-5 h-5" />} title="ERC-721 standard metadata"
-              body="Name, image, attributes, category & royalty live as top-level fields — fully portable to any marketplace." />
-          </div>
-
-          <h3 className="font-bold text-lg mt-6 mb-2">🧩 Problems we solve</h3>
-          <ul className="space-y-2.5 text-[15px] leading-relaxed">
-            <li>
-              <strong>📦 Fragmented tooling.</strong> Today you need OpenSea for NFTs, Uniswap for swaps,
-              Dexscreener for analytics, and a separate portfolio app. SakuraNFT collapses that into a single
-              cohesive surface, so beginners stop bouncing between five tabs.
-            </li>
-            <li>
-              <strong>🤖 AI that talks but can't act.</strong> Most chat assistants only describe DeFi. Hana
-              proposes real on-chain transactions (swap, add liquidity, mint) that your wallet then signs —
-              closing the loop between “explain it” and “do it for me.”
-            </li>
-            <li>
-              <strong>🧾 Opaque NFT metadata.</strong> Many marketplaces dump JSON into the description field,
-              breaking attribute filters and royalty enforcement. SakuraNFT writes ERC-721 standard fields
-              (<code>attributes</code>, <code>category</code>, <code>royalty_bps</code>) at the top level so
-              external marketplaces can read them too.
-            </li>
-            <li>
-              <strong>💸 Hidden costs.</strong> Marketplace fees and seller payouts are previewed
-              <em> before</em> you sign — no surprises after the transaction lands.
-            </li>
-            <li>
-              <strong>🚧 Steep DeFi onramps.</strong> Concepts like AMM pricing, slippage, and impermanent loss
-              get plain-language explainers in this doc and inline tooltips inside the trading UI.
-            </li>
-            <li>
-              <strong>🔐 Trust on public data.</strong> Likes, comments, watchlists, listings, offers, and
-              notifications are scoped to the connected wallet at the database layer — anonymous spam and
-              cross-wallet tampering are blocked by RLS, not just by client checks.
-            </li>
-            <li>
-              <strong>⚡ Slow detail pages.</strong> Marketplace cards and detail pages hydrate from a local
-              cache instantly, then revalidate from chain events — so browsing feels native, not Web3-laggy.
-            </li>
-          </ul>
-
-          <Callout tone="info" icon={<Sparkles className="w-4 h-4" />}>
-            <strong>The thesis:</strong> a creator should be able to mint, list, price, and discover liquidity
-            for their work — and a trader should be able to discover, value, and acquire it — without leaving
-            a single browser tab. SakuraNFT is that single tab. 🌸
-          </Callout>
-        </Section>
 
         <Section id="wallet" icon={<Wallet className="w-5 h-5" />} title="Connect Wallet 🦊">
           <p>SakuraNFT supports any EIP-1193 wallet — <strong>MetaMask 🦊</strong>, <strong>Rabby 🐰</strong>, <strong>OKX</strong>, and <strong>Bitget</strong>.

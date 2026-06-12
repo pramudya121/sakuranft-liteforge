@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye, ArrowRightLeft, ImageOff, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useNFT, useOffers, type NFTMeta } from "@/lib/web3/hooks";
+import { useNFT, useOffers } from "@/lib/web3/hooks";
 import { useWallet } from "@/contexts/WalletContext";
 import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice, transferNFT, getMarketplaceFeeInfo, parseEther } from "@/lib/web3/ethers";
 import { isAddress } from "ethers";
@@ -17,66 +16,28 @@ import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB, updateListingPrice as updateListingPriceDB } from "@/lib/useRealtimeListings";
 
 type NftAttribute = { trait_type: string; value: string | number | boolean };
+type ParsedNftMeta = { description: string; category?: string; attributes: NftAttribute[] };
 
-/**
- * Resolve the rich metadata for a token. Prefers the top-level fields from
- * `decodeTokenUri` (modern mints) and falls back to JSON packed inside
- * `description` (legacy mints).
- */
-function resolveMeta(nft: NFTMeta): { description: string; category?: string; attributes: NftAttribute[]; royalty_bps?: number } {
-  const out = {
-    description: (nft.description ?? "").trim(),
-    category: nft.category,
-    attributes: Array.isArray(nft.attributes) ? nft.attributes : [],
-    royalty_bps: nft.royalty_bps,
-  };
-  if (out.description.startsWith("{") && out.description.endsWith("}")) {
+function parseNftDescription(raw?: string | null): ParsedNftMeta {
+  const empty: ParsedNftMeta = { description: "", attributes: [] };
+  if (!raw) return empty;
+  const trimmed = raw.trim();
+  // If it looks like JSON, try to extract a nested description/attributes/category.
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
     try {
-      const obj = JSON.parse(out.description);
-      if (obj && typeof obj === "object") {
-        if (typeof obj.description === "string") out.description = obj.description;
-        if (!out.category && typeof obj.category === "string") out.category = obj.category;
-        if (out.attributes.length === 0 && Array.isArray(obj.attributes)) {
-          out.attributes = obj.attributes
-            .filter((a: any) => a && typeof a === "object" && "trait_type" in a)
-            .map((a: any) => ({ trait_type: String(a.trait_type), value: a.value }));
-        }
-        if (out.royalty_bps == null && typeof obj.royalty_bps === "number") out.royalty_bps = obj.royalty_bps;
-      }
-    } catch { /* keep raw */ }
+      const obj = JSON.parse(trimmed);
+      const description = typeof obj.description === "string" ? obj.description : "";
+      const category = typeof obj.category === "string" ? obj.category : undefined;
+      const rawAttrs = Array.isArray(obj.attributes) ? obj.attributes : [];
+      const attributes: NftAttribute[] = rawAttrs
+        .filter((a: any) => a && typeof a === "object" && "trait_type" in a)
+        .map((a: any) => ({ trait_type: String(a.trait_type), value: a.value }));
+      return { description, category, attributes };
+    } catch {
+      // fall through
+    }
   }
-  return out;
-}
-
-/**
- * Render light markdown: paragraphs, **bold**, *italic*, `code`, [text](url),
- * and line breaks. Sanitises by escaping HTML first and only allowing safe URL
- * schemes for links. Returns a fragment of React nodes.
- */
-function renderLite(text: string): React.ReactNode {
-  if (!text) return null;
-  const escapeHtml = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const paragraphs = text.split(/\n{2,}/);
-  return paragraphs.map((para, pi) => {
-    // process inline: links → bold → italic → code
-    let html = escapeHtml(para);
-    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, label, url) => {
-      const safe = String(url).replace(/"/g, "%22");
-      return `<a href="${safe}" target="_blank" rel="noreferrer" class="text-primary underline">${label}</a>`;
-    });
-    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    html = html.replace(/(^|\W)\*([^*\n]+)\*(\W|$)/g, "$1<em>$2</em>$3");
-    html = html.replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-muted text-xs">$1</code>');
-    html = html.replace(/\n/g, "<br />");
-    return (
-      <p
-        key={pi}
-        className="text-muted-foreground leading-relaxed [&_a:hover]:text-primary [&>strong]:text-foreground"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
-    );
-  });
+  return { description: trimmed, attributes: [] };
 }
 
 export const Route = createFileRoute("/marketplace/$id")({
@@ -142,14 +103,10 @@ function NFTDetail() {
   const [transferTo, setTransferTo] = useState("");
   const [showTransfer, setShowTransfer] = useState(false);
   const [feeBps, setFeeBps] = useState<number | null>(null);
-  const [imageBroken, setImageBroken] = useState(false);
   const { count: viewCount, increment } = useNFTViews(id);
 
-  useEffect(() => { setImageBroken(false); }, [id, nft?.image]);
   useEffect(() => { increment(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [id]);
   useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
-
-  const meta = useMemo(() => (nft ? resolveMeta(nft) : null), [nft]);
 
   // When an NFT is listed, ownerOf() returns the marketplace escrow contract.
   // Use the listing.seller as the canonical owner for display & ownership checks.
@@ -199,75 +156,45 @@ function NFTDetail() {
       <Button asChild variant="ghost" size="sm"><Link to="/marketplace"><ArrowLeft className="w-4 h-4 mr-2" /> Back to Marketplace</Link></Button>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        <div className="glass rounded-3xl overflow-hidden glow-card relative">
-          {nft.image && !imageBroken ? (
-            <img
-              src={nft.image}
-              alt={nft.name}
-              className="w-full aspect-square object-cover"
-              loading="eager"
-              decoding="async"
-              onError={() => setImageBroken(true)}
-            />
-          ) : (
-            <div className="aspect-square flex flex-col items-center justify-center gap-3 text-muted-foreground">
-              {nft.image ? <ImageOff className="w-14 h-14" /> : <span className="text-9xl">🌸</span>}
-              <p className="text-xs">{nft.image ? "Image failed to load" : "No artwork attached"}</p>
-            </div>
-          )}
-          {meta?.category && (
-            <span className="absolute top-4 left-4 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur px-3 py-1 text-xs font-medium border border-border">
-              <Sparkles className="w-3 h-3 text-primary" /> {meta.category}
-            </span>
-          )}
+        <div className="glass rounded-3xl overflow-hidden glow-card">
+          {nft.image ? <img src={nft.image} alt={nft.name} className="w-full aspect-square object-cover" loading="lazy" decoding="async" />
+            : <div className="aspect-square flex items-center justify-center text-9xl">🌸</div>}
         </div>
 
         <div className="space-y-6">
           <div>
             <p className="text-sm text-muted-foreground">Token #{nft.tokenId.toString()}</p>
-            <h1 className="text-4xl font-bold gradient-text">{nft.name || `NFT #${nft.tokenId.toString()}`}</h1>
-            <div className="mt-3 space-y-3">
-              {meta && meta.description.trim()
-                ? renderLite(meta.description)
-                : <p className="text-muted-foreground italic">No description provided.</p>}
-            </div>
-            {meta && meta.attributes.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Attributes</p>
-                <TooltipProvider delayDuration={200}>
-                  <div className="flex flex-wrap gap-2">
-                    {meta.attributes.map((attr: NftAttribute, i: number) => {
-                      const val = String(attr.value);
-                      const long = val.length > 18 || attr.trait_type.length > 14;
-                      const chip = (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs max-w-[16rem]">
-                          <span className="text-muted-foreground truncate">{attr.trait_type}:</span>
-                          <span className="font-medium text-foreground truncate">{val}</span>
+            <h1 className="text-4xl font-bold gradient-text">{nft.name}</h1>
+            {(() => {
+              const meta = parseNftDescription(nft.description);
+              return (
+                <>
+                  <p className="text-muted-foreground mt-2 whitespace-pre-wrap break-words leading-relaxed">
+                    {meta.description?.trim() ? meta.description : "No description."}
+                  </p>
+                  {(meta.category || meta.attributes.length > 0) && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {meta.category && (
+                        <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+                          {meta.category}
                         </span>
-                      );
-                      return long ? (
-                        <Tooltip key={i}>
-                          <TooltipTrigger asChild>{chip}</TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs break-words">
-                            <span className="font-semibold">{attr.trait_type}:</span> {val}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <span key={i}>{chip}</span>
-                      );
-                    })}
-                  </div>
-                </TooltipProvider>
-              </div>
-            )}
-            <div className="flex items-center gap-3 mt-4">
+                      )}
+                      {meta.attributes.map((attr: NftAttribute, i: number) => (
+                        <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs">
+                          <span className="text-muted-foreground">{attr.trait_type}:</span>
+                          <span className="font-medium text-foreground">{String(attr.value)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+            <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Eye className="w-3 h-3" /> {viewCount} views
               </div>
               <LikeButton tokenId={nft.tokenId} />
-              {meta?.royalty_bps != null && meta.royalty_bps > 0 && (
-                <span className="text-[11px] text-muted-foreground">Royalty: {(meta.royalty_bps / 100).toFixed(2)}%</span>
-              )}
             </div>
           </div>
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
@@ -380,7 +307,7 @@ function NFTDetail() {
             <div className="glass rounded-2xl p-4 space-y-3">
               <p className="text-sm font-medium">Make an offer</p>
               <div className="flex gap-2">
-                <Input id="make-offer-input" type="number" step="0.001" placeholder={`Offer in ${CHAIN.symbol}`} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
+                <Input type="number" step="0.001" placeholder={`Offer in ${CHAIN.symbol}`} value={offerPrice} onChange={(e) => setOfferPrice(e.target.value)} />
                 <Button variant="secondary" onClick={() => wrap("offer",
                   () => makeOffer(signer, nft.tokenId, offerPrice),
                   () => pushNotification(nft.owner, "offer", "💎 New offer received", `${offerPrice} ${CHAIN.symbol} offered on ${nft.name}`, nft.tokenId, `/marketplace/${id}`),
@@ -434,51 +361,9 @@ function NFTDetail() {
           <CommentsPanel tokenId={nft.tokenId} />
         </TabsContent>
         <TabsContent value="metadata" className="glass rounded-2xl p-4">
-          <pre className="text-xs overflow-auto max-h-64">{JSON.stringify({
-            tokenId: id,
-            name: nft.name,
-            description: meta?.description ?? "",
-            image: nft.image,
-            owner: nft.owner,
-            category: meta?.category,
-            attributes: meta?.attributes,
-            royalty_bps: meta?.royalty_bps,
-          }, null, 2)}</pre>
+          <pre className="text-xs overflow-auto max-h-64">{JSON.stringify({ tokenId: id, name: nft.name, description: nft.description, owner: nft.owner }, null, 2)}</pre>
         </TabsContent>
       </Tabs>
-
-      {/* Sticky mobile/scroll action bar: stays visible so Buy/Offer is always one tap away */}
-      {(listing || !isOwner) && (
-        <div className="lg:hidden sticky bottom-2 z-40">
-          <div className="glass rounded-2xl border border-border/60 p-3 flex items-center gap-3 shadow-2xl backdrop-blur">
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-muted-foreground truncate">{nft.name}</p>
-              {listing
-                ? <p className="font-bold text-primary truncate">{listing.priceEth} {CHAIN.symbol}</p>
-                : <p className="text-xs text-muted-foreground">Not listed</p>}
-            </div>
-            {listing && !isOwner && (
-              <Button size="sm" className="rounded-full" onClick={() => wrap("buy",
-                () => buyNFT(signer, listing.listingId, listing.price),
-                async () => {
-                  await syncListingSold();
-                  await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
-                },
-              )}>
-                <ShoppingCart className="w-4 h-4 mr-1" /> Buy
-              </Button>
-            )}
-            {!isOwner && (
-              <Button size="sm" variant="secondary" className="rounded-full" onClick={() => {
-                document.getElementById("make-offer-input")?.scrollIntoView({ behavior: "smooth", block: "center" });
-                setTimeout(() => document.getElementById("make-offer-input")?.focus(), 350);
-              }}>
-                <Send className="w-4 h-4 mr-1" /> Offer
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

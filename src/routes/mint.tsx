@@ -105,15 +105,15 @@ function Mint() {
     if (!file || !name) return toast.error("Artwork and name required");
     setBusy(true);
     try {
+      // Pack royalty + traits in description prefix for off-chain readers
       const metaTraits = traits.filter((t) => t.trait_type && t.value);
-      const royaltyBps = Math.floor(Math.max(0, Math.min(50, +royalty || 0)) * 100);
-      // Pass description as plain text — attributes / category / royalty_bps
-      // travel as TOP-LEVEL ERC-721 metadata fields, not packed into description.
-      const receipt = await mintNFT(signer, file, name, desc, setStatus, {
-        attributes: metaTraits,
+      const richDesc = JSON.stringify({
+        description: desc,
         category,
-        royalty_bps: royaltyBps,
+        royalty_bps: Math.floor(Math.max(0, Math.min(50, +royalty || 0)) * 100),
+        attributes: metaTraits,
       });
+      const receipt = await mintNFT(signer, file, name, richDesc, setStatus);
       toast.success("NFT minted successfully!");
       console.log(receipt);
       setTimeout(() => nav({ to: "/profile" }), 1000);
