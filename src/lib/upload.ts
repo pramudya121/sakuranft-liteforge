@@ -1,7 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+export const ALLOWED_IMAGE_MIME = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+const ALLOWED_MIME = ALLOWED_IMAGE_MIME;
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_BYTES = MAX_IMAGE_BYTES;
+
+/** Validate file MIME + size. Throws on invalid input. */
+export function assertSafeImage(file: File) {
+  if (!ALLOWED_IMAGE_MIME.has(file.type)) {
+    throw new Error("Only PNG, JPEG, WEBP, or GIF images are allowed.");
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    throw new Error("Image must be 5 MB or smaller.");
+  }
+}
 const MAX_DIMENSION = 2048; // px — anything larger gets downscaled
 
 /**
