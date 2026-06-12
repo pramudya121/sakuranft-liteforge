@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye, ArrowRightLeft } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Tag, ShoppingCart, X, Send, Check, Eye, ArrowRightLeft, ImageOff, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNFT, useOffers } from "@/lib/web3/hooks";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNFT, useOffers, type NFTMeta } from "@/lib/web3/hooks";
 import { useWallet } from "@/contexts/WalletContext";
 import { acceptOffer, buyNFT, cancelListing, cancelOffer, listNFT, makeOffer, shortAddr, updateListingPrice, transferNFT, getMarketplaceFeeInfo, parseEther } from "@/lib/web3/ethers";
 import { isAddress } from "ethers";
@@ -16,28 +17,66 @@ import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB, updateListingPrice as updateListingPriceDB } from "@/lib/useRealtimeListings";
 
 type NftAttribute = { trait_type: string; value: string | number | boolean };
-type ParsedNftMeta = { description: string; category?: string; attributes: NftAttribute[] };
 
-function parseNftDescription(raw?: string | null): ParsedNftMeta {
-  const empty: ParsedNftMeta = { description: "", attributes: [] };
-  if (!raw) return empty;
-  const trimmed = raw.trim();
-  // If it looks like JSON, try to extract a nested description/attributes/category.
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+/**
+ * Resolve the rich metadata for a token. Prefers the top-level fields from
+ * `decodeTokenUri` (modern mints) and falls back to JSON packed inside
+ * `description` (legacy mints).
+ */
+function resolveMeta(nft: NFTMeta): { description: string; category?: string; attributes: NftAttribute[]; royalty_bps?: number } {
+  const out = {
+    description: (nft.description ?? "").trim(),
+    category: nft.category,
+    attributes: Array.isArray(nft.attributes) ? nft.attributes : [],
+    royalty_bps: nft.royalty_bps,
+  };
+  if (out.description.startsWith("{") && out.description.endsWith("}")) {
     try {
-      const obj = JSON.parse(trimmed);
-      const description = typeof obj.description === "string" ? obj.description : "";
-      const category = typeof obj.category === "string" ? obj.category : undefined;
-      const rawAttrs = Array.isArray(obj.attributes) ? obj.attributes : [];
-      const attributes: NftAttribute[] = rawAttrs
-        .filter((a: any) => a && typeof a === "object" && "trait_type" in a)
-        .map((a: any) => ({ trait_type: String(a.trait_type), value: a.value }));
-      return { description, category, attributes };
-    } catch {
-      // fall through
-    }
+      const obj = JSON.parse(out.description);
+      if (obj && typeof obj === "object") {
+        if (typeof obj.description === "string") out.description = obj.description;
+        if (!out.category && typeof obj.category === "string") out.category = obj.category;
+        if (out.attributes.length === 0 && Array.isArray(obj.attributes)) {
+          out.attributes = obj.attributes
+            .filter((a: any) => a && typeof a === "object" && "trait_type" in a)
+            .map((a: any) => ({ trait_type: String(a.trait_type), value: a.value }));
+        }
+        if (out.royalty_bps == null && typeof obj.royalty_bps === "number") out.royalty_bps = obj.royalty_bps;
+      }
+    } catch { /* keep raw */ }
   }
-  return { description: trimmed, attributes: [] };
+  return out;
+}
+
+/**
+ * Render light markdown: paragraphs, **bold**, *italic*, `code`, [text](url),
+ * and line breaks. Sanitises by escaping HTML first and only allowing safe URL
+ * schemes for links. Returns a fragment of React nodes.
+ */
+function renderLite(text: string): React.ReactNode {
+  if (!text) return null;
+  const escapeHtml = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const paragraphs = text.split(/\n{2,}/);
+  return paragraphs.map((para, pi) => {
+    // process inline: links → bold → italic → code
+    let html = escapeHtml(para);
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_m, label, url) => {
+      const safe = String(url).replace(/"/g, "%22");
+      return `<a href="${safe}" target="_blank" rel="noreferrer" class="text-primary underline">${label}</a>`;
+    });
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/(^|\W)\*([^*\n]+)\*(\W|$)/g, "$1<em>$2</em>$3");
+    html = html.replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-muted text-xs">$1</code>');
+    html = html.replace(/\n/g, "<br />");
+    return (
+      <p
+        key={pi}
+        className="text-muted-foreground leading-relaxed [&_a:hover]:text-primary [&>strong]:text-foreground"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  });
 }
 
 export const Route = createFileRoute("/marketplace/$id")({
