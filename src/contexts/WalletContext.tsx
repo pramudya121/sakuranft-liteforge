@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { BrowserProvider, formatEther } from "ethers";
 import { connectWallet, pickProvider, type WalletKind } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
+import { setWalletHeader } from "@/lib/wallet-header";
 
 type Ctx = {
   address: string | null;
