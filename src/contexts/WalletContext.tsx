@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { BrowserProvider, formatEther } from "ethers";
 import { connectWallet, pickProvider, type WalletKind } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
+import { setWalletHeader } from "@/lib/wallet-header";
 
 type Ctx = {
   address: string | null;
@@ -34,6 +35,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const connect = useCallback(async (kind: WalletKind) => {
     const { provider: p, signer: s, address: a } = await connectWallet(kind);
     setProvider(p); setSigner(s); setAddress(a); setWalletKind(kind);
+    setWalletHeader(a);
     const net = await p.getNetwork();
     setChainId(Number(net.chainId));
     await refreshBalance(p, a);
@@ -42,6 +44,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const disconnect = useCallback(() => {
     setAddress(null); setSigner(null); setProvider(null); setChainId(null); setBalance("0"); setWalletKind(null);
+    setWalletHeader(null);
     try { localStorage.removeItem("walletKind"); } catch {}
   }, []);
 
@@ -59,7 +62,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
     const inj = pickProvider(saved ?? "metamask") as any;
     if (!inj?.on) return;
-    const handleAccts = (a: string[]) => { if (!a.length) disconnect(); else setAddress(a[0]); };
+    const handleAccts = (a: string[]) => { if (!a.length) { disconnect(); } else { setAddress(a[0]); setWalletHeader(a[0]); } };
     const handleChain = (id: string) => setChainId(parseInt(id, 16));
     inj.on("accountsChanged", handleAccts);
     inj.on("chainChanged", handleChain);
