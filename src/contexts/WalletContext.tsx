@@ -35,6 +35,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const connect = useCallback(async (kind: WalletKind) => {
     const { provider: p, signer: s, address: a } = await connectWallet(kind);
     setProvider(p); setSigner(s); setAddress(a); setWalletKind(kind);
+    setWalletHeader(a);
     const net = await p.getNetwork();
     setChainId(Number(net.chainId));
     await refreshBalance(p, a);
@@ -43,6 +44,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   const disconnect = useCallback(() => {
     setAddress(null); setSigner(null); setProvider(null); setChainId(null); setBalance("0"); setWalletKind(null);
+    setWalletHeader(null);
     try { localStorage.removeItem("walletKind"); } catch {}
   }, []);
 
