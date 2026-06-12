@@ -62,7 +62,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
     const inj = pickProvider(saved ?? "metamask") as any;
     if (!inj?.on) return;
-    const handleAccts = (a: string[]) => { if (!a.length) disconnect(); else setAddress(a[0]); };
+    const handleAccts = (a: string[]) => { if (!a.length) { disconnect(); } else { setAddress(a[0]); setWalletHeader(a[0]); } };
     const handleChain = (id: string) => setChainId(parseInt(id, 16));
     inj.on("accountsChanged", handleAccts);
     inj.on("chainChanged", handleChain);
