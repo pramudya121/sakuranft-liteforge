@@ -103,7 +103,20 @@ export const routerRead = () => new Contract(CONTRACTS.router, ROUTER_ABI, readP
 export const factoryRead = () => new Contract(CONTRACTS.factory, FACTORY_ABI, readProvider);
 
 // ---------- NFT actions ----------
-export async function mintNFT(signer: any, file: File, name: string, description: string, onProgress?: (s: string) => void) {
+export type NFTMintExtras = {
+  attributes?: Array<{ trait_type: string; value: string | number | boolean }>;
+  category?: string;
+  royalty_bps?: number;
+};
+
+export async function mintNFT(
+  signer: any,
+  file: File,
+  name: string,
+  description: string,
+  onProgress?: (s: string) => void,
+  extras?: NFTMintExtras,
+) {
   onProgress?.("Uploading image...");
   // Lazy import to keep web3 module client-bundle small
   const { supabase } = await import("@/integrations/supabase/client");
@@ -121,7 +134,19 @@ export async function mintNFT(signer: any, file: File, name: string, description
   } else {
     imageUrl = supabase.storage.from("nft-images").getPublicUrl(path).data.publicUrl;
   }
-  const metadata = { name, description, image: imageUrl };
+  // ERC-721 metadata standard: keep description as plain text and put
+  // attributes/category/royalty_bps as TOP-LEVEL fields so marketplaces
+  // and our own detail page can read them without parsing the description.
+  const cleanAttrs = (extras?.attributes ?? [])
+    .filter((a) => a && a.trait_type && a.value !== "" && a.value !== undefined && a.value !== null);
+  const metadata: Record<string, unknown> = {
+    name,
+    description: (description ?? "").trim(),
+    image: imageUrl,
+  };
+  if (cleanAttrs.length) metadata.attributes = cleanAttrs;
+  if (extras?.category) metadata.category = extras.category;
+  if (typeof extras?.royalty_bps === "number") metadata.royalty_bps = extras.royalty_bps;
   const tokenUri = "data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(metadata))));
   onProgress?.("Confirm in wallet...");
   const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, signer);
