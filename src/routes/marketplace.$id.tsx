@@ -179,7 +179,7 @@ function NFTDetail() {
                           {meta.category}
                         </span>
                       )}
-                      {meta.attributes.map((attr, i) => (
+                      {meta.attributes.map((attr: NftAttribute, i: number) => (
                         <span key={i} className="inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1 text-xs">
                           <span className="text-muted-foreground">{attr.trait_type}:</span>
                           <span className="font-medium text-foreground">{String(attr.value)}</span>
