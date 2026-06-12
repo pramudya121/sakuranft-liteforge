@@ -15,6 +15,31 @@ import { LikeButton, CommentsPanel } from "@/components/NFTSocial";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { useRealtimeListings, recordListing, markListingSold, cancelListing as cancelListingDB, updateListingPrice as updateListingPriceDB } from "@/lib/useRealtimeListings";
 
+type NftAttribute = { trait_type: string; value: string | number | boolean };
+type ParsedNftMeta = { description: string; category?: string; attributes: NftAttribute[] };
+
+function parseNftDescription(raw?: string | null): ParsedNftMeta {
+  const empty: ParsedNftMeta = { description: "", attributes: [] };
+  if (!raw) return empty;
+  const trimmed = raw.trim();
+  // If it looks like JSON, try to extract a nested description/attributes/category.
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      const description = typeof obj.description === "string" ? obj.description : "";
+      const category = typeof obj.category === "string" ? obj.category : undefined;
+      const rawAttrs = Array.isArray(obj.attributes) ? obj.attributes : [];
+      const attributes: NftAttribute[] = rawAttrs
+        .filter((a: any) => a && typeof a === "object" && "trait_type" in a)
+        .map((a: any) => ({ trait_type: String(a.trait_type), value: a.value }));
+      return { description, category, attributes };
+    } catch {
+      // fall through
+    }
+  }
+  return { description: trimmed, attributes: [] };
+}
+
 export const Route = createFileRoute("/marketplace/$id")({
   component: NFTDetail,
   head: ({ params }) => {
