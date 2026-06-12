@@ -392,17 +392,43 @@ export function shortAddr(a?: string) {
   return a.slice(0, 6) + "..." + a.slice(-4);
 }
 
-export function decodeTokenUri(uri: string): { name?: string; description?: string; image?: string } | null {
+export type DecodedTokenMeta = {
+  name?: string;
+  description?: string;
+  image?: string;
+  attributes?: Array<{ trait_type: string; value: string | number | boolean }>;
+  category?: string;
+  royalty_bps?: number;
+};
+
+export function decodeTokenUri(uri: string): DecodedTokenMeta | null {
   try {
-    let meta: { name?: string; description?: string; image?: string } | null = null;
+    let meta: DecodedTokenMeta | null = null;
     if (uri.startsWith("data:application/json;base64,")) {
       const json = atob(uri.replace("data:application/json;base64,", ""));
       meta = JSON.parse(decodeURIComponent(escape(json)));
     } else if (uri.startsWith("data:application/json")) {
       meta = JSON.parse(decodeURIComponent(uri.split(",")[1] ?? ""));
     }
-    if (meta?.image) {
-      meta.image = ipfsToHttp(meta.image);
+    if (!meta) return null;
+    if (meta.image) meta.image = ipfsToHttp(meta.image);
+
+    // Legacy support: some early tokens packed { description, category,
+    // attributes, royalty_bps } as a JSON string INSIDE meta.description.
+    // Unwrap so the rest of the app can rely on top-level fields.
+    if (typeof meta.description === "string") {
+      const d = meta.description.trim();
+      if (d.startsWith("{") && d.endsWith("}")) {
+        try {
+          const inner = JSON.parse(d);
+          if (inner && typeof inner === "object") {
+            if (typeof inner.description === "string") meta.description = inner.description;
+            if (!meta.attributes && Array.isArray(inner.attributes)) meta.attributes = inner.attributes;
+            if (!meta.category && typeof inner.category === "string") meta.category = inner.category;
+            if (meta.royalty_bps == null && typeof inner.royalty_bps === "number") meta.royalty_bps = inner.royalty_bps;
+          }
+        } catch { /* keep raw description */ }
+      }
     }
     return meta;
   } catch { return null; }
