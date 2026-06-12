@@ -7,7 +7,7 @@ const MessageSchema = z.object({
   // SECURITY: client may only send user/assistant/tool roles.
   // "system" is reserved for the server-side prompt to prevent prompt-injection.
   role: z.enum(["user", "assistant", "tool"]),
-  content: z.string().max(8000),
+  content: z.string().max(4000),
   tool_call_id: z.string().max(200).optional(),
   name: z.string().max(120).optional(),
 });
