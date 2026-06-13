@@ -30,28 +30,26 @@ export const Route = createFileRoute("/marketplace/")({
 });
 
 function Marketplace() {
-  const { nfts, loading, refetch: refetchNFTs } = useAllNFTs();
-  const { listings: chainListings, refetch: refetchListings } = useAllListings();
-  const { listings: dbListings } = useRealtimeListings({ status: "active" });
+  const { nfts, loading: nftsLoading, refetch: refetchNFTs } = useAllNFTs();
+  const { listings: chainListings, loading: chainLoading, refetch: refetchListings } = useAllListings();
+  const { listings: dbListings, loading: dbLoading, error: dbError } = useRealtimeListings({ status: "active" });
   const { signer } = useWallet();
 
-  // Merge: prefer DB listing (live) when token matches, fall back to chain listing.
+  // DB rows are the live source of truth for active marketplace items.
+  // Chain listings are only a fallback while the realtime table is still empty.
   const listings = useMemo(() => {
-    const merged = new Map<string, typeof chainListings[number]>();
-    for (const l of chainListings) merged.set(l.tokenId.toString(), l);
-    for (const d of dbListings) {
-      const key = String(d.token_id);
-      const existing = merged.get(key);
-      merged.set(key, {
-        ...(existing ?? ({} as any)),
-        tokenId: BigInt(d.token_id),
-        listingId: d.listing_id != null ? BigInt(d.listing_id) : existing?.listingId ?? 0n,
+    if (dbListings.length > 0) {
+      return dbListings.map((d) => ({
+        listingId: d.listing_id != null ? BigInt(d.listing_id) : 0n,
         seller: d.seller,
-        price: existing?.price ?? BigInt(d.price_wei || "0"),
+        nft: "",
+        tokenId: BigInt(d.token_id),
+        price: BigInt(d.price_wei || "0"),
         priceEth: String(d.price_eth),
-      } as any);
+        active: d.status === "active",
+      }));
     }
-    return Array.from(merged.values());
+    return chainListings;
   }, [chainListings, dbListings]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("newest");
@@ -72,7 +70,8 @@ function Marketplace() {
   // automatically without a manual refresh.
   const items = useMemo(() => {
     const nftByToken = new Map(nfts.map((n) => [n.tokenId.toString(), n]));
-    let arr = listings
+      let arr = listings
+      .filter((listing) => listing.active !== false)
       .map((listing) => {
         const baseNft = nftByToken.get(listing.tokenId.toString());
         if (!baseNft) return null;
@@ -90,6 +89,8 @@ function Marketplace() {
     if (sort === "newest") arr.sort((a, b) => Number(b.nft.tokenId - a.nft.tokenId));
     return arr;
   }, [nfts, listings, search, sort, maxPrice]);
+
+  const loading = nftsLoading || (dbListings.length === 0 && (dbLoading || chainLoading));
 
   async function handleBuy(listing: typeof listings[number]) {
     if (!signer) return toast.error("Connect wallet first");
@@ -161,16 +162,17 @@ function Marketplace() {
         </div>
       </div>
 
-      <MarketGrid loading={loading} items={items} view={view} onBuy={handleBuy} />
+      <MarketGrid loading={loading} items={items} view={view} onBuy={handleBuy} error={dbError} />
     </div>
   );
 }
 
-function MarketGrid({ loading, items, view, onBuy }: {
+function MarketGrid({ loading, items, view, onBuy, error }: {
   loading: boolean;
   items: { nft: any; listing: any }[];
   view: "grid" | "list";
   onBuy: (listing: any) => void;
+  error?: string | null;
 }) {
   const { slice, sentinelRef, hasMore } = useInfiniteSlice(items, 24, 24);
 
@@ -178,6 +180,14 @@ function MarketGrid({ loading, items, view, onBuy }: {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => <NFTCardSkeleton key={i} />)}
+      </div>
+    );
+  }
+  if (!loading && error) {
+    return (
+      <div className="text-center py-20 glass rounded-2xl space-y-2">
+        <p className="font-medium">Marketplace live data sedang bermasalah</p>
+        <p className="text-sm text-muted-foreground">{error}</p>
       </div>
     );
   }

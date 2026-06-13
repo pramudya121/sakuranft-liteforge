@@ -172,7 +172,12 @@ export async function listNFT(signer: any, tokenId: bigint | number, priceEth: s
 
 export async function buyNFT(signer: any, listingId: bigint | number, priceWei: bigint) {
   const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, signer);
-  const tx = await mp.buyNFT(listingId, { value: priceWei });
+  const current = await mp.listings(listingId).catch(() => null);
+  if (!current || !current.active) throw new Error("Listing is no longer active");
+  if (BigInt(current.price) !== BigInt(priceWei)) {
+    throw new Error("Listing price changed. Please review the latest price.");
+  }
+  const tx = await mp.buyNFT(listingId, { value: current.price as bigint });
   return tx.wait();
 }
 

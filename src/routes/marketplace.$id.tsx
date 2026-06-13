@@ -114,9 +114,9 @@ export const Route = createFileRoute("/marketplace/$id")({
 
 function NFTDetail() {
   const { id } = Route.useParams();
-  const { nft, listing, loading, refetch: refetchNFT } = useNFT(id);
+  const { nft, listing, loading, error, refetch: refetchNFT } = useNFT(id);
   const { offers } = useOffers(id);
-  const { listings: dbActive } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
+  const { listings: dbActive, loading: listingsLoading, error: listingError } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
 
   // Sync DB listing row for the current token (used for buy/cancel/sold transitions).
   async function syncListingSold() {
@@ -150,11 +150,25 @@ function NFTDetail() {
   useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
 
   const meta = useMemo(() => (nft ? resolveMeta(nft) : null), [nft]);
+  const liveListing = useMemo(() => {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (!row) return listing;
+    return {
+      listingId: row.listing_id != null ? BigInt(row.listing_id) : listing?.listingId ?? 0n,
+      seller: row.seller,
+      nft: listing?.nft ?? "",
+      tokenId: BigInt(row.token_id),
+      price: BigInt(row.price_wei || "0"),
+      priceEth: String(row.price_eth),
+      active: row.status === "active",
+    };
+  }, [dbActive, id, listing]);
 
   // When an NFT is listed, ownerOf() returns the marketplace escrow contract.
   // Use the listing.seller as the canonical owner for display & ownership checks.
-  const effectiveOwner = listing?.seller || nft?.owner || "";
+  const effectiveOwner = liveListing?.seller || nft?.owner || "";
   const isOwner = address && nft && address.toLowerCase() === effectiveOwner.toLowerCase();
+  const detailError = error || listingError;
 
   async function wrap<T>(label: string, fn: () => Promise<T>, onSuccess?: () => void) {
     if (!signer) return toast.error("Connect wallet");
@@ -189,6 +203,15 @@ function NFTDetail() {
             <div className="h-12 rounded-full bg-muted/40 animate-pulse" />
           </div>
         </div>
+      </div>
+    );
+  }
+  if (detailError && !nft) {
+    return (
+      <div className="space-y-4 text-center py-16">
+        <h1 className="text-2xl font-semibold">Detail NFT gagal dimuat</h1>
+        <p className="text-muted-foreground">{detailError}</p>
+        <Button onClick={() => refetchNFT()}>Coba lagi</Button>
       </div>
     );
   }
@@ -260,6 +283,11 @@ function NFTDetail() {
                 </TooltipProvider>
               </div>
             )}
+            {meta && meta.attributes.length === 0 && (
+              <div className="mt-4 rounded-2xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
+                Attributes belum tersedia untuk NFT ini.
+              </div>
+            )}
             <div className="flex items-center gap-3 mt-4">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Eye className="w-3 h-3" /> {viewCount} views
@@ -273,31 +301,34 @@ function NFTDetail() {
           <div className="glass rounded-2xl p-4 space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Owner</span><Link to="/u/$address" params={{ address: effectiveOwner }} className="font-mono hover:text-primary">{shortAddr(effectiveOwner)}</Link></div>
             <div className="flex justify-between"><span className="text-muted-foreground">Collection</span><span>SakuraNFT</span></div>
-            {listing && <div className="flex justify-between"><span className="text-muted-foreground">Current Price</span><span className="font-bold text-primary">{listing.priceEth} {CHAIN.symbol}</span></div>}
-            {listing && feeBps !== null && (
-              <div className="flex justify-between"><span className="text-muted-foreground">Marketplace Fee</span><span>{(feeBps / 100).toFixed(2)}% · seller gets {(+listing.priceEth * (10000 - feeBps) / 10000).toFixed(4)} {CHAIN.symbol}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Views</span><span>{viewCount}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Listing Status</span><span>{liveListing ? "Listed" : listingsLoading ? "Checking…" : "Not listed"}</span></div>
+            {liveListing && <div className="flex justify-between"><span className="text-muted-foreground">Current Price</span><span className="font-bold text-primary">{liveListing.priceEth} {CHAIN.symbol}</span></div>}
+            {liveListing && feeBps !== null && (
+              <div className="flex justify-between"><span className="text-muted-foreground">Marketplace Fee</span><span>{(feeBps / 100).toFixed(2)}% · seller gets {(+liveListing.priceEth * (10000 - feeBps) / 10000).toFixed(4)} {CHAIN.symbol}</span></div>
             )}
+            {detailError && <p className="text-xs text-amber-500">Live sync notice: {detailError}</p>}
           </div>
 
-          {listing && !isOwner && (
+          {liveListing && !isOwner && (
             <Button size="lg" className="w-full rounded-full shadow-lg" onClick={() => wrap("buy",
-              () => buyNFT(signer, listing.listingId, listing.price),
+              () => buyNFT(signer, liveListing.listingId, liveListing.price),
               async () => {
                 await syncListingSold();
-                await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
+                await pushNotification(liveListing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${liveListing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
               },
             )}>
-              <ShoppingCart className="w-4 h-4 mr-2" /> Buy Now for {listing.priceEth} {CHAIN.symbol}
+              <ShoppingCart className="w-4 h-4 mr-2" /> Buy Now for {liveListing.priceEth} {CHAIN.symbol}
             </Button>
           )}
-          {listing && isOwner && (
+          {liveListing && isOwner && (
             <div className="glass rounded-2xl p-4 space-y-3">
               {!editing ? (
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" onClick={() => { setEditing(true); setEditPrice(listing.priceEth); }}>
+                  <Button variant="outline" className="flex-1" onClick={() => { setEditing(true); setEditPrice(liveListing.priceEth); }}>
                     <Tag className="w-4 h-4 mr-2" /> Edit Price
                   </Button>
-                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, listing.listingId), syncListingCancelled)}>
+                  <Button variant="outline" className="flex-1" onClick={() => wrap("cancel", () => cancelListing(signer, liveListing.listingId), syncListingCancelled)}>
                     <X className="w-4 h-4 mr-2" /> Cancel Listing
                   </Button>
                 </div>
@@ -309,14 +340,14 @@ function NFTDetail() {
                     <Button
                       onClick={async () => {
                         if (!signer || !editPrice) return;
-                        const prevPrice = listing.priceEth;
+                        const prevPrice = liveListing.priceEth;
                         // Optimistic: push new price to DB immediately so the marketplace
                         // grid & this page reflect the change before chain confirmation.
                         try { await syncListingPrice(editPrice); } catch {}
                         setEditing(false);
                         toast.loading("Confirm price update in wallet…", { id: "upd" });
                         try {
-                          await updateListingPrice(signer, listing.listingId, editPrice);
+                          await updateListingPrice(signer, liveListing.listingId, editPrice);
                           toast.success("Price updated ✓", { id: "upd" });
                           refetchNFT();
                         } catch (e: any) {
@@ -334,7 +365,7 @@ function NFTDetail() {
               )}
             </div>
           )}
-          {isOwner && !listing && (
+          {isOwner && !liveListing && (
             <div className="glass rounded-2xl p-4 space-y-3">
               {!showTransfer ? (
                 <Button variant="outline" className="w-full" onClick={() => setShowTransfer(true)}>
@@ -357,7 +388,7 @@ function NFTDetail() {
               )}
             </div>
           )}
-          {!listing && isOwner && (
+          {!liveListing && isOwner && (
             <div className="glass rounded-2xl p-4 space-y-3">
               <p className="text-sm font-medium">List this NFT for sale</p>
               <div className="flex gap-2">
@@ -448,21 +479,21 @@ function NFTDetail() {
       </Tabs>
 
       {/* Sticky mobile/scroll action bar: stays visible so Buy/Offer is always one tap away */}
-      {(listing || !isOwner) && (
+      {(liveListing || !isOwner) && (
         <div className="lg:hidden sticky bottom-2 z-40">
           <div className="glass rounded-2xl border border-border/60 p-3 flex items-center gap-3 shadow-2xl backdrop-blur">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] text-muted-foreground truncate">{nft.name}</p>
-              {listing
-                ? <p className="font-bold text-primary truncate">{listing.priceEth} {CHAIN.symbol}</p>
+              {liveListing
+                ? <p className="font-bold text-primary truncate">{liveListing.priceEth} {CHAIN.symbol}</p>
                 : <p className="text-xs text-muted-foreground">Not listed</p>}
             </div>
-            {listing && !isOwner && (
+            {liveListing && !isOwner && (
               <Button size="sm" className="rounded-full" onClick={() => wrap("buy",
-                () => buyNFT(signer, listing.listingId, listing.price),
+                () => buyNFT(signer, liveListing.listingId, liveListing.price),
                 async () => {
                   await syncListingSold();
-                  await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
+                  await pushNotification(liveListing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${liveListing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
                 },
               )}>
                 <ShoppingCart className="w-4 h-4 mr-1" /> Buy
