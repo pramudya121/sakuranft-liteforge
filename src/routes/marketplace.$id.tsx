@@ -114,9 +114,9 @@ export const Route = createFileRoute("/marketplace/$id")({
 
 function NFTDetail() {
   const { id } = Route.useParams();
-  const { nft, listing, loading, refetch: refetchNFT } = useNFT(id);
+  const { nft, listing, loading, error, refetch: refetchNFT } = useNFT(id);
   const { offers } = useOffers(id);
-  const { listings: dbActive } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
+  const { listings: dbActive, loading: listingsLoading, error: listingError } = useRealtimeListings({ status: "active", tokenId: id ? Number(id) : undefined });
 
   // Sync DB listing row for the current token (used for buy/cancel/sold transitions).
   async function syncListingSold() {
@@ -150,11 +150,25 @@ function NFTDetail() {
   useEffect(() => { getMarketplaceFeeInfo().then((f) => setFeeBps(f.bps)).catch(() => {}); }, []);
 
   const meta = useMemo(() => (nft ? resolveMeta(nft) : null), [nft]);
+  const liveListing = useMemo(() => {
+    const row = dbActive.find((d) => String(d.token_id) === String(id));
+    if (!row) return listing;
+    return {
+      listingId: row.listing_id != null ? BigInt(row.listing_id) : listing?.listingId ?? 0n,
+      seller: row.seller,
+      nft: listing?.nft ?? "",
+      tokenId: BigInt(row.token_id),
+      price: BigInt(row.price_wei || "0"),
+      priceEth: String(row.price_eth),
+      active: row.status === "active",
+    };
+  }, [dbActive, id, listing]);
 
   // When an NFT is listed, ownerOf() returns the marketplace escrow contract.
   // Use the listing.seller as the canonical owner for display & ownership checks.
-  const effectiveOwner = listing?.seller || nft?.owner || "";
+  const effectiveOwner = liveListing?.seller || nft?.owner || "";
   const isOwner = address && nft && address.toLowerCase() === effectiveOwner.toLowerCase();
+  const detailError = error || listingError;
 
   async function wrap<T>(label: string, fn: () => Promise<T>, onSuccess?: () => void) {
     if (!signer) return toast.error("Connect wallet");
@@ -189,6 +203,15 @@ function NFTDetail() {
             <div className="h-12 rounded-full bg-muted/40 animate-pulse" />
           </div>
         </div>
+      </div>
+    );
+  }
+  if (detailError && !nft) {
+    return (
+      <div className="space-y-4 text-center py-16">
+        <h1 className="text-2xl font-semibold">Detail NFT gagal dimuat</h1>
+        <p className="text-muted-foreground">{detailError}</p>
+        <Button onClick={() => refetchNFT()}>Coba lagi</Button>
       </div>
     );
   }
