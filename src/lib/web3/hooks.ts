@@ -26,8 +26,6 @@ export type Listing = {
   active: boolean;
 };
 
-const CHAIN_POLL_MS = 8000;
-
 // ---------- module-level shared caches (live across route changes) ----------
 let cachedListings: Listing[] | null = null;
 let cachedListingCount = 0n;
@@ -37,8 +35,9 @@ function toMeta(c: CachedNFT): NFTMeta {
 }
 
 export function useAllNFTs() {
-  const [nfts, setNfts] = useState<NFTMeta[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Hydrate immediately from cache → user sees grid instantly while we fetch.
+  const [nfts, setNfts] = useState<NFTMeta[]>(() => allCached().map(toMeta).sort((a, b) => Number(b.tokenId - a.tokenId)));
+  const [loading, setLoading] = useState(nfts.length === 0);
   const [tick, setTick] = useState(0);
   const refetch = () => setTick((t) => t + 1);
 
@@ -46,12 +45,6 @@ export function useAllNFTs() {
     let cancelled = false;
     (async () => {
       try {
-        const cached = allCached().map(toMeta).sort((a, b) => Number(b.tokenId - a.tokenId));
-        if (cached.length > 0 && !cancelled) {
-          setNfts(cached);
-          setLoading(false);
-        }
-
         const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
         const total: bigint = await nft.totalMinted();
         if (cancelled) return;
@@ -98,11 +91,10 @@ export function useAllNFTs() {
   }, [tick]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      invalidateOwners();
-      refetch();
-    }, CHAIN_POLL_MS);
-    return () => clearInterval(timer);
+    const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
+    const handler = () => { invalidateOwners(); refetch(); };
+    nft.on("Transfer", handler);
+    return () => { nft.off("Transfer", handler); };
   }, []);
 
   return { nfts, loading, refetch };
@@ -152,21 +144,29 @@ export function useAllListings() {
   }, [tick]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      cachedListings = null;
-      refetch();
-    }, CHAIN_POLL_MS);
-    return () => clearInterval(timer);
+    const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
+    const handler = () => { cachedListings = null; refetch(); };
+    mp.on("Listed", handler);
+    mp.on("Sold", handler);
+    mp.on("ListingCancelled", handler);
+    return () => {
+      mp.off("Listed", handler);
+      mp.off("Sold", handler);
+      mp.off("ListingCancelled", handler);
+    };
   }, []);
 
   return { listings, loading, refetch };
 }
 
 export function useNFT(tokenId: string | undefined) {
-  const [nft, setNft] = useState<NFTMeta | null>(null);
+  const [nft, setNft] = useState<NFTMeta | null>(() => {
+    if (!tokenId) return null;
+    const c = getCachedNFT(tokenId);
+    return c && c.owner ? toMeta(c) : null;
+  });
   const [listing, setListing] = useState<Listing | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!nft);
   const [tick, setTick] = useState(0);
   const refetch = () => setTick((t) => t + 1);
 
@@ -174,13 +174,10 @@ export function useNFT(tokenId: string | undefined) {
     if (!tokenId) return;
     let cancelled = false;
     (async () => {
-      setLoading(true);
-      setError(null);
       try {
         const id = BigInt(tokenId);
-        const cached = getCachedNFT(id);
-        if (cached?.owner && !cancelled) setNft(toMeta(cached));
         const nftC = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
+        const cached = getCachedNFT(id);
         const [uri, owner] = await Promise.all([
           cached?.tokenURI ? Promise.resolve(cached.tokenURI) : nftC.tokenURI(id),
           nftC.ownerOf(id),
@@ -200,11 +197,7 @@ export function useNFT(tokenId: string | undefined) {
           } else {
             setListing(null);
           }
-        } catch {
-          setListing(null);
-        }
-      } catch (e: any) {
-        if (!cancelled) setError(e?.shortMessage ?? e?.message ?? "Failed to load NFT");
+        } catch {}
       } finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -212,12 +205,25 @@ export function useNFT(tokenId: string | undefined) {
 
   useEffect(() => {
     if (!tokenId) return;
-    const timer = setInterval(() => refetch(), CHAIN_POLL_MS);
-    return () => clearInterval(timer);
+    const nftC = new Contract(CONTRACTS.nftCollection, NFT_ABI, readProvider);
+    const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
+    const handler = () => refetch();
+    nftC.on("Transfer", handler);
+    mp.on("Listed", handler);
+    mp.on("Sold", handler);
+    mp.on("ListingCancelled", handler);
+    mp.on("PriceUpdated", handler);
+    return () => {
+      nftC.off("Transfer", handler);
+      mp.off("Listed", handler);
+      mp.off("Sold", handler);
+      mp.off("ListingCancelled", handler);
+      mp.off("PriceUpdated", handler);
+    };
   }, [tokenId]);
   // intentionally also re-export decodeTokenUri usage indirectly via ingest
   void decodeTokenUri;
-  return { nft, listing, loading, error, refetch };
+  return { nft, listing, loading, refetch };
 }
 
 export function useOffers(tokenId: string | undefined) {
@@ -243,8 +249,16 @@ export function useOffers(tokenId: string | undefined) {
   }, [tokenId, tick]);
   useEffect(() => {
     if (!tokenId) return;
-    const timer = setInterval(() => refetch(), CHAIN_POLL_MS);
-    return () => clearInterval(timer);
+    const c = new Contract(CONTRACTS.offer, OFFER_ABI, readProvider);
+    const handler = () => refetch();
+    c.on("OfferMade", handler);
+    c.on("OfferCancelled", handler);
+    c.on("OfferAccepted", handler);
+    return () => {
+      c.off("OfferMade", handler);
+      c.off("OfferCancelled", handler);
+      c.off("OfferAccepted", handler);
+    };
   }, [tokenId]);
   return { offers, refetch };
 }

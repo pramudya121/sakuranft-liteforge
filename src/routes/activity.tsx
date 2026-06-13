@@ -395,10 +395,6 @@ function InboxList({
   wrap: (id: string, fn: () => Promise<any>, after?: () => void | Promise<void>) => Promise<void>;
   address: string | null;
 }) {
-  const formatOfferTime = (iso: string) => {
-    const d = new Date(iso);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-  };
   if (!address) return <div className="glass rounded-2xl p-10 text-center text-muted-foreground">Connect wallet to view offers received on your NFTs.</div>;
   if (inbox.length === 0) return <div className="glass rounded-2xl p-10 text-center text-muted-foreground">📭 No offers received yet.</div>;
 
@@ -411,7 +407,7 @@ function InboxList({
             <div className="w-10 h-10 rounded-full bg-orange-500/10 text-orange-500 flex items-center justify-center"><Send className="w-4 h-4" /></div>
             <div className="flex-1 min-w-[200px]">
               <p className="font-semibold text-sm">Offer on NFT #{o.token_id}</p>
-              <p className="text-xs text-muted-foreground">{shortAddr(o.bidder_address)} · {formatOfferTime(o.created_at)}</p>
+              <p className="text-xs text-muted-foreground">{shortAddr(o.bidder_address)} · {new Date(o.created_at).toLocaleString()}</p>
             </div>
             <span className="font-bold text-primary">{o.amount_eth} {CHAIN.symbol}</span>
             <span className={`text-[10px] uppercase rounded-full px-2 py-0.5 ${o.status === "active" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{o.status}</span>

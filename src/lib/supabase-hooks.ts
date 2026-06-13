@@ -138,15 +138,12 @@ export async function pushNotification(
   tokenId?: bigint | number,
   link?: string,
 ) {
-  const { error } = await supabase.from("notifications").insert({
+  await supabase.from("notifications").insert({
     wallet_address: to.toLowerCase(),
     type, title, message: message ?? null,
     token_id: tokenId !== undefined ? Number(tokenId) : null,
     link: link ?? null,
   });
-  if (error) {
-    console.warn("Notification insert skipped:", error.message);
-  }
 }
 
 // ---------- Views ----------

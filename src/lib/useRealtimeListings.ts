@@ -24,28 +24,20 @@ export type DBListing = {
 export function useRealtimeListings(opts?: { status?: string; tokenId?: number | bigint }) {
   const [listings, setListings] = useState<DBListing[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setError(null);
     let q = supabase.from("listings").select("*").order("updated_at", { ascending: false });
     if (opts?.status) q = q.eq("status", opts.status);
     if (opts?.tokenId !== undefined) q = q.eq("token_id", Number(opts.tokenId));
-    const { data, error } = await q;
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
+    const { data } = await q;
     setListings((data ?? []) as DBListing[]);
     setLoading(false);
   }, [opts?.status, opts?.tokenId]);
 
   useEffect(() => {
     load();
-    const channelName = `listings-live:${opts?.status ?? "all"}:${opts?.tokenId ?? "all"}`;
     const ch = supabase
-      .channel(channelName)
+      .channel("listings-live")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "listings" },
@@ -78,7 +70,7 @@ export function useRealtimeListings(opts?: { status?: string; tokenId?: number |
     };
   }, [load, opts?.status, opts?.tokenId]);
 
-  return { listings, loading, error, reload: load };
+  return { listings, loading, reload: load };
 }
 
 // ---- Mutation helpers ----

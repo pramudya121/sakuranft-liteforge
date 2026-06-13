@@ -14,24 +14,17 @@ import { supabase } from "@/integrations/supabase/client";
 let currentWallet: string | null = null;
 
 function applyHeader(addr: string | null) {
-  const client: any = supabase as any;
-  const headers = client?.headers as Record<string, string> | undefined;
-  if (headers) {
-    if (addr) headers["x-wallet-address"] = addr;
-    else delete headers["x-wallet-address"];
-  }
   try {
-    const rest: any = client?.rest;
+    const rest: any = (supabase as any).rest;
     if (rest && rest.headers) {
       if (addr) rest.headers["x-wallet-address"] = addr;
       else delete rest.headers["x-wallet-address"];
     }
   } catch {}
   try {
-    const realtime: any = client?.realtime;
-    if (realtime) {
-      realtime.headers = { ...(realtime.headers ?? {}), ...(addr ? { "x-wallet-address": addr } : {}) };
-      if (!addr && realtime.headers) delete realtime.headers["x-wallet-address"];
+    const realtime: any = (supabase as any).realtime;
+    if (realtime && typeof realtime.setAuth === "function") {
+      // no-op: realtime auth uses JWT; header not applicable for realtime
     }
   } catch {}
 }
