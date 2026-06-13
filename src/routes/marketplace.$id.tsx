@@ -388,7 +388,7 @@ function NFTDetail() {
               )}
             </div>
           )}
-          {!listing && isOwner && (
+          {!liveListing && isOwner && (
             <div className="glass rounded-2xl p-4 space-y-3">
               <p className="text-sm font-medium">List this NFT for sale</p>
               <div className="flex gap-2">
