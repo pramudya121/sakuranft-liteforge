@@ -479,21 +479,21 @@ function NFTDetail() {
       </Tabs>
 
       {/* Sticky mobile/scroll action bar: stays visible so Buy/Offer is always one tap away */}
-      {(listing || !isOwner) && (
+      {(liveListing || !isOwner) && (
         <div className="lg:hidden sticky bottom-2 z-40">
           <div className="glass rounded-2xl border border-border/60 p-3 flex items-center gap-3 shadow-2xl backdrop-blur">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] text-muted-foreground truncate">{nft.name}</p>
-              {listing
-                ? <p className="font-bold text-primary truncate">{listing.priceEth} {CHAIN.symbol}</p>
+              {liveListing
+                ? <p className="font-bold text-primary truncate">{liveListing.priceEth} {CHAIN.symbol}</p>
                 : <p className="text-xs text-muted-foreground">Not listed</p>}
             </div>
-            {listing && !isOwner && (
+            {liveListing && !isOwner && (
               <Button size="sm" className="rounded-full" onClick={() => wrap("buy",
-                () => buyNFT(signer, listing.listingId, listing.price),
+                () => buyNFT(signer, liveListing.listingId, liveListing.price),
                 async () => {
                   await syncListingSold();
-                  await pushNotification(listing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${listing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
+                  await pushNotification(liveListing.seller, "sale", "🎉 Your NFT was sold!", `${nft.name} sold for ${liveListing.priceEth} ${CHAIN.symbol}`, nft.tokenId, `/marketplace/${id}`);
                 },
               )}>
                 <ShoppingCart className="w-4 h-4 mr-1" /> Buy
