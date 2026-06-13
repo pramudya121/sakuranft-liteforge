@@ -167,14 +167,13 @@ function Marketplace() {
   );
 }
 
-function MarketGrid({ loading, items, view, onBuy }: {
+function MarketGrid({ loading, items, view, onBuy, error }: {
   loading: boolean;
   items: { nft: any; listing: any }[];
   view: "grid" | "list";
   onBuy: (listing: any) => void;
   error?: string | null;
 }) {
-  
   const { slice, sentinelRef, hasMore } = useInfiniteSlice(items, 24, 24);
 
   if (loading) {
