@@ -21,7 +21,7 @@ export const Route = createFileRoute("/mint")({
       { name: "twitter:title", content: "Mint an NFT — SakuraNFT" },
       { name: "twitter:description", content: "Mint NFTs on LitVM with AI-assisted artwork and descriptions." },
     ],
-    links: [{ rel: "canonical", href: "https://sakura-bloom-forge.lovable.app/mint" }],
+    links: [{ rel: "canonical", href: "https://sakuranft.lovable.app/mint" }],
   }),
 });
 
