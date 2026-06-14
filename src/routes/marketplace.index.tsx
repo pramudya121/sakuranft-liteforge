@@ -228,7 +228,11 @@ function MarketGrid({ loading, items, view, onBuy, error }: {
           {slice.map(({ nft, listing }) => (
             <a key={nft.tokenId.toString()} href={`/marketplace/${nft.tokenId.toString()}`}
                className="flex items-center gap-4 p-3 hover:bg-accent/40 transition">
-              <img src={nft.image} alt={nft.name} loading="lazy" decoding="async" className="w-14 h-14 rounded-lg object-cover bg-muted" />
+              {nft.image ? (
+                <img src={nft.image} alt={nft.name} loading="lazy" decoding="async" className="w-14 h-14 rounded-lg object-cover bg-muted" />
+              ) : (
+                <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-fuchsia-500/20 to-pink-500/20 flex items-center justify-center text-xl animate-pulse">🌸</div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{nft.name}</p>
                 <p className="text-xs text-muted-foreground font-mono">#{nft.tokenId.toString()}</p>
@@ -238,6 +242,7 @@ function MarketGrid({ loading, items, view, onBuy, error }: {
               </div>
             </a>
           ))}
+
         </div>
       )}
       {hasMore && (
