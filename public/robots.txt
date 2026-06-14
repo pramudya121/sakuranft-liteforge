@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sakura-bloom-forge.lovable.app/sitemap.xml
+Sitemap: https://sakuranft.lovable.app/sitemap.xml
