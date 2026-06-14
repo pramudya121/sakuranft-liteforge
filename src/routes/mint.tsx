@@ -176,7 +176,7 @@ function Mint() {
                 value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)}
                 className="bg-background/40 resize-none text-sm" />
               <div className="grid grid-cols-3 gap-2">
-                <select value={aiStyle} onChange={(e) => setAiStyle(e.target.value as any)}
+                <select aria-label="Art style" value={aiStyle} onChange={(e) => setAiStyle(e.target.value as any)}
                   className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   <option value="cinematic">Cinematic</option>
                   <option value="anime">Anime</option>
@@ -186,13 +186,13 @@ function Mint() {
                   <option value="oil-painting">Oil Painting</option>
                   <option value="pixel">Pixel Art</option>
                 </select>
-                <select value={aiQuality} onChange={(e) => setAiQuality(e.target.value as any)}
+                <select aria-label="Image quality" value={aiQuality} onChange={(e) => setAiQuality(e.target.value as any)}
                   className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   <option value="low">Fast</option>
                   <option value="medium">Balanced</option>
                   <option value="high">High Quality</option>
                 </select>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}
+                <select aria-label="NFT category" value={category} onChange={(e) => setCategory(e.target.value)}
                   className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
