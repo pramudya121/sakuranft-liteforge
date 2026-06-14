@@ -15,7 +15,7 @@ export function OnChainEventListener() {
   const { address } = useWallet();
 
   useEffect(() => {
-    if (!address) return;
+    if (!address || typeof window === "undefined") return;
     const me = address.toLowerCase();
     const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, readProvider);
     const off = new Contract(CONTRACTS.offer, OFFER_ABI, readProvider);
