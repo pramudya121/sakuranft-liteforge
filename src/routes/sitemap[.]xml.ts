@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "https://sakura-bloom-forge.lovable.app";
+const BASE_URL = "https://sakuranft.lovable.app";
 
 const ROUTES = [
   { path: "/", changefreq: "daily", priority: "1.0" },
   { path: "/marketplace", changefreq: "hourly", priority: "0.9" },
   { path: "/mint", changefreq: "weekly", priority: "0.8" },
-  
+  { path: "/docs", changefreq: "weekly", priority: "0.7" },
   { path: "/dex", changefreq: "weekly", priority: "0.8" },
+  { path: "/dex/swap", changefreq: "weekly", priority: "0.7" },
   { path: "/dex/liquidity", changefreq: "weekly", priority: "0.6" },
   { path: "/activity", changefreq: "hourly", priority: "0.5" },
   { path: "/analytics", changefreq: "daily", priority: "0.5" },
