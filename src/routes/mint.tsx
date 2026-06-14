@@ -147,7 +147,7 @@ function Mint() {
           <label className="block aspect-square rounded-2xl border border-dashed border-primary/40 cursor-pointer overflow-hidden bg-gradient-to-br from-background/60 to-accent/10 hover:border-primary transition">
             <input type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
             {preview ? (
-              <img src={preview} alt="Preview" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              <img src={preview} alt="NFT artwork preview" className="w-full h-full object-cover" loading="lazy" decoding="async" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
                 {mode === "ai" ? (
