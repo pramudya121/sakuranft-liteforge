@@ -81,7 +81,9 @@ function Home() {
       </section>
 
       {/* Features */}
-      <section className="grid md:grid-cols-4 gap-4">
+      <section aria-labelledby="features-heading">
+        <h2 id="features-heading" className="sr-only">Platform features</h2>
+        <div className="grid md:grid-cols-4 gap-4">
         {[
           { i: Plus, t: "Mint Easily", d: "Upload from your device. Mint to your wallet in seconds." },
           { i: Store, t: "Buy & Sell", d: "Fixed-price listings + offers, settled in $zkLTC." },
