@@ -17,7 +17,18 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/dex/swap")({
   component: Swap,
-  head: () => ({ meta: [{ title: "Swap — Sakura DEX" }] }),
+  head: () => ({
+    meta: [
+      { title: "Swap zkLTC & Tokens — Sakura DEX" },
+      { name: "description", content: "Swap zkLTC and supported tokens instantly on Sakura DEX — a Uniswap v2-style AMM on LitVM with low fees, best-route pricing, and slippage controls." },
+      { property: "og:title", content: "Swap zkLTC & Tokens — Sakura DEX" },
+      { property: "og:description", content: "Instant token swaps on LitVM with best-route AMM pricing and slippage controls." },
+      { property: "og:url", content: "https://sakuranft.lovable.app/dex/swap" },
+      { name: "twitter:title", content: "Swap zkLTC & Tokens — Sakura DEX" },
+      { name: "twitter:description", content: "Instant token swaps on LitVM with best-route AMM pricing." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakuranft.lovable.app/dex/swap" }],
+  }),
 });
 
 function tokenForAddr(addr: string): TokenInfo {

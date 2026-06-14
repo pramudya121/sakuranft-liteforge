@@ -8,6 +8,14 @@ import {
 import { TOKENS } from "@/lib/tokens";
 import { CONTRACTS, CHAIN } from "@/lib/web3/contracts";
 
+const DOCS_FAQ: { q: string; a: string }[] = [
+  { q: "Is this real money?", a: "No. SakuraNFT runs on the LitVM LiteForge testnet. zkLTC has no monetary value and is freely claimable from the faucet." },
+  { q: "Do I pay gas?", a: "Yes. Every on-chain action consumes testnet zkLTC for gas." },
+  { q: "Which file types can I mint?", a: "PNG, JPEG, WebP, and GIF up to 5 MB. Larger files are rejected client-side and auto-compressed to WebP when possible." },
+  { q: "Can I cancel a listing?", a: "Yes. Open the NFT page and click Cancel — it disappears from the marketplace immediately." },
+  { q: "How does the AI execute trades?", a: "Hana proposes the transaction and your wallet prompts you to sign. Nothing happens without your approval." },
+];
+
 export const Route = createFileRoute("/docs")({
   component: Docs,
   head: () => ({
@@ -16,6 +24,35 @@ export const Route = createFileRoute("/docs")({
       { name: "description", content: "Complete documentation for SakuraNFT: smart contracts, supported tokens, swap, liquidity, portfolio, analytics, AI assistant and more." },
       { property: "og:title", content: "SakuraNFT Documentation 🌸" },
       { property: "og:description", content: "Smart contracts, supported tokens, guides & technical reference for the SakuraNFT ecosystem." },
+      { property: "og:url", content: "https://sakuranft.lovable.app/docs" },
+      { name: "twitter:title", content: "SakuraNFT Documentation 🌸" },
+      { name: "twitter:description", content: "Guides, smart contracts, and technical reference for SakuraNFT." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakuranft.lovable.app/docs" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: DOCS_FAQ.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "TechArticle",
+          headline: "SakuraNFT Documentation",
+          description: "Complete guides and technical reference for the SakuraNFT marketplace, Sakura DEX, and LitVM smart contracts.",
+          url: "https://sakuranft.lovable.app/docs",
+          author: { "@type": "Organization", name: "SakuraNFT" },
+        }),
+      },
     ],
   }),
 });

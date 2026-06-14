@@ -21,7 +21,7 @@ export const Route = createFileRoute("/mint")({
       { name: "twitter:title", content: "Mint an NFT — SakuraNFT" },
       { name: "twitter:description", content: "Mint NFTs on LitVM with AI-assisted artwork and descriptions." },
     ],
-    links: [{ rel: "canonical", href: "https://sakura-bloom-forge.lovable.app/mint" }],
+    links: [{ rel: "canonical", href: "https://sakuranft.lovable.app/mint" }],
   }),
 });
 
@@ -147,7 +147,7 @@ function Mint() {
           <label className="block aspect-square rounded-2xl border border-dashed border-primary/40 cursor-pointer overflow-hidden bg-gradient-to-br from-background/60 to-accent/10 hover:border-primary transition">
             <input type="file" accept="image/*" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
             {preview ? (
-              <img src={preview} alt="Preview" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              <img src={preview} alt="NFT artwork preview" className="w-full h-full object-cover" loading="lazy" decoding="async" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
                 {mode === "ai" ? (
@@ -176,7 +176,7 @@ function Mint() {
                 value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)}
                 className="bg-background/40 resize-none text-sm" />
               <div className="grid grid-cols-3 gap-2">
-                <select value={aiStyle} onChange={(e) => setAiStyle(e.target.value as any)}
+                <select aria-label="Art style" value={aiStyle} onChange={(e) => setAiStyle(e.target.value as any)}
                   className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   <option value="cinematic">Cinematic</option>
                   <option value="anime">Anime</option>
@@ -186,13 +186,13 @@ function Mint() {
                   <option value="oil-painting">Oil Painting</option>
                   <option value="pixel">Pixel Art</option>
                 </select>
-                <select value={aiQuality} onChange={(e) => setAiQuality(e.target.value as any)}
+                <select aria-label="Image quality" value={aiQuality} onChange={(e) => setAiQuality(e.target.value as any)}
                   className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   <option value="low">Fast</option>
                   <option value="medium">Balanced</option>
                   <option value="high">High Quality</option>
                 </select>
-                <select value={category} onChange={(e) => setCategory(e.target.value)}
+                <select aria-label="NFT category" value={category} onChange={(e) => setCategory(e.target.value)}
                   className="px-2 py-2 rounded-xl bg-background/60 border text-xs">
                   {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
@@ -222,7 +222,7 @@ function Mint() {
             <div className="flex items-center justify-between gap-2">
               <label className="text-sm font-medium">Description</label>
               <div className="flex items-center gap-1">
-                <select value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}
+                <select aria-label="Description tone" value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}
                   className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
                   <option value="poetic">Poetic</option>
                   <option value="epic">Epic</option>
@@ -231,7 +231,7 @@ function Mint() {
                   <option value="cyberpunk">Cyberpunk</option>
                   <option value="minimal">Minimal</option>
                 </select>
-                <select value={aiLang} onChange={(e) => setAiLang(e.target.value)}
+                <select aria-label="Description language" value={aiLang} onChange={(e) => setAiLang(e.target.value)}
                   className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
                   <option>English</option>
                   <option>Indonesian</option>

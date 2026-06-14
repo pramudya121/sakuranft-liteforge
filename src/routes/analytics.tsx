@@ -15,7 +15,13 @@ export const Route = createFileRoute("/analytics")({
     meta: [
       { title: "Analytics — SakuraNFT Marketplace & DEX" },
       { name: "description", content: "Real-time analytics for the SakuraNFT marketplace and Sakura DEX on LitVM: floor price, volume, liquidity pools, token pairs." },
+      { property: "og:title", content: "SakuraNFT Analytics — Live Marketplace & DEX Metrics" },
+      { property: "og:description", content: "Floor price, trading volume, liquidity pools, and token pair stats — updated live on LitVM." },
+      { property: "og:url", content: "https://sakuranft.lovable.app/analytics" },
+      { name: "twitter:title", content: "SakuraNFT Analytics" },
+      { name: "twitter:description", content: "Live floor price, volume, pools & pair stats on LitVM." },
     ],
+    links: [{ rel: "canonical", href: "https://sakuranft.lovable.app/analytics" }],
   }),
 });
 

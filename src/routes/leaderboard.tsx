@@ -9,7 +9,18 @@ import { CHAIN } from "@/lib/web3/contracts";
 
 export const Route = createFileRoute("/leaderboard")({
   component: Leaderboard,
-  head: () => ({ meta: [{ title: "Leaderboard — SakuraNFT" }] }),
+  head: () => ({
+    meta: [
+      { title: "Leaderboard — Top Collectors & Sellers on SakuraNFT" },
+      { name: "description", content: "See the top SakuraNFT collectors, sellers, and traders on LitVM. Live rankings by NFTs owned, listings, and zkLTC volume." },
+      { property: "og:title", content: "Top Collectors & Sellers — SakuraNFT Leaderboard" },
+      { property: "og:description", content: "Live rankings of the most active collectors, sellers, and traders on SakuraNFT." },
+      { property: "og:url", content: "https://sakuranft.lovable.app/leaderboard" },
+      { name: "twitter:title", content: "SakuraNFT Leaderboard" },
+      { name: "twitter:description", content: "Top collectors, sellers, and traders on LitVM." },
+    ],
+    links: [{ rel: "canonical", href: "https://sakuranft.lovable.app/leaderboard" }],
+  }),
 });
 
 function Leaderboard() {

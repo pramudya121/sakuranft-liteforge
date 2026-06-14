@@ -20,7 +20,18 @@ import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
 import { NFTCardSkeleton } from "@/components/Skeletons";
 export const Route = createFileRoute("/profile")({
   component: Profile,
-  head: () => ({ meta: [{ title: "Profile — SakuraNFT" }] }),
+  head: () => ({
+    meta: [
+      { title: "My Profile — SakuraNFT" },
+      { name: "description", content: "Manage your SakuraNFT profile, view your NFT collection, listings, watchlist, and portfolio of zkLTC and tokens on LitVM." },
+      { property: "og:title", content: "My SakuraNFT Profile" },
+      { property: "og:description", content: "Your NFT collection, active listings, watchlist, and on-chain portfolio." },
+      { property: "og:url", content: "https://sakuranft.lovable.app/profile" },
+      { name: "twitter:title", content: "My SakuraNFT Profile" },
+      { name: "twitter:description", content: "Your NFTs, listings, and portfolio on LitVM." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
 });
 
 function Profile() {
