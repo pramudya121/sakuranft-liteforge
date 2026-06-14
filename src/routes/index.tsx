@@ -98,6 +98,7 @@ function Home() {
             <p className="text-sm text-muted-foreground">{f.d}</p>
           </div>
         ))}
+        </div>
       </section>
 
       {/* Trending */}
