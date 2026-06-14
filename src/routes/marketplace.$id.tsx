@@ -84,7 +84,8 @@ export const Route = createFileRoute("/marketplace/$id")({
   head: ({ params }) => {
     const title = `NFT #${params.id} — SakuraNFT`;
     const description = `View NFT #${params.id} on SakuraNFT: current listing price, offers, transfer history, and ownership details on the LitVM marketplace.`;
-    const url = `https://sakura-bloom-forge.lovable.app/marketplace/${params.id}`;
+    const url = `https://sakuranft.lovable.app/marketplace/${params.id}`;
+    const fallbackImage = "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8cbd12b9-aade-4220-8c19-6570a6e7e4cf/id-preview-019e647b--b27d27db-4f93-4376-a7f6-d5505e894cfa.lovable.app-1781017377668.png";
     return {
       meta: [
         { title },
@@ -93,8 +94,10 @@ export const Route = createFileRoute("/marketplace/$id")({
         { property: "og:description", content: description },
         { property: "og:type", content: "product" },
         { property: "og:url", content: url },
+        { property: "og:image", content: fallbackImage },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
+        { name: "twitter:image", content: fallbackImage },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [{
@@ -104,6 +107,7 @@ export const Route = createFileRoute("/marketplace/$id")({
           "@type": "Product",
           name: `SakuraNFT #${params.id}`,
           url,
+          image: fallbackImage,
           category: "NFT",
           brand: { "@type": "Brand", name: "SakuraNFT" },
         }),
