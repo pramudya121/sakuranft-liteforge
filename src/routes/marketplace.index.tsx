@@ -57,12 +57,19 @@ function Marketplace() {
   const [view, setView] = useState<"grid" | "list">("grid");
 
   const stats = useMemo(() => {
-    const prices = listings.map((l) => +l.priceEth).filter((n) => n > 0);
+    // Use DB listings as the *single* source of truth for the headline counts so
+    // the "Listed" tile doesn't flicker between the chain count (which can include
+    // stale active rows) and the realtime DB count. Falls back to chain only when
+    // the DB is genuinely empty/unavailable.
+    const source = dbListings.length > 0
+      ? dbListings.map((d) => ({ priceEth: String(d.price_eth) }))
+      : chainListings.map((l) => ({ priceEth: l.priceEth }));
+    const prices = source.map((l) => +l.priceEth).filter((n) => n > 0);
     const floor = prices.length ? Math.min(...prices) : 0;
     const volume = prices.reduce((a, b) => a + b, 0);
     const owners = new Set(nfts.map((n) => n.owner.toLowerCase())).size;
-    return { total: nfts.length, listed: listings.length, floor, volume, owners };
-  }, [nfts, listings]);
+    return { total: nfts.length, listed: source.length, floor, volume, owners };
+  }, [nfts, dbListings, chainListings]);
 
   // Only iterate over actively-listed NFTs. Items that have been bought/cancelled
   // are filtered out of `listings` upstream (chain refetches on Sold event, DB
@@ -70,17 +77,25 @@ function Marketplace() {
   // automatically without a manual refresh.
   const items = useMemo(() => {
     const nftByToken = new Map(nfts.map((n) => [n.tokenId.toString(), n]));
-      let arr = listings
+    let arr = listings
       .filter((listing) => listing.active !== false)
       .map((listing) => {
         const baseNft = nftByToken.get(listing.tokenId.toString());
-        if (!baseNft) return null;
-        // When an NFT is listed, on-chain ownerOf() returns the marketplace
-        // escrow contract. The *real* owner is the seller on the listing.
-        const nft = { ...baseNft, owner: listing.seller || baseNft.owner };
+        // Synthesize a placeholder NFT when metadata isn't hydrated yet so the
+        // visible "Showing X listed NFTs" count stays stable and matches the
+        // "Listed" stat instead of climbing 4 → 14 → 25 as nfts stream in.
+        const nft = baseNft
+          ? { ...baseNft, owner: listing.seller || baseNft.owner }
+          : {
+              tokenId: listing.tokenId,
+              owner: listing.seller || "",
+              tokenURI: "",
+              name: `NFT #${listing.tokenId.toString()}`,
+              description: "",
+              image: "",
+            } as typeof nfts[number];
         return { nft, listing };
-      })
-      .filter((x): x is { nft: typeof nfts[number]; listing: typeof listings[number] } => !!x);
+      });
     if (search) arr = arr.filter((x) => x.nft.name.toLowerCase().includes(search.toLowerCase()) || x.nft.tokenId.toString().includes(search));
     arr = arr.filter((x) => +x.listing.priceEth <= maxPrice);
     if (sort === "price-asc") arr.sort((a, b) => +a.listing.priceEth - +b.listing.priceEth);
@@ -90,7 +105,9 @@ function Marketplace() {
     return arr;
   }, [nfts, listings, search, sort, maxPrice]);
 
-  const loading = nftsLoading || (dbListings.length === 0 && (dbLoading || chainLoading));
+  // Render as soon as we know what's listed (DB or chain). NFT metadata fills
+  // in progressively per-card without blocking the whole grid.
+  const loading = dbLoading && chainLoading && listings.length === 0;
 
   async function handleBuy(listing: typeof listings[number]) {
     if (!signer) return toast.error("Connect wallet first");
