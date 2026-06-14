@@ -222,7 +222,7 @@ function Mint() {
             <div className="flex items-center justify-between gap-2">
               <label className="text-sm font-medium">Description</label>
               <div className="flex items-center gap-1">
-                <select value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}
+                <select aria-label="Description tone" value={aiTone} onChange={(e) => setAiTone(e.target.value as any)}
                   className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
                   <option value="poetic">Poetic</option>
                   <option value="epic">Epic</option>
@@ -231,7 +231,7 @@ function Mint() {
                   <option value="cyberpunk">Cyberpunk</option>
                   <option value="minimal">Minimal</option>
                 </select>
-                <select value={aiLang} onChange={(e) => setAiLang(e.target.value)}
+                <select aria-label="Description language" value={aiLang} onChange={(e) => setAiLang(e.target.value)}
                   className="px-2 py-1 rounded-lg bg-background/60 border text-[11px]">
                   <option>English</option>
                   <option>Indonesian</option>
