@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Send, ShoppingCart, Eye } from "lucide-react";
+import { Heart, Send, ShoppingCart, Eye, BadgeCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { CHAIN } from "@/lib/web3/contracts";
 import { useWallet } from "@/contexts/WalletContext";
 import { useWatchlist } from "@/lib/supabase-hooks";
 import { pushNotification } from "@/lib/supabase-hooks";
+import { useCollections } from "@/lib/collections";
 import { toast } from "sonner";
 
 export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listing; onBuy?: () => void }) {
