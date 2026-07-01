@@ -75,10 +75,13 @@ function PairTick(props: any) {
 function Analytics() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
+  const { cols: allCols, verifiedCount } = useCollections();
   const [pools, setPools] = useState<PoolStat[]>([]);
   const [poolsLoading, setPoolsLoading] = useState(true);
   const [history, setHistory] = useState<CollectionHistoryPoint[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+
+  const verifiedCols = useMemo(() => allCols.filter((c) => c.verified).slice(0, 12), [allCols]);
 
   useEffect(() => {
     let alive = true;
