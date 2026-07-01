@@ -143,9 +143,10 @@ function Profile() {
 
 
       <Tabs defaultValue="collection" className="w-full">
-        <TabsList className="glass">
+        <TabsList className="glass flex flex-wrap h-auto">
           <TabsTrigger value="collection">Collection ({owned.length})</TabsTrigger>
           <TabsTrigger value="listed">Listed ({myListings.length})</TabsTrigger>
+          <TabsTrigger value="offers"><Send className="w-3 h-3 mr-1" /> Offers</TabsTrigger>
           <TabsTrigger value="watchlist"><Heart className="w-3 h-3 mr-1" /> Watchlist ({watchlistIds.length})</TabsTrigger>
           <TabsTrigger value="portfolio">Tokens</TabsTrigger>
         </TabsList>
