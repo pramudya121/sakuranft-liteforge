@@ -295,6 +295,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_nft_like_count: { Args: { p_token_id: number }; Returns: number }
       increment_nft_view: { Args: { p_token_id: number }; Returns: undefined }
       request_wallet: { Args: never; Returns: string }
     }
