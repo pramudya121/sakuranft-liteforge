@@ -7,7 +7,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile } from "@/lib/supabase-hooks";
 import { Button } from "@/components/ui/button";
-import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
+import { safeHttpUrl, safeCssUrl, safeTwitterUrl } from "@/lib/safe-url";
 
 export const Route = createFileRoute("/u/$address")({
   component: PublicProfile,
