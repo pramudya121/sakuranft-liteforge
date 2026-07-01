@@ -16,16 +16,16 @@ const subscribers = new Set<(v: CollectionMeta[]) => void>();
 async function loadCollections(): Promise<CollectionMeta[]> {
   if (cache) return cache;
   if (inflight) return inflight;
-  inflight = supabase
-    .from("collections_metadata")
-    .select("contract_address, name, logo_url, verified")
-    .limit(500)
-    .then(({ data }) => {
-      cache = (data ?? []) as CollectionMeta[];
-      subscribers.forEach((cb) => cb(cache!));
-      inflight = null;
-      return cache;
-    });
+  inflight = (async () => {
+    const { data } = await supabase
+      .from("collections_metadata")
+      .select("contract_address, name, logo_url, verified")
+      .limit(500);
+    cache = (data ?? []) as CollectionMeta[];
+    subscribers.forEach((cb) => cb(cache!));
+    inflight = null;
+    return cache!;
+  })();
   return inflight;
 }
 
