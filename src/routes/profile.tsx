@@ -113,7 +113,7 @@ function Profile() {
             </div>
             <p className="mt-3 text-sm text-foreground/90 max-w-2xl">{profile?.bio || "No bio yet — tell the community what you collect."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
-              {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
+              {safeTwitterUrl(profile?.twitter) && <a href={safeTwitterUrl(profile?.twitter)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
               {safeHttpUrl(profile?.website) && <a href={safeHttpUrl(profile?.website)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
             </div>
           </div>
