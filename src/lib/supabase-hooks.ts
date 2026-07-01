@@ -139,10 +139,16 @@ export async function pushNotification(
   link?: string,
 ) {
   if (!to || !/^0x[a-fA-F0-9]{40}$/.test(to)) return;
+  // Include the connected wallet as `from` so the server function can
+  // verify the caller has a legitimate relationship to the recipient.
+  const { getWalletHeader } = await import("./wallet-header");
+  const from = getWalletHeader();
+  if (!from || !/^0x[a-fA-F0-9]{40}$/.test(from)) return;
   try {
     const { sendNotificationFn } = await import("./notifications.functions");
     await sendNotificationFn({
       data: {
+        from,
         to,
         type,
         title,
@@ -207,11 +213,10 @@ export function useNFTLikes(tokenId?: string | bigint, viewer?: string | null) {
   const load = useCallback(async () => {
     if (tokenId === undefined) return;
     const tid = Number(tokenId);
-    const { count: c } = await supabase
-      .from("nft_likes")
-      .select("*", { count: "exact", head: true })
-      .eq("token_id", tid);
-    setCount(c ?? 0);
+    // Public like counts are exposed via a SECURITY DEFINER RPC so we don't
+    // need to grant SELECT on the wallet-carrying rows.
+    const { data: c } = await supabase.rpc("get_nft_like_count", { p_token_id: tid });
+    setCount(typeof c === "number" ? c : 0);
     if (viewer) {
       const { data } = await supabase
         .from("nft_likes")

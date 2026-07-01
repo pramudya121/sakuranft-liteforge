@@ -15,7 +15,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
-import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
+import { safeHttpUrl, safeCssUrl, safeTwitterUrl } from "@/lib/safe-url";
 import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
 import { NFTCardSkeleton } from "@/components/Skeletons";
 export const Route = createFileRoute("/profile")({
@@ -113,7 +113,7 @@ function Profile() {
             </div>
             <p className="mt-3 text-sm text-foreground/90 max-w-2xl">{profile?.bio || "No bio yet — tell the community what you collect."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
-              {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
+              {safeTwitterUrl(profile?.twitter) && <a href={safeTwitterUrl(profile?.twitter)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
               {safeHttpUrl(profile?.website) && <a href={safeHttpUrl(profile?.website)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
             </div>
           </div>
