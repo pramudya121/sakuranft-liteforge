@@ -16,9 +16,11 @@ import { toast } from "sonner";
 export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listing; onBuy?: () => void }) {
   const { address, signer } = useWallet();
   const { items, toggle } = useWatchlist(address);
+  const { find } = useCollections();
   const id = nft.tokenId.toString();
   const isFav = items.includes(id);
   const isOwner = address && address.toLowerCase() === nft.owner.toLowerCase();
+  const collection = find(nft.category);
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
   const [busy, setBusy] = useState(false);
