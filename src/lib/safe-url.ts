@@ -32,3 +32,19 @@ export function safeInternalPath(path?: string | null): string {
   if (/[\s\x00-\x1f]/.test(path)) return "/";
   return path;
 }
+
+// Twitter usernames are 1-15 chars, alphanumeric + underscore. Anything else
+// (including full URLs, "//evil.com", or "javascript:") is rejected so we
+// never build an open-redirect link like https://twitter.com/<attacker input>.
+const TWITTER_HANDLE_RE = /^[A-Za-z0-9_]{1,15}$/;
+
+export function safeTwitterHandle(handle?: string | null): string | undefined {
+  if (!handle) return undefined;
+  const trimmed = handle.trim().replace(/^@/, "");
+  return TWITTER_HANDLE_RE.test(trimmed) ? trimmed : undefined;
+}
+
+export function safeTwitterUrl(handle?: string | null): string | undefined {
+  const h = safeTwitterHandle(handle);
+  return h ? `https://twitter.com/${h}` : undefined;
+}
