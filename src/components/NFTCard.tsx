@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Send, ShoppingCart, Eye } from "lucide-react";
+import { Heart, Send, ShoppingCart, Eye, BadgeCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,14 +10,17 @@ import { CHAIN } from "@/lib/web3/contracts";
 import { useWallet } from "@/contexts/WalletContext";
 import { useWatchlist } from "@/lib/supabase-hooks";
 import { pushNotification } from "@/lib/supabase-hooks";
+import { useCollections } from "@/lib/collections";
 import { toast } from "sonner";
 
 export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listing; onBuy?: () => void }) {
   const { address, signer } = useWallet();
   const { items, toggle } = useWatchlist(address);
+  const { find } = useCollections();
   const id = nft.tokenId.toString();
   const isFav = items.includes(id);
   const isOwner = address && address.toLowerCase() === nft.owner.toLowerCase();
+  const collection = find(nft.category);
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -80,8 +83,19 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
 
       <div className="p-4 flex-1 flex flex-col gap-2 relative">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold truncate text-base">{nft.name}</h3>
+          <h3 className="font-semibold truncate text-base flex items-center gap-1.5">
+            <span className="truncate">{nft.name}</span>
+            {collection?.verified && (
+              <BadgeCheck className="w-4 h-4 text-sky-400 shrink-0" aria-label="Verified collection" />
+            )}
+          </h3>
         </div>
+        {collection?.name && (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+            {collection.logo_url && <img src={collection.logo_url} alt="" className="w-3.5 h-3.5 rounded-full" loading="lazy" decoding="async" />}
+            <span className="truncate">{collection.name}</span>
+          </div>
+        )}
         <Link to="/u/$address" params={{ address: nft.owner }} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:text-primary truncate font-mono">
           by {shortAddr(nft.owner)}
         </Link>

@@ -8,6 +8,8 @@ import { TOKENS } from "@/lib/tokens";
 import { getPairInfo, formatEther } from "@/lib/web3/ethers";
 import { fetchCollectionHistory, type CollectionHistoryPoint } from "@/lib/web3/history";
 import { ChartSkeleton, TableSkeleton } from "@/components/Skeletons";
+import { useCollections } from "@/lib/collections";
+import { BadgeCheck } from "lucide-react";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
@@ -73,10 +75,13 @@ function PairTick(props: any) {
 function Analytics() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
+  const { cols: allCols, verifiedCount } = useCollections();
   const [pools, setPools] = useState<PoolStat[]>([]);
   const [poolsLoading, setPoolsLoading] = useState(true);
   const [history, setHistory] = useState<CollectionHistoryPoint[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+
+  const verifiedCols = useMemo(() => allCols.filter((c) => c.verified).slice(0, 12), [allCols]);
 
   useEffect(() => {
     let alive = true;
@@ -267,6 +272,39 @@ function Analytics() {
             </ul>
           </Section>
         </div>
+      </section>
+
+      {/* ===== Verified Collections ===== */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <BadgeCheck className="w-5 h-5 text-sky-400" />
+          <h2 className="text-xl font-bold text-foreground">Verified Collections</h2>
+          <span className="text-xs dex-muted">{verifiedCount} verified</span>
+        </div>
+        {verifiedCols.length === 0 ? (
+          <div className="rounded-2xl p-6 bg-white/[0.02] border border-white/10 text-center text-xs dex-muted">
+            No verified collections yet. Verified creators get a checkmark badge across the marketplace.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {verifiedCols.map((c) => (
+              <div key={c.contract_address} className="rounded-2xl p-3 bg-white/[0.02] border border-white/10 hover:border-sky-400/40 transition flex items-center gap-2">
+                {c.logo_url ? (
+                  <img src={c.logo_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" decoding="async" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-fuchsia-500/40 to-pink-500/40 flex items-center justify-center text-lg shrink-0">🌸</div>
+                )}
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate flex items-center gap-1">
+                    {c.name || c.contract_address}
+                    <BadgeCheck className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  </div>
+                  <div className="text-[10px] dex-muted truncate">{c.contract_address}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ===== DEX ===== */}

@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon, Heart } from "lucide-react";
+import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon, Heart, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWallet } from "@/contexts/WalletContext";
-import { useAllNFTs, useAllListings } from "@/lib/web3/hooks";
+import { useAllNFTs, useAllListings, useOffers, type NFTMeta } from "@/lib/web3/hooks";
 import { NFTCard } from "@/components/NFTCard";
 import { PortfolioPanel } from "@/components/PortfolioPanel";
 import { shortAddr } from "@/lib/web3/ethers";
@@ -143,9 +143,10 @@ function Profile() {
 
 
       <Tabs defaultValue="collection" className="w-full">
-        <TabsList className="glass">
+        <TabsList className="glass flex flex-wrap h-auto">
           <TabsTrigger value="collection">Collection ({owned.length})</TabsTrigger>
           <TabsTrigger value="listed">Listed ({myListings.length})</TabsTrigger>
+          <TabsTrigger value="offers"><Send className="w-3 h-3 mr-1" /> Offers</TabsTrigger>
           <TabsTrigger value="watchlist"><Heart className="w-3 h-3 mr-1" /> Watchlist ({watchlistIds.length})</TabsTrigger>
           <TabsTrigger value="portfolio">Tokens</TabsTrigger>
         </TabsList>
@@ -176,6 +177,9 @@ function Profile() {
               .filter((x): x is { nft: typeof nfts[number]; listing: typeof listings[number] } => !!x.nft)
             } />
           )}
+        </TabsContent>
+        <TabsContent value="offers" className="mt-4">
+          <OffersReceivedPanel owned={owned} />
         </TabsContent>
         <TabsContent value="watchlist" className="mt-4">
           {(() => {
@@ -210,6 +214,49 @@ function InfiniteNFTGrid({ items }: { items: { nft: any; listing?: any }[] }) {
         </div>
       )}
     </>
+  );
+}
+
+function OfferRow({ nft }: { nft: NFTMeta }) {
+  const { offers } = useOffers(nft.tokenId.toString());
+  const active = offers.filter((o) => o.active);
+  if (active.length === 0) return null;
+  const best = [...active].sort((a, b) => Number(b.value - a.value))[0];
+  return (
+    <Link
+      to="/marketplace/$id"
+      params={{ id: nft.tokenId.toString() }}
+      className="flex items-center gap-3 p-3 rounded-xl glass hover:border-primary/60 border border-transparent transition"
+    >
+      <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted shrink-0 flex items-center justify-center text-xl">
+        {nft.image ? <img src={nft.image} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" /> : "🌸"}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold truncate text-sm">{nft.name}</div>
+        <div className="text-xs text-muted-foreground">{active.length} active offer{active.length > 1 ? "s" : ""} · best from {shortAddr(best.offerer)}</div>
+      </div>
+      <div className="text-right shrink-0">
+        <div className="text-sm font-bold gradient-text">{(+best.valueEth).toFixed(4)} {CHAIN.symbol}</div>
+        <div className="text-[10px] text-muted-foreground">Top bid</div>
+      </div>
+    </Link>
+  );
+}
+
+function OffersReceivedPanel({ owned }: { owned: NFTMeta[] }) {
+  const sample = owned.slice(0, 30);
+  if (owned.length === 0) {
+    return <div className="text-center py-12 glass rounded-2xl text-muted-foreground">Mint or acquire an NFT to start receiving offers.</div>;
+  }
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-muted-foreground px-1">
+        Showing active offers across your latest {sample.length} NFT{sample.length > 1 ? "s" : ""}. Click any row to review, accept, or counter.
+      </div>
+      {sample.map((n) => (
+        <OfferRow key={n.tokenId.toString()} nft={n} />
+      ))}
+    </div>
   );
 }
 
