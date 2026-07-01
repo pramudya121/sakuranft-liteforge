@@ -8,6 +8,8 @@ import { TOKENS } from "@/lib/tokens";
 import { getPairInfo, formatEther } from "@/lib/web3/ethers";
 import { fetchCollectionHistory, type CollectionHistoryPoint } from "@/lib/web3/history";
 import { ChartSkeleton, TableSkeleton } from "@/components/Skeletons";
+import { useCollections } from "@/lib/collections";
+import { BadgeCheck } from "lucide-react";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
