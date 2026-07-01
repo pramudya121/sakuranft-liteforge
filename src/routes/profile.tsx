@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon, Heart } from "lucide-react";
+import { Award, Edit2, Twitter, Globe, Copy, ExternalLink, Tag, Wallet, TrendingUp, Image as ImageIcon, Heart, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWallet } from "@/contexts/WalletContext";
-import { useAllNFTs, useAllListings } from "@/lib/web3/hooks";
+import { useAllNFTs, useAllListings, useOffers, type NFTMeta } from "@/lib/web3/hooks";
 import { NFTCard } from "@/components/NFTCard";
 import { PortfolioPanel } from "@/components/PortfolioPanel";
 import { shortAddr } from "@/lib/web3/ethers";
