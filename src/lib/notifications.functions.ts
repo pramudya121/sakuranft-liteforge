@@ -89,8 +89,15 @@ export const sendNotificationFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => Schema.parse(data))
   .handler(async ({ data }) => {
     const req = getRequest();
-    const rawCaller = req?.headers.get("x-wallet-address") ?? "";
-    const caller = rawCaller.toLowerCase();
+    const headerCaller = (req?.headers.get("x-wallet-address") ?? "").toLowerCase();
+    // The caller wallet is required. We accept either the body-provided
+    // `from` field (set by pushNotification on the client) or the
+    // `x-wallet-address` header — they must match if both are present.
+    const bodyCaller = data.from.toLowerCase();
+    if (headerCaller && headerCaller !== bodyCaller) {
+      return { ok: false, error: "caller_mismatch" };
+    }
+    const caller = bodyCaller;
     if (!WALLET_RE.test(caller)) {
       return { ok: false, error: "missing_caller_wallet" };
     }
