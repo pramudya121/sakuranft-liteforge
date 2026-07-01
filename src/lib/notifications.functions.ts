@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const Schema = z.object({
+  from: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid caller wallet"),
   to: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid wallet address"),
   type: z.string().min(1).max(40).regex(/^[a-z0-9_]+$/i),
   title: z.string().min(1).max(200),
