@@ -178,6 +178,9 @@ function Profile() {
             } />
           )}
         </TabsContent>
+        <TabsContent value="offers" className="mt-4">
+          <OffersReceivedPanel owned={owned} />
+        </TabsContent>
         <TabsContent value="watchlist" className="mt-4">
           {(() => {
             const set = new Set(watchlistIds);
