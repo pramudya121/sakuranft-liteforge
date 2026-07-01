@@ -83,8 +83,19 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
 
       <div className="p-4 flex-1 flex flex-col gap-2 relative">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold truncate text-base">{nft.name}</h3>
+          <h3 className="font-semibold truncate text-base flex items-center gap-1.5">
+            <span className="truncate">{nft.name}</span>
+            {collection?.verified && (
+              <BadgeCheck className="w-4 h-4 text-sky-400 shrink-0" aria-label="Verified collection" />
+            )}
+          </h3>
         </div>
+        {collection?.name && (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+            {collection.logo_url && <img src={collection.logo_url} alt="" className="w-3.5 h-3.5 rounded-full" loading="lazy" decoding="async" />}
+            <span className="truncate">{collection.name}</span>
+          </div>
+        )}
         <Link to="/u/$address" params={{ address: nft.owner }} onClick={(e) => e.stopPropagation()} className="text-xs text-muted-foreground hover:text-primary truncate font-mono">
           by {shortAddr(nft.owner)}
         </Link>
