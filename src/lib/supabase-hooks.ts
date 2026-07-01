@@ -139,10 +139,16 @@ export async function pushNotification(
   link?: string,
 ) {
   if (!to || !/^0x[a-fA-F0-9]{40}$/.test(to)) return;
+  // Include the connected wallet as `from` so the server function can
+  // verify the caller has a legitimate relationship to the recipient.
+  const { getWalletHeader } = await import("./wallet-header");
+  const from = getWalletHeader();
+  if (!from || !/^0x[a-fA-F0-9]{40}$/.test(from)) return;
   try {
     const { sendNotificationFn } = await import("./notifications.functions");
     await sendNotificationFn({
       data: {
+        from,
         to,
         type,
         title,
