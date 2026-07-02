@@ -297,7 +297,64 @@ function Analytics() {
         </div>
       </section>
 
+      {/* ===== Top Traders + Recent Sales ===== */}
+      <section className="grid lg:grid-cols-2 gap-4">
+        <Section title="Top Traders (recent)" right={<span className="text-[10px] dex-muted opacity-80">{salesLoading ? "Scanning…" : `${topTraders.length} wallets`}</span>}>
+          {salesLoading ? <TableSkeleton rows={5} /> : topTraders.length === 0 ? (
+            <p className="text-xs dex-muted py-6 text-center">No trades in the recent window.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-xs dex-muted uppercase">
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-2 px-2">#</th>
+                    <th className="text-left py-2 px-2">Wallet</th>
+                    <th className="text-right py-2 px-2">Trades</th>
+                    <th className="text-right py-2 px-2">Volume</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topTraders.map((t, i) => (
+                    <tr key={t.addr} className="border-b border-white/5 hover:bg-white/[0.02]">
+                      <td className="py-2 px-2 text-fuchsia-300 font-bold">{i + 1}</td>
+                      <td className="py-2 px-2 font-mono text-xs">
+                        <a href={`/u/${t.addr}`} className="hover:text-primary">{t.addr.slice(0, 6)}…{t.addr.slice(-4)}</a>
+                        <span className="ml-2 text-[10px] dex-muted">B{t.bought}·S{t.sold}</span>
+                      </td>
+                      <td className="py-2 px-2 text-right">{t.trades}</td>
+                      <td className="py-2 px-2 text-right font-semibold text-fuchsia-300">{t.volume.toFixed(4)} {CHAIN.symbol}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Section>
+
+        <Section title="Recent Sales" right={<span className="text-[10px] dex-muted opacity-80">{salesLoading ? "…" : `${recentSales.length} sales`}</span>}>
+          {salesLoading ? <TableSkeleton rows={5} /> : recentSales.length === 0 ? (
+            <p className="text-xs dex-muted py-6 text-center">No sales recorded yet.</p>
+          ) : (
+            <div className="overflow-y-auto max-h-[360px] pr-1 space-y-2">
+              {recentSales.map((s) => (
+                <a key={s.tx} href={`/marketplace/${s.tokenId}`} className="flex items-center justify-between rounded-xl px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-fuchsia-400/40 transition">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">#{s.tokenId}</div>
+                    <div className="text-[10px] dex-muted font-mono truncate">{s.seller.slice(0, 6)}… → {s.buyer.slice(0, 6)}…</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-bold text-fuchsia-300">{s.priceEth.toFixed(4)} {CHAIN.symbol}</div>
+                    <div className="text-[10px] dex-muted">{new Date(s.timestamp * 1000).toLocaleDateString()}</div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </Section>
+      </section>
+
       {/* ===== Verified Collections ===== */}
+
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <BadgeCheck className="w-5 h-5 text-sky-400" />
