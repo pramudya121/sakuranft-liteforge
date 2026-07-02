@@ -80,17 +80,24 @@ function Analytics() {
   const [poolsLoading, setPoolsLoading] = useState(true);
   const [history, setHistory] = useState<CollectionHistoryPoint[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
+  const [salesLoading, setSalesLoading] = useState(true);
 
   const verifiedCols = useMemo(() => allCols.filter((c) => c.verified).slice(0, 12), [allCols]);
 
   useEffect(() => {
     let alive = true;
     setHistoryLoading(true);
+    setSalesLoading(true);
     fetchCollectionHistory()
       .then((h) => { if (alive) { setHistory(h); setHistoryLoading(false); } })
       .catch(() => { if (alive) setHistoryLoading(false); });
+    fetchRecentSales(25)
+      .then((r) => { if (alive) { setRecentSales(r); setSalesLoading(false); } })
+      .catch(() => { if (alive) setSalesLoading(false); });
     return () => { alive = false; };
   }, []);
+
 
   // ---- DEX pool stats: probe every token vs wzkLTC ----
   useEffect(() => {
