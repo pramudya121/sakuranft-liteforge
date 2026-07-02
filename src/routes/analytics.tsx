@@ -165,6 +165,22 @@ function Analytics() {
 
   const dexTvl = pools.reduce((s, p) => s + p.tvlEth, 0);
 
+  // ---- Top traders derived from recent sales feed ----
+  const topTraders = useMemo(() => {
+    const map = new Map<string, { addr: string; bought: number; sold: number; volume: number; trades: number }>();
+    const bump = (addr: string, kind: "bought" | "sold", vol: number) => {
+      const k = addr.toLowerCase();
+      const cur = map.get(k) ?? { addr, bought: 0, sold: 0, volume: 0, trades: 0 };
+      cur[kind] += 1;
+      cur.volume += vol;
+      cur.trades += 1;
+      map.set(k, cur);
+    };
+    for (const s of recentSales) { bump(s.buyer, "bought", s.priceEth); bump(s.seller, "sold", s.priceEth); }
+    return [...map.values()].sort((a, b) => b.volume - a.volume).slice(0, 8);
+  }, [recentSales]);
+
+
   return (
     <div className="space-y-8">
       <div>
