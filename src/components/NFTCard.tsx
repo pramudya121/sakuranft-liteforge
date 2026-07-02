@@ -24,6 +24,23 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
   const [busy, setBusy] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  function onMove(e: React.MouseEvent<HTMLDivElement>) {
+    const el = cardRef.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width;
+    const y = (e.clientY - r.top) / r.height;
+    el.style.setProperty("--tx", (x - 0.5).toFixed(3));
+    el.style.setProperty("--ty", (y - 0.5).toFixed(3));
+    el.style.setProperty("--mx", `${x * 100}%`);
+    el.style.setProperty("--my", `${y * 100}%`);
+  }
+  function onLeave() {
+    const el = cardRef.current; if (!el) return;
+    el.style.setProperty("--tx", "0");
+    el.style.setProperty("--ty", "0");
+  }
 
   async function submitOffer() {
     if (!signer) return toast.error("Connect wallet first");
