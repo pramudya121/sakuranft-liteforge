@@ -110,18 +110,27 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/80 to-transparent" />
       </Link>
 
-      {/* watchlist heart — outside the link so the click doesn't navigate */}
-      <button
-        onClick={(e) => {
-          e.preventDefault(); e.stopPropagation();
-          if (!address) { toast.error("Connect wallet to use watchlist"); return; }
-          toggle(id);
-        }}
-        className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/70 backdrop-blur border border-border/60 flex items-center justify-center hover:scale-110 hover:border-primary transition z-10 tilt-layer-2"
-        aria-label="Toggle watchlist"
-      >
-        <Heart className={`w-4 h-4 ${isFav ? "fill-primary text-primary" : "text-foreground"}`} />
-      </button>
+      {/* action overlays — outside link */}
+      <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
+        <button
+          onClick={(e) => {
+            e.preventDefault(); e.stopPropagation();
+            if (!address) { toast.error("Connect wallet to use watchlist"); return; }
+            toggle(id);
+          }}
+          className="w-9 h-9 rounded-full bg-background/70 backdrop-blur border border-border/60 flex items-center justify-center hover:scale-110 hover:border-primary transition tilt-layer-2"
+          aria-label="Toggle watchlist"
+        >
+          <Heart className={`w-4 h-4 ${isFav ? "fill-primary text-primary" : "text-foreground"}`} />
+        </button>
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQuickOpen(true); }}
+          className="w-9 h-9 rounded-full bg-background/70 backdrop-blur border border-border/60 flex items-center justify-center hover:scale-110 hover:border-primary transition tilt-layer-2 opacity-0 group-hover:opacity-100"
+          aria-label="Quick view"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+      </div>
 
       <div className="p-4 flex-1 flex flex-col gap-2 relative tilt-layer-1">
         <div className="flex items-start justify-between gap-2">
