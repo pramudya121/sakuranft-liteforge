@@ -186,6 +186,79 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
           )}
         </div>
       </div>
+
+      {/* Cinematic Quick View modal */}
+      <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
+        <DialogContent className="max-w-4xl bg-popover/95 backdrop-blur-xl border-white/15 overflow-hidden p-0">
+          <div className="grid md:grid-cols-2 gap-0">
+            <div
+              ref={viewerRef}
+              onMouseMove={onViewerMove}
+              onMouseLeave={onViewerLeave}
+              className="tilt-3d luxe-border spotlight relative aspect-square bg-gradient-to-br from-fuchsia-500/20 via-pink-400/10 to-sky-400/20 overflow-hidden"
+              style={{ perspective: "1400px" }}
+            >
+              {nft.image ? (
+                <img src={nft.image} alt={nft.name} className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] object-contain rounded-xl shadow-[0_40px_80px_-20px_rgba(236,72,153,0.55)] tilt-layer-2" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-7xl">🌸</div>
+              )}
+              <div className="pointer-events-none absolute top-4 left-4 badge-luxe tilt-layer-3"><Sparkles className="w-3 h-3" /> #{id}</div>
+              {listing && (
+                <div className="pointer-events-none absolute bottom-4 left-4 badge-luxe tilt-layer-3">
+                  {(+listing.priceEth).toFixed(4)} {CHAIN.symbol}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 flex flex-col gap-4 spring-in">
+              <DialogHeader>
+                <DialogTitle className="text-luxe-h text-3xl gold-text">{nft.name}</DialogTitle>
+              </DialogHeader>
+              {collection?.name && (
+                <div className="flex items-center gap-2 text-sm">
+                  {collection.logo_url && <img src={collection.logo_url} alt="" className="w-5 h-5 rounded-full" />}
+                  <span>{collection.name}</span>
+                  {collection.verified && <BadgeCheck className="w-4 h-4 text-sky-400" />}
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground line-clamp-6 whitespace-pre-line">
+                {nft.description || "Winter sakura artefak on-chain — kilau emas dan biru salju yang dipadukan dalam satu koleksi limited."}
+              </p>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                <div className="rounded-xl p-3 border border-border/60 bg-card/70">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Owner</div>
+                  <div className="font-mono text-sm truncate">{shortAddr(nft.owner)}</div>
+                </div>
+                <div className="rounded-xl p-3 border border-border/60 bg-card/70">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Price</div>
+                  <div className="font-semibold gold-text">{listing ? `${(+listing.priceEth).toFixed(4)} ${CHAIN.symbol}` : "Not listed"}</div>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-auto pt-2">
+                {listing && onBuy && !isOwner && (
+                  <button className="btn-luxe" onClick={() => { setQuickOpen(false); onBuy(); }}>
+                    <ShoppingCart className="w-4 h-4" /> Buy Now
+                  </button>
+                )}
+                {!isOwner && (
+                  <button className="btn-frost" onClick={() => { setQuickOpen(false); setOfferOpen(true); }}>
+                    <Send className="w-4 h-4" /> Make Offer
+                  </button>
+                )}
+                <Link to="/marketplace/$id" params={{ id }} className="btn-frost" onClick={() => setQuickOpen(false)}>
+                  <Eye className="w-4 h-4" /> Full Details
+                </Link>
+                {isOwner && (
+                  <Link to="/marketplace/$id" params={{ id }} className="btn-luxe" onClick={() => setQuickOpen(false)}>
+                    <Tag /> List / Manage
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
