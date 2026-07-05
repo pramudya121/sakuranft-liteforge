@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Send, ShoppingCart, Eye, BadgeCheck, Sparkles } from "lucide-react";
+import { Heart, Send, ShoppingCart, Eye, BadgeCheck, Sparkles, Tag } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
