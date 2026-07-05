@@ -218,9 +218,11 @@ function MarketGrid({ loading, items, view, onBuy, error }: {
   return (
     <>
       {view === "grid" ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {slice.map(({ nft, listing }) => (
-            <NFTCard key={nft.tokenId.toString()} nft={nft} listing={listing} onBuy={() => onBuy(listing)} />
+        <div key={`${slice.length}-${slice[0]?.nft?.tokenId?.toString() ?? ""}`} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {slice.map(({ nft, listing }, i) => (
+            <div key={nft.tokenId.toString()} className="stagger-item" style={{ ["--i" as any]: Math.min(i, 12) }}>
+              <NFTCard nft={nft} listing={listing} onBuy={() => onBuy(listing)} />
+            </div>
           ))}
         </div>
       ) : (
