@@ -213,10 +213,12 @@ export function useNFTLikes(tokenId?: string | bigint, viewer?: string | null) {
   const load = useCallback(async () => {
     if (tokenId === undefined) return;
     const tid = Number(tokenId);
-    // Public like counts are exposed via a SECURITY DEFINER RPC so we don't
-    // need to grant SELECT on the wallet-carrying rows.
-    const { data: c } = await supabase.rpc("get_nft_like_count", { p_token_id: tid });
-    setCount(typeof c === "number" ? c : 0);
+    // Public like counts via a direct count query (public SELECT policy).
+    const { count: likeCount } = await supabase
+      .from("nft_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("token_id", tid);
+    setCount(likeCount ?? 0);
     if (viewer) {
       const { data } = await supabase
         .from("nft_likes")
