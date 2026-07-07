@@ -69,7 +69,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
         </header>
-        <main key={path} className="container mx-auto px-4 py-8 page-transition">{children}</main>
+        <main className="container mx-auto px-4 py-8 fade-in">{children}</main>
         <footer className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
           🌸 SakuraNFT on LitVM LiteForge Testnet · Powered by zkLTC
         </footer>

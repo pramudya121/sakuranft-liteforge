@@ -40,42 +40,40 @@ function Home() {
       <div aria-hidden className="fixed inset-0 -z-10 bg-gradient-to-b from-background/0 via-background/25 to-background/70 pointer-events-none" />
 
       {/* Hero content */}
-      <section className="relative -mx-4 md:-mx-8 -mt-8 min-h-[92vh] flex items-center justify-center overflow-hidden">
-        {/* Layered depth vignette */}
-        <div aria-hidden className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.35)_75%)]" />
-        <div className="relative z-10 text-center px-6 max-w-4xl spring-in" style={{ perspective: "1200px" }}>
-          <div className="badge-luxe mb-6 mx-auto">
-            <Sparkles className="w-3.5 h-3.5" /> Live on {CHAIN.name}
+      <section className="relative -mx-4 md:-mx-8 -mt-8 min-h-[88vh] flex items-center justify-center">
+        <div className="relative z-10 text-center px-6 max-w-4xl">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sm text-white mb-6 shadow-[0_0_30px_rgba(236,72,153,0.35)]">
+            <Sparkles className="w-4 h-4 text-pink-300" /> Live on {CHAIN.name}
           </div>
-          <h1 className="text-luxe-h text-6xl md:text-8xl text-white drop-shadow-[0_10px_40px_rgba(236,72,153,0.55)]">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight text-white drop-shadow-[0_4px_30px_rgba(236,72,153,0.55)]">
             Winter Sakura
             <br />
-            <span className="gold-text">NFT Marketplace</span>
+            <span className="bg-gradient-to-r from-pink-200 via-fuchsia-300 to-purple-300 bg-clip-text text-transparent">
+              NFT Marketplace
+            </span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-white/85 max-w-2xl mx-auto font-display italic">
-            Mint, koleksi, dan perdagangkan NFT di bawah langit sakura bersalju. Swap token & sediakan likuiditas — didukung {CHAIN.symbol} di LitVM.
+          <p className="mt-6 text-lg text-white/85 max-w-2xl mx-auto">
+            Mint, collect, and trade NFTs under a glowing sakura sky. Swap tokens, provide liquidity, and earn — powered by ${CHAIN.symbol} on LitVM.
           </p>
           <div className="mt-8 flex flex-wrap gap-3 justify-center">
-            <Link to="/marketplace" className="btn-luxe">
-              Jelajahi Marketplace <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link to="/mint" className="btn-frost">
-              Buat NFT
-            </Link>
+            <Button asChild size="lg" className="rounded-full shadow-[0_0_40px_rgba(236,72,153,0.55)] bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-400 hover:to-fuchsia-400 text-white border-0">
+              <Link to="/marketplace">Explore Marketplace <ArrowRight className="w-4 h-4 ml-2" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-full bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20">
+              <Link to="/mint">Create NFT</Link>
+            </Button>
           </div>
 
-          <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
             {[
               { l: "Minted", v: nfts.length },
               { l: "Listed", v: listings.length },
               { l: "Network", v: CHAIN.symbol },
               { l: "Chain ID", v: CHAIN.id },
-            ].map((s, i) => (
-              <div key={s.l}
-                className="stagger-item rounded-2xl p-4 text-center backdrop-blur-xl bg-white/10 border border-white/20 hover:border-white/40 hover:bg-white/15 transition"
-                style={{ ["--i" as any]: i, boxShadow: "0 12px 30px -10px rgba(236,72,153,0.35), inset 0 1px 0 rgba(255,255,255,0.25)" }}>
-                <div className="text-2xl font-bold gold-text">{s.v}</div>
-                <div className="text-xs text-white/70 mt-1 tracking-wide uppercase">{s.l}</div>
+            ].map((s) => (
+              <div key={s.l} className="rounded-2xl p-4 text-center backdrop-blur-xl bg-white/10 border border-white/15">
+                <div className="text-2xl font-bold text-white">{s.v}</div>
+                <div className="text-xs text-white/70 mt-1">{s.l}</div>
               </div>
             ))}
           </div>

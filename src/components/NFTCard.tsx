@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Heart, Send, ShoppingCart, Eye, BadgeCheck, Sparkles, Tag } from "lucide-react";
+import { Heart, Send, ShoppingCart, Eye, BadgeCheck, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,22 +24,6 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
   const [offerOpen, setOfferOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
   const [busy, setBusy] = useState(false);
-  const [quickOpen, setQuickOpen] = useState(false);
-  const viewerRef = useRef<HTMLDivElement>(null);
-  function onViewerMove(e: React.MouseEvent<HTMLDivElement>) {
-    const el = viewerRef.current; if (!el) return;
-    const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width;
-    const y = (e.clientY - r.top) / r.height;
-    el.style.setProperty("--tx", (x - 0.5).toFixed(3));
-    el.style.setProperty("--ty", (y - 0.5).toFixed(3));
-    el.style.setProperty("--mx", `${x * 100}%`);
-    el.style.setProperty("--my", `${y * 100}%`);
-  }
-  function onViewerLeave() {
-    const el = viewerRef.current; if (!el) return;
-    el.style.setProperty("--tx", "0"); el.style.setProperty("--ty", "0");
-  }
   const cardRef = useRef<HTMLDivElement>(null);
 
   function onMove(e: React.MouseEvent<HTMLDivElement>) {
@@ -110,27 +94,18 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/80 to-transparent" />
       </Link>
 
-      {/* action overlays — outside link */}
-      <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
-        <button
-          onClick={(e) => {
-            e.preventDefault(); e.stopPropagation();
-            if (!address) { toast.error("Connect wallet to use watchlist"); return; }
-            toggle(id);
-          }}
-          className="w-9 h-9 rounded-full bg-background/70 backdrop-blur border border-border/60 flex items-center justify-center hover:scale-110 hover:border-primary transition tilt-layer-2"
-          aria-label="Toggle watchlist"
-        >
-          <Heart className={`w-4 h-4 ${isFav ? "fill-primary text-primary" : "text-foreground"}`} />
-        </button>
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQuickOpen(true); }}
-          className="w-9 h-9 rounded-full bg-background/70 backdrop-blur border border-border/60 flex items-center justify-center hover:scale-110 hover:border-primary transition tilt-layer-2 opacity-0 group-hover:opacity-100"
-          aria-label="Quick view"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-      </div>
+      {/* watchlist heart — outside the link so the click doesn't navigate */}
+      <button
+        onClick={(e) => {
+          e.preventDefault(); e.stopPropagation();
+          if (!address) { toast.error("Connect wallet to use watchlist"); return; }
+          toggle(id);
+        }}
+        className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/70 backdrop-blur border border-border/60 flex items-center justify-center hover:scale-110 hover:border-primary transition z-10 tilt-layer-2"
+        aria-label="Toggle watchlist"
+      >
+        <Heart className={`w-4 h-4 ${isFav ? "fill-primary text-primary" : "text-foreground"}`} />
+      </button>
 
       <div className="p-4 flex-1 flex flex-col gap-2 relative tilt-layer-1">
         <div className="flex items-start justify-between gap-2">
@@ -186,79 +161,6 @@ export function NFTCard({ nft, listing, onBuy }: { nft: NFTMeta; listing?: Listi
           )}
         </div>
       </div>
-
-      {/* Cinematic Quick View modal */}
-      <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
-        <DialogContent className="max-w-4xl bg-popover/95 backdrop-blur-xl border-white/15 overflow-hidden p-0">
-          <div className="grid md:grid-cols-2 gap-0">
-            <div
-              ref={viewerRef}
-              onMouseMove={onViewerMove}
-              onMouseLeave={onViewerLeave}
-              className="tilt-3d luxe-border spotlight relative aspect-square bg-gradient-to-br from-fuchsia-500/20 via-pink-400/10 to-sky-400/20 overflow-hidden"
-              style={{ perspective: "1400px" }}
-            >
-              {nft.image ? (
-                <img src={nft.image} alt={nft.name} className="absolute inset-4 w-[calc(100%-2rem)] h-[calc(100%-2rem)] object-contain rounded-xl shadow-[0_40px_80px_-20px_rgba(236,72,153,0.55)] tilt-layer-2" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-7xl">🌸</div>
-              )}
-              <div className="pointer-events-none absolute top-4 left-4 badge-luxe tilt-layer-3"><Sparkles className="w-3 h-3" /> #{id}</div>
-              {listing && (
-                <div className="pointer-events-none absolute bottom-4 left-4 badge-luxe tilt-layer-3">
-                  {(+listing.priceEth).toFixed(4)} {CHAIN.symbol}
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 flex flex-col gap-4 spring-in">
-              <DialogHeader>
-                <DialogTitle className="text-luxe-h text-3xl gold-text">{nft.name}</DialogTitle>
-              </DialogHeader>
-              {collection?.name && (
-                <div className="flex items-center gap-2 text-sm">
-                  {collection.logo_url && <img src={collection.logo_url} alt="" className="w-5 h-5 rounded-full" />}
-                  <span>{collection.name}</span>
-                  {collection.verified && <BadgeCheck className="w-4 h-4 text-sky-400" />}
-                </div>
-              )}
-              <p className="text-sm text-muted-foreground line-clamp-6 whitespace-pre-line">
-                {nft.description || "Winter sakura artefak on-chain — kilau emas dan biru salju yang dipadukan dalam satu koleksi limited."}
-              </p>
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                <div className="rounded-xl p-3 border border-border/60 bg-card/70">
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Owner</div>
-                  <div className="font-mono text-sm truncate">{shortAddr(nft.owner)}</div>
-                </div>
-                <div className="rounded-xl p-3 border border-border/60 bg-card/70">
-                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Price</div>
-                  <div className="font-semibold gold-text">{listing ? `${(+listing.priceEth).toFixed(4)} ${CHAIN.symbol}` : "Not listed"}</div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-auto pt-2">
-                {listing && onBuy && !isOwner && (
-                  <button className="btn-luxe" onClick={() => { setQuickOpen(false); onBuy(); }}>
-                    <ShoppingCart className="w-4 h-4" /> Buy Now
-                  </button>
-                )}
-                {!isOwner && (
-                  <button className="btn-frost" onClick={() => { setQuickOpen(false); setOfferOpen(true); }}>
-                    <Send className="w-4 h-4" /> Make Offer
-                  </button>
-                )}
-                <Link to="/marketplace/$id" params={{ id }} className="btn-frost" onClick={() => setQuickOpen(false)}>
-                  <Eye className="w-4 h-4" /> Full Details
-                </Link>
-                {isOwner && (
-                  <Link to="/marketplace/$id" params={{ id }} className="btn-luxe" onClick={() => setQuickOpen(false)}>
-                    <Tag /> List / Manage
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
