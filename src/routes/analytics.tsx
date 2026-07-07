@@ -6,10 +6,8 @@ import { useAllListings, useAllNFTs } from "@/lib/web3/hooks";
 import { CHAIN, CONTRACTS } from "@/lib/web3/contracts";
 import { TOKENS } from "@/lib/tokens";
 import { getPairInfo, formatEther } from "@/lib/web3/ethers";
-import { fetchCollectionHistory, fetchRecentSales, type CollectionHistoryPoint, type RecentSale } from "@/lib/web3/history";
+import { fetchCollectionHistory, type CollectionHistoryPoint } from "@/lib/web3/history";
 import { ChartSkeleton, TableSkeleton } from "@/components/Skeletons";
-import { useCollections } from "@/lib/collections";
-import { BadgeCheck } from "lucide-react";
 
 export const Route = createFileRoute("/analytics")({
   component: Analytics,
@@ -75,29 +73,19 @@ function PairTick(props: any) {
 function Analytics() {
   const { nfts } = useAllNFTs();
   const { listings } = useAllListings();
-  const { cols: allCols, verifiedCount } = useCollections();
   const [pools, setPools] = useState<PoolStat[]>([]);
   const [poolsLoading, setPoolsLoading] = useState(true);
   const [history, setHistory] = useState<CollectionHistoryPoint[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
-  const [recentSales, setRecentSales] = useState<RecentSale[]>([]);
-  const [salesLoading, setSalesLoading] = useState(true);
-
-  const verifiedCols = useMemo(() => allCols.filter((c) => c.verified).slice(0, 12), [allCols]);
 
   useEffect(() => {
     let alive = true;
     setHistoryLoading(true);
-    setSalesLoading(true);
     fetchCollectionHistory()
       .then((h) => { if (alive) { setHistory(h); setHistoryLoading(false); } })
       .catch(() => { if (alive) setHistoryLoading(false); });
-    fetchRecentSales(25)
-      .then((r) => { if (alive) { setRecentSales(r); setSalesLoading(false); } })
-      .catch(() => { if (alive) setSalesLoading(false); });
     return () => { alive = false; };
   }, []);
-
 
   // ---- DEX pool stats: probe every token vs wzkLTC ----
   useEffect(() => {
@@ -164,22 +152,6 @@ function Analytics() {
   }, [history]);
 
   const dexTvl = pools.reduce((s, p) => s + p.tvlEth, 0);
-
-  // ---- Top traders derived from recent sales feed ----
-  const topTraders = useMemo(() => {
-    const map = new Map<string, { addr: string; bought: number; sold: number; volume: number; trades: number }>();
-    const bump = (addr: string, kind: "bought" | "sold", vol: number) => {
-      const k = addr.toLowerCase();
-      const cur = map.get(k) ?? { addr, bought: 0, sold: 0, volume: 0, trades: 0 };
-      cur[kind] += 1;
-      cur.volume += vol;
-      cur.trades += 1;
-      map.set(k, cur);
-    };
-    for (const s of recentSales) { bump(s.buyer, "bought", s.priceEth); bump(s.seller, "sold", s.priceEth); }
-    return [...map.values()].sort((a, b) => b.volume - a.volume).slice(0, 8);
-  }, [recentSales]);
-
 
   return (
     <div className="space-y-8">
@@ -295,96 +267,6 @@ function Analytics() {
             </ul>
           </Section>
         </div>
-      </section>
-
-      {/* ===== Top Traders + Recent Sales ===== */}
-      <section className="grid lg:grid-cols-2 gap-4">
-        <Section title="Top Traders (recent)" right={<span className="text-[10px] dex-muted opacity-80">{salesLoading ? "Scanning…" : `${topTraders.length} wallets`}</span>}>
-          {salesLoading ? <TableSkeleton rows={5} /> : topTraders.length === 0 ? (
-            <p className="text-xs dex-muted py-6 text-center">No trades in the recent window.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-xs dex-muted uppercase">
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-2 px-2">#</th>
-                    <th className="text-left py-2 px-2">Wallet</th>
-                    <th className="text-right py-2 px-2">Trades</th>
-                    <th className="text-right py-2 px-2">Volume</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topTraders.map((t, i) => (
-                    <tr key={t.addr} className="border-b border-white/5 hover:bg-white/[0.02]">
-                      <td className="py-2 px-2 text-fuchsia-300 font-bold">{i + 1}</td>
-                      <td className="py-2 px-2 font-mono text-xs">
-                        <a href={`/u/${t.addr}`} className="hover:text-primary">{t.addr.slice(0, 6)}…{t.addr.slice(-4)}</a>
-                        <span className="ml-2 text-[10px] dex-muted">B{t.bought}·S{t.sold}</span>
-                      </td>
-                      <td className="py-2 px-2 text-right">{t.trades}</td>
-                      <td className="py-2 px-2 text-right font-semibold text-fuchsia-300">{t.volume.toFixed(4)} {CHAIN.symbol}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Section>
-
-        <Section title="Recent Sales" right={<span className="text-[10px] dex-muted opacity-80">{salesLoading ? "…" : `${recentSales.length} sales`}</span>}>
-          {salesLoading ? <TableSkeleton rows={5} /> : recentSales.length === 0 ? (
-            <p className="text-xs dex-muted py-6 text-center">No sales recorded yet.</p>
-          ) : (
-            <div className="overflow-y-auto max-h-[360px] pr-1 space-y-2">
-              {recentSales.map((s) => (
-                <a key={s.tx} href={`/marketplace/${s.tokenId}`} className="flex items-center justify-between rounded-xl px-3 py-2 bg-white/[0.02] border border-white/5 hover:border-fuchsia-400/40 transition">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold">#{s.tokenId}</div>
-                    <div className="text-[10px] dex-muted font-mono truncate">{s.seller.slice(0, 6)}… → {s.buyer.slice(0, 6)}…</div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-bold text-fuchsia-300">{s.priceEth.toFixed(4)} {CHAIN.symbol}</div>
-                    <div className="text-[10px] dex-muted">{new Date(s.timestamp * 1000).toLocaleDateString()}</div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </Section>
-      </section>
-
-      {/* ===== Verified Collections ===== */}
-
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <BadgeCheck className="w-5 h-5 text-sky-400" />
-          <h2 className="text-xl font-bold text-foreground">Verified Collections</h2>
-          <span className="text-xs dex-muted">{verifiedCount} verified</span>
-        </div>
-        {verifiedCols.length === 0 ? (
-          <div className="rounded-2xl p-6 bg-white/[0.02] border border-white/10 text-center text-xs dex-muted">
-            No verified collections yet. Verified creators get a checkmark badge across the marketplace.
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {verifiedCols.map((c) => (
-              <div key={c.contract_address} className="rounded-2xl p-3 bg-white/[0.02] border border-white/10 hover:border-sky-400/40 transition flex items-center gap-2">
-                {c.logo_url ? (
-                  <img src={c.logo_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" loading="lazy" decoding="async" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-fuchsia-500/40 to-pink-500/40 flex items-center justify-center text-lg shrink-0">🌸</div>
-                )}
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate flex items-center gap-1">
-                    {c.name || c.contract_address}
-                    <BadgeCheck className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                  </div>
-                  <div className="text-[10px] dex-muted truncate">{c.contract_address}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </section>
 
       {/* ===== DEX ===== */}
