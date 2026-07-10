@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Likes owner read" ON public.nft_likes;
