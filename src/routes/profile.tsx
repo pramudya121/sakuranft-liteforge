@@ -15,7 +15,7 @@ import { shortAddr } from "@/lib/web3/ethers";
 import { CHAIN } from "@/lib/web3/contracts";
 import { useProfile, useWatchlist, type DBProfile } from "@/lib/supabase-hooks";
 import { toast } from "sonner";
-import { safeHttpUrl, safeCssUrl } from "@/lib/safe-url";
+import { safeHttpUrl, safeCssUrl, safeTwitterHandle } from "@/lib/safe-url";
 import { useInfiniteSlice } from "@/hooks/use-infinite-slice";
 import { NFTCardSkeleton } from "@/components/Skeletons";
 export const Route = createFileRoute("/profile")({
@@ -113,7 +113,7 @@ function Profile() {
             </div>
             <p className="mt-3 text-sm text-foreground/90 max-w-2xl">{profile?.bio || "No bio yet — tell the community what you collect."}</p>
             <div className="flex gap-3 mt-3 justify-center md:justify-start">
-              {profile?.twitter && <a href={`https://twitter.com/${profile.twitter}`} target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
+              {safeTwitterHandle(profile?.twitter) && <a href={`https://twitter.com/${safeTwitterHandle(profile?.twitter)}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Twitter className="w-4 h-4" /></a>}
               {safeHttpUrl(profile?.website) && <a href={safeHttpUrl(profile?.website)} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary"><Globe className="w-4 h-4" /></a>}
             </div>
           </div>
@@ -276,7 +276,16 @@ function EditDialog({ profile, onSave }: { profile: DBProfile | null; onSave: (p
               toast.error("Website must start with http:// or https://");
               return;
             }
-            await onSave(draft); setOpen(false);
+            let next = draft;
+            if (draft.twitter && draft.twitter.trim()) {
+              const handle = safeTwitterHandle(draft.twitter);
+              if (!handle) {
+                toast.error("Twitter handle must be letters, digits, or underscore (max 15 chars).");
+                return;
+              }
+              next = { ...draft, twitter: handle };
+            }
+            await onSave(next); setOpen(false);
           }} className="w-full" disabled={!!uploading}>Save</Button>
         </div>
       </DialogContent>
