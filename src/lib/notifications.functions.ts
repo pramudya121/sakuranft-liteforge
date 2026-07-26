@@ -45,7 +45,7 @@ export type SendNotificationInput = z.infer<typeof Schema>;
 export const sendNotificationFn = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => Schema.parse(data))
   .handler(async ({ data }) => {
-    const rawCaller = getHeader("x-wallet-address") ?? "";
+    const rawCaller = getRequestHeader("x-wallet-address") ?? "";
     const caller = rawCaller.toLowerCase();
     if (!/^0x[a-f0-9]{40}$/.test(caller)) {
       return { ok: false, error: "unauthenticated" };
