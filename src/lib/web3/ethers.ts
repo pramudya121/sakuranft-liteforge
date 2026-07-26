@@ -1,6 +1,7 @@
 import { BrowserProvider, Contract, JsonRpcProvider, Network, parseEther, formatEther, type Eip1193Provider } from "ethers";
 import { CHAIN, CONTRACTS, MARKETPLACE_ABI, NFT_ABI, OFFER_ABI, ROUTER_ABI, FACTORY_ABI, ERC20_ABI, PAIR_ABI } from "./contracts";
 import { ipfsToHttp } from "@/lib/ipfs";
+import { trackTx } from "./tx-toast";
 
 declare global {
   interface Window {
@@ -152,8 +153,8 @@ export async function mintNFT(
   const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, signer);
   const to = await signer.getAddress();
   const tx = await nft.mintNFT(to, tokenUri);
-  onProgress?.("Minting on-chain...");
-  const receipt = await tx.wait();
+  onProgress?.(`Minting on-chain (tx ${tx.hash.slice(0, 10)}…)`);
+  const receipt = await trackTx(tx, "Mint NFT");
   onProgress?.("Minted!");
   return receipt;
 }
@@ -163,11 +164,11 @@ export async function listNFT(signer: any, tokenId: bigint | number, priceEth: s
   const approved = await nft.getApproved(tokenId);
   if (approved.toLowerCase() !== CONTRACTS.marketplace.toLowerCase()) {
     const tx0 = await nft.approve(CONTRACTS.marketplace, tokenId);
-    await tx0.wait();
+    await trackTx(tx0, "Approve NFT");
   }
   const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, signer);
   const tx = await mp.listNFT(CONTRACTS.nftCollection, tokenId, parseEther(priceEth));
-  return tx.wait();
+  return trackTx(tx, "List NFT");
 }
 
 export async function buyNFT(signer: any, listingId: bigint | number, priceWei: bigint) {
