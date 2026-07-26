@@ -179,19 +179,19 @@ export async function buyNFT(signer: any, listingId: bigint | number, priceWei: 
     throw new Error("Listing price changed. Please review the latest price.");
   }
   const tx = await mp.buyNFT(listingId, { value: current.price as bigint });
-  return tx.wait();
+  return trackTx(tx, "Buy NFT");
 }
 
 export async function cancelListing(signer: any, listingId: bigint | number) {
   const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, signer);
   const tx = await mp.cancelListing(listingId);
-  return tx.wait();
+  return trackTx(tx, "Cancel listing");
 }
 
 export async function updateListingPrice(signer: any, listingId: bigint | number, newPriceEth: string) {
   const mp = new Contract(CONTRACTS.marketplace, MARKETPLACE_ABI, signer);
   const tx = await mp.updateListingPrice(listingId, parseEther(newPriceEth));
-  return tx.wait();
+  return trackTx(tx, "Update price");
 }
 
 // Transfer NFT to another wallet
@@ -199,21 +199,21 @@ export async function transferNFT(signer: any, to: string, tokenId: bigint | num
   const nft = new Contract(CONTRACTS.nftCollection, NFT_ABI, signer);
   const from = await signer.getAddress();
   const tx = await nft.transferFrom(from, to, tokenId);
-  return tx.wait();
+  return trackTx(tx, "Transfer NFT");
 }
 
 // Wrap native zkLTC -> WETH
 export async function wrapNative(signer: any, amountEth: string) {
   const w = new Contract(CONTRACTS.weth, ERC20_ABI, signer);
   const tx = await w.deposit({ value: parseEther(amountEth) });
-  return tx.wait();
+  return trackTx(tx, "Wrap zkLTC");
 }
 
 // Unwrap WETH -> native
 export async function unwrapNative(signer: any, amountEth: string) {
   const w = new Contract(CONTRACTS.weth, ERC20_ABI, signer);
   const tx = await w.withdraw(parseEther(amountEth));
-  return tx.wait();
+  return trackTx(tx, "Unwrap WETH");
 }
 
 // Read marketplace fee (basis points) + fee recipient
@@ -229,26 +229,26 @@ export async function getMarketplaceFeeInfo() {
 export async function makeOffer(signer: any, tokenId: bigint | number, priceEth: string) {
   const c = new Contract(CONTRACTS.offer, OFFER_ABI, signer);
   const tx = await c.makeOffer(CONTRACTS.nftCollection, tokenId, { value: parseEther(priceEth) });
-  return tx.wait();
+  return trackTx(tx, "Make offer");
 }
 
 export async function acceptOffer(signer: any, tokenId: bigint | number, offerIdx: bigint | number) {
   const c = new Contract(CONTRACTS.offer, OFFER_ABI, signer);
   const tx = await c.acceptOffer(CONTRACTS.nftCollection, tokenId, offerIdx);
-  return tx.wait();
+  return trackTx(tx, "Accept offer");
 }
 
 export async function cancelOffer(signer: any, tokenId: bigint | number, offerIdx: bigint | number) {
   const c = new Contract(CONTRACTS.offer, OFFER_ABI, signer);
   const tx = await c.cancelOffer(CONTRACTS.nftCollection, tokenId, offerIdx);
-  return tx.wait();
+  return trackTx(tx, "Cancel offer");
 }
 
 // ---------- DEX ----------
 export async function wrapEth(signer: any, amountEth: string) {
   const weth = new Contract(CONTRACTS.weth, ERC20_ABI, signer);
   const tx = await weth.deposit({ value: parseEther(amountEth) });
-  return tx.wait();
+  return trackTx(tx, "Wrap zkLTC");
 }
 
 export async function approveToken(signer: any, token: string, spender: string, amount: bigint) {
@@ -257,7 +257,7 @@ export async function approveToken(signer: any, token: string, spender: string, 
   const current: bigint = await t.allowance(owner, spender);
   if (current >= amount) return null;
   const tx = await t.approve(spender, amount);
-  return tx.wait();
+  return trackTx(tx, "Approve token");
 }
 
 // Convert decimal slippage % (e.g. 0.5, 1, 3) to integer basis points safely.
@@ -276,7 +276,7 @@ export async function swapExactETHForTokens(signer: any, tokenOut: string, amoun
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.swapExactETHForTokens(minOut, path, to, deadline, { value: amountIn });
-  return tx.wait();
+  return trackTx(tx, "Swap");
 }
 
 export async function swapExactTokensForETH(signer: any, tokenIn: string, amountIn: bigint, slippagePct = 1) {
@@ -288,7 +288,7 @@ export async function swapExactTokensForETH(signer: any, tokenIn: string, amount
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.swapExactTokensForETH(amountIn, minOut, path, to, deadline);
-  return tx.wait();
+  return trackTx(tx, "Swap");
 }
 
 /** Multi-hop swap with a custom path (smart routing). */
@@ -301,7 +301,7 @@ export async function swapExactTokensForTokens(signer: any, amountIn: bigint, pa
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.swapExactTokensForTokens(amountIn, minOut, path, to, deadline);
-  return tx.wait();
+  return trackTx(tx, "Swap");
 }
 
 
@@ -370,7 +370,7 @@ export async function addLiquidityETH(signer: any, token: string, tokenAmount: b
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.addLiquidityETH(token, tokenAmount, 0n, 0n, to, deadline, { value: parseEther(ethAmountEth) });
-  return tx.wait();
+  return trackTx(tx, "Add liquidity");
 }
 
 export async function removeLiquidityETH(signer: any, token: string, liquidity: bigint, pairAddr: string) {
@@ -380,7 +380,7 @@ export async function removeLiquidityETH(signer: any, token: string, liquidity: 
   const to = await signer.getAddress();
   const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
   const tx = await router.removeLiquidityETH(token, liquidity, 0n, 0n, to, deadline);
-  return tx.wait();
+  return trackTx(tx, "Remove liquidity");
 }
 
 // ---------- helpers ----------
