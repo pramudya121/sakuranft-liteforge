@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getHeader } from "@tanstack/react-start/server";
+import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const ALLOWED_TYPES = new Set([
